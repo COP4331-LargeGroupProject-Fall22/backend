@@ -1,0 +1,1 @@
+# large-group-project-placeholder
