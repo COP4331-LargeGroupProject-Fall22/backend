@@ -3,7 +3,6 @@ import { stringify } from "querystring";
 import { IDatabase } from '../../database/IDatabase';
 import { IUser } from "../model/user/IUser";
 
-
 export class UserController {
     private database: IDatabase;
 

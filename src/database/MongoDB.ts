@@ -28,10 +28,10 @@ export class MongoDB implements IDatabase {
 
             return this;
         } catch(e) {
-            console.log('Boom!');
+            console.log('💥 Boom!');
             exit(1);
         } finally {
-            console.log(`Successfully connected to database: ${this.database.databaseName} and collection: ${this.userCollection.collectionName}`);
+            console.log(`☁️ Successfully connected to database: ${this.database.databaseName} and collection: ${this.userCollection.collectionName}`);
         }
     }
 
@@ -49,7 +49,6 @@ export class MongoDB implements IDatabase {
 
         return user;
     }
-
 
     private async GetUserById(id: string): Promise<IUser | null> {
         const user = this.userCollection.findOne(
