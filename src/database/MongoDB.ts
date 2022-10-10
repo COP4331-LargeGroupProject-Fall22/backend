@@ -1,25 +1,25 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { MongoClient, Collection, Db, ObjectId } from 'mongodb';
+import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
 import { exit } from 'process';
 
 import { IUser } from '../api/model/user/IUser';
-import { IDatabase } from './IDatabase';
+import { IUserDatabase } from './IUserDatabase';
 
-export class MongoDB implements IDatabase {
+export class MongoDB implements IUserDatabase {
     protected static dbURL: string = process.env.DB_CONNECTION_STRING!;
     protected static dbName: string = process.env.DB_NAME!;
     protected static collectionName: string = process.env.DB_USERS_COLLECTION!;
+
+    private static instance: MongoDB;
 
     protected client!: MongoClient;
 
     protected database!: Db;
     protected userCollection!: Collection<IUser>;
 
-    constructor() {}
-
-    connectToDatabase(): MongoDB {
+    private constructor() {
         try {
             this.client = new MongoClient(MongoDB.dbURL);
         
@@ -35,17 +35,27 @@ export class MongoDB implements IDatabase {
         }
     }
 
-    async GetUsers(parameters: Object | null = null): Promise<IUser[] | null> {
-        // type Summary = Pick<IUser, "name">;
-        const users = this.userCollection.find();
+    static connectToDatabase(): MongoDB {
+        if (!MongoDB.instance)
+            MongoDB.instance = new MongoDB();
         
+        return MongoDB.instance;
+    }
+
+    async GetUsers(parameters?: Map<String, any>): Promise<Partial<IUser>[] | null> {
+        const users = this.userCollection.find()
+            .project({ firstName:1, lastName:1, lastSeen:1, _id: 0 });
+
         return users.toArray();
     }
 
-    async GetUser(parameters: Map<String, String> | null): Promise<IUser | null> {
-        const user = this.userCollection.findOne(
-            { username: parameters?.get("username") }
-        );
+    async GetUser(parameters: Map<String, any>): Promise<IUser | null> { 
+        let filter: Filter<any> = Object.fromEntries(parameters);
+        
+        if (filter._id !== undefined)
+            filter._id = new ObjectId(filter._id);
+
+        const user = this.userCollection.findOne(filter);
 
         return user;
     }
@@ -70,11 +80,9 @@ export class MongoDB implements IDatabase {
             { 
                 $set: 
                 {
-                    "username": user.username,
-                    "password": user.password,
+                    "uid": user.uid,
                     "firstName": user.firstName,
                     "lastName": user.lastName,
-                    "email": user.email,
                     "lastSeen": user.lastSeen
                 }
             }

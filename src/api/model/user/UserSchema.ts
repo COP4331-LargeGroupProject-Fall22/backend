@@ -9,14 +9,7 @@ export class UserSchema implements IUser {
     lastName: string;
     
     @IsNotEmpty()
-    @IsEmail()
-    email: string;
-
-    @IsNotEmpty()
-    username: string;
-
-    @IsNotEmpty()
-    password: string;
+    uid: string;
 
     @IsInt()
     lastSeen: number;
@@ -24,15 +17,11 @@ export class UserSchema implements IUser {
     constructor(
         firstName: string,
         lastName: string,
-        email: string,
-        username: string,
-        password: string
+        uid: string
     ) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.email = email;
-        this.username = username;
-        this.password = password;
+        this.uid = uid;
         this.lastSeen = 0; 
     }
 }

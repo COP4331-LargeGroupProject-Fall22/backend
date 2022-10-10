@@ -1,9 +1,9 @@
 import { IUser } from "../api/model/user/IUser";
 
-export interface IDatabase {
-    GetUsers(parameters: Map<String, String>|null): Promise<IUser[] | null>;
+export interface IUserDatabase {
+    GetUsers(parameters?: Map<String, any>): Promise<Partial<IUser>[] | null>;
 
-    GetUser(parameters: Map<String, String>|null): Promise<IUser | null>;
+    GetUser(parameters: Map<String, any>): Promise<IUser | null>;
     
     CreateUser(user: IUser): Promise<IUser | null>;
     

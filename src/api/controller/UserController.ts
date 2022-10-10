@@ -1,58 +1,38 @@
 import { Validator } from "../../utils/Validator";
 import { Request, Response } from "express";
-import { IDatabase } from '../../database/IDatabase';
+import { IUserDatabase } from '../../database/IUserDatabase';
 import { UserSchema } from '../model/user/UserSchema';
+import { ObjectId } from "mongodb";
 
 export class UserController {
-    private database: IDatabase;
+    private database: IUserDatabase;
 
-    constructor(database: IDatabase) {
+    constructor(database: IUserDatabase) {
         this.database = database;
     }
 
-    getUsers = (req: Request, res: Response) => {
-        this.database.GetUsers(null)
+    getUsers = async (req: Request, res: Response) => {
+        this.database.GetUsers()
             .then(users => res.status(200).json({ success: true, data: users }));
     }
 
-    getUser = (req: Request, res: Response) => {
-        let parameters = new Map<String, String>([
-            ["username", req.params.username]
-        ]);
+    getUser = async (req: Request, res: Response) => {
+        let userID = req.params.id;
 
-        this.database.GetUser(parameters)
-            .then(user => res.status(200).json({ success: true, data: user }));
-    }
+        const validator = new Validator();
 
-    postUser = async (req: Request, res: Response) => {
-        const newUser =
-            new UserSchema(
-                req.body.firstName,
-                req.body.lastName,
-                req.body.email,
-                req.body.username,
-                req.body.password,
-            );
-
-        const validator = new Validator<UserSchema>();
-
-        let logs = await validator.validate(newUser);
+        let logs = await validator.validateObjectId(userID)
 
         if (logs.length > 0)
             res.status(400).json({ success: false, data: logs });
         else {
-            let existingUser = await this.database.GetUser(new Map([["username", newUser.username]]));
 
-            if (existingUser !== null)
-                res.status(400).json({ success: false, data: `username ${newUser.username} already exists` });
-            else {
-                let createdUser = await this.database.CreateUser(newUser);
+            let parameters = new Map<String, any>([
+                ["_id", userID]
+            ]);
 
-                if (createdUser === null)
-                    res.status(400).json({ success: false, data: newUser });
-                else
-                    res.status(200).json({ success: true, data: newUser });
-            }
+            this.database.GetUser(parameters)
+                .then(user => res.status(200).json({ success: true, data: user }));
         }
     }
 
@@ -63,9 +43,7 @@ export class UserController {
             new UserSchema(
                 req.body.firstName,
                 req.body.lastName,
-                req.body.email,
-                req.body.username,
-                req.body.password,
+                req.uid === undefined ? "" : req.uid
             );
 
         const validator = new Validator<UserSchema>();
@@ -76,7 +54,7 @@ export class UserController {
         if (logs.length > 0)
             res.status(400).json({ success: false, data: logs });
         else {
-            let existingUser = await this.database.GetUser(new Map([["username", newUser.username]]));
+            let existingUser = await this.database.GetUser(new Map([["_id", userID]]));
 
             if (existingUser === null)
                 res.status(400).json({ success: false, data: null });

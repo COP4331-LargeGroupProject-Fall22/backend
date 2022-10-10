@@ -8,7 +8,7 @@
     "module": "commonjs",                                /* Specify what module code is generated. */
     "rootDir": "src",                                    /* Specify the root folder within your source files. */
     "resolveJsonModule": true,                           /* Enable importing .json files. */
-
+    
     /* JavaScript Support */
     "allowJs": true,                                     /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
     "outDir": "build",                                   /* Specify an output folder for all emitted files. */
@@ -24,5 +24,14 @@
 
     /* Completeness */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  },
+  /* 
+    since we are using declaration merging for Express types we have to specifically let ts-node know that it 
+    has to compile additional files in src folder. 
+
+    P.S. ts-node compiler is used for nodemon
+  */
+  "ts-node": {
+    "files": true
   }
 }
