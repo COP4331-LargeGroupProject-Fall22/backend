@@ -1,5 +1,4 @@
-import express, { Request, Response } from "express";
-import { exit } from "process";
+import { Request, Response } from "express";
 import { IUserDatabase } from "../../database/IUserDatabase";
 import { Validator } from "../../utils/Validator";
 import { UserSchema } from "../model/user/UserSchema";

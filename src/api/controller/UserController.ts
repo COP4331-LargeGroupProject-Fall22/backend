@@ -2,7 +2,6 @@ import { Validator } from "../../utils/Validator";
 import { Request, Response } from "express";
 import { IUserDatabase } from '../../database/IUserDatabase';
 import { UserSchema } from '../model/user/UserSchema';
-import { ObjectId } from "mongodb";
 
 export class UserController {
     private database: IUserDatabase;
