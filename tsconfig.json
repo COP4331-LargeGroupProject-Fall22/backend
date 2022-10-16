@@ -33,5 +33,6 @@
   */
   "ts-node": {
     "files": true
-  }
+  },
+  "exclude": ["./jest.config.js"]
 }

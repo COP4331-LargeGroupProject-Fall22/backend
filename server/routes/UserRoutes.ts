@@ -3,12 +3,22 @@
  */
 import express from 'express';
 import { UserController } from '../api/controller/UserController';
-import { MongoDB } from '../database/MongoDB';
+import { UserDatabase } from '../database/MongoDB';
 import { Authenticator } from '../authentication/Authenticator';
 
 export const userRoute = express.Router();
 
-const userController = new UserController(MongoDB.connectToDatabase());
+let databaseURL = process.env.DB_CONNECTION_STRING;
+let databaseName = process.env.DB_NAME;
+let collectionName = process.env.DB_USERS_COLLECTION;
+
+const userController = new UserController(
+    UserDatabase.connect(
+        databaseURL,
+        databaseName,
+        collectionName
+    )
+);
 
 userRoute.use(new Authenticator().authenticate);
 

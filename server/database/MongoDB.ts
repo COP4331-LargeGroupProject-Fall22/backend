@@ -12,12 +12,8 @@ import { IUserDatabase } from './IUserDatabase';
  * It uses Singelton design pattern to avoid establishing several connection to the same database inside of one
  * application instance.
  */
-export class MongoDB implements IUserDatabase {
-    protected static dbURL: string = process.env.DB_CONNECTION_STRING!;
-    protected static dbName: string = process.env.DB_NAME!;
-    protected static collectionName: string = process.env.DB_USERS_COLLECTION!;
-
-    private static instance: MongoDB;
+export class UserDatabase implements IUserDatabase {
+    private static instance?: UserDatabase;
 
     protected client!: MongoClient;
 
@@ -28,12 +24,12 @@ export class MongoDB implements IUserDatabase {
      * Initializes MongoClient, database and userCollection properties of the MongoDB class.
      * @returns MongoDB object.
      */
-    private constructor() {
+    private constructor(mongoURL: string, name: string, collection: string) {
         try {
-            this.client = new MongoClient(MongoDB.dbURL);
+            this.client = new MongoClient(mongoURL);
         
-            this.database = this.client.db(MongoDB.dbName);
-            this.userCollection = this.database.collection<IUser>(MongoDB.collectionName);
+            this.database = this.client.db(name);
+            this.userCollection = this.database.collection<IUser>(collection);
 
             return this;
         } catch(e) {
@@ -49,12 +45,19 @@ export class MongoDB implements IUserDatabase {
      * 
      * @returns MongoDB object.
      */
-    static connectToDatabase(): MongoDB {
-        if (!MongoDB.instance) {
-            MongoDB.instance = new MongoDB();
+    static connect(mongoURL: string, name: string, collection: string): UserDatabase {
+        if (UserDatabase.instance === undefined) {
+            UserDatabase.instance = new UserDatabase(mongoURL, name, collection);
         }
 
-        return MongoDB.instance;
+        return UserDatabase.instance;
+    }
+
+    async disconnect() {
+        if (this.client) {
+            await this.client.close();
+            UserDatabase.instance = undefined;
+        }
     }
 
     /**

@@ -18,7 +18,7 @@ server.listen(5000, () => {
     console.log('🚀 Server is running');
 });
 
-server.use(Logger.consoleLog);
+// server.use(Logger.consoleLog);
 server.use(express.static(path.resolve(__dirname, './api/view/html/public')));
 
 server.use('/api', userRoute);
@@ -27,3 +27,5 @@ server.use('/auth', authenticationRoute);
 server.all('*', (req, res) => {
     res.status(404).send('<h1> resource not found </h1>');
 });
+
+export { server };
