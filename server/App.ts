@@ -14,17 +14,18 @@
  
  const app = express();
  
- const server = (port: number) => {
-     app.listen(port, () => {
-         console.log(`🚀 Server is running on port ${port}`);
-     });
- }
- 
  app.use(Logger.consoleLog);
  app.use(express.static(path.resolve(__dirname, './serverAPI/view/html/public')));
  
  app.use('/', userRoute);
  app.use('/auth', authenticationRoute);
  
+ const server = (port: number) => {
+    app.listen(port, () => {
+        console.log(`🚀 Server is running on port ${port}`);
+    });
+}
+
  export { app, server };
+ 
  
