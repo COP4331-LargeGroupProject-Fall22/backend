@@ -48,8 +48,13 @@ export class UserController {
                 ["_id", userID]
             ]);
 
-            this.database.GetUser(parameters)
-                .then(user => res.status(200).json({ success: true, data: user }));
+            let userFound = await this.database.GetUser(parameters);
+
+            if (userFound === null) {
+                res.status(404).json({ success: false, data: null });
+            } else {
+                res.status(200).json({ success: true, data: userFound });
+            }
         }
     }
     /**
@@ -66,7 +71,7 @@ export class UserController {
             new UserSchema(
                 req.body.firstName,
                 req.body.lastName,
-                req.uid === undefined ? "" : req.uid
+                req.body.uid
             );
 
         const validator = new Validator<UserSchema>();
@@ -80,7 +85,7 @@ export class UserController {
             let existingUser = await this.database.GetUser(new Map([["_id", userID]]));
 
             if (existingUser === null) {
-                res.status(400).json({ success: false, data: null });
+                res.status(404).json({ success: false, data: null });
             } else {
                 let updatedUser = await this.database.UpdateUser(userID, newUser);
 
@@ -110,7 +115,7 @@ export class UserController {
             if (result) {
                 res.status(200).json({ success: true, data: null });
             } else {
-                res.status(400).json({ success: false, data: null });
+                res.status(404).json({ success: false, data: null });
             }
         }
     }

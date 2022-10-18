@@ -3,4 +3,3 @@ package-lock.json
 build/
 node_modules/
 food-app*.json
-/server/test/userEndpoints.test.ts

@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 /**
  * This class is used for real-time logging of the API request.
  */
-export class Logger {
+export default class Logger {
     /**
      * This method is used for console logging of the API request related information.
      * 
@@ -14,7 +14,7 @@ export class Logger {
     static consoleLog(req: Request, res: Response, next: NextFunction): void {
         let date = new Date();
 
-        console.log(req.method, req.url, res.statusCode, date.toUTCString());
+        console.log(req.method, req.url, date.toUTCString());
         next();
     }
 }

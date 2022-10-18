@@ -1,13 +1,13 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { IUser } from "../api/model/user/IUser";
-import { UserDatabase } from "../database/MongoDB";
+import { IUser } from "../../api/model/user/IUser";
+import { UserDatabase } from "../../database/UserDatabase";
 
 describe('User database functionality', () => {
     let userDB: UserDatabase
-
-    let databaseURL = process.env.DB_CONNECTION_STRING_TESTING;
+    
+    let databaseURL = (global as any).__MONGO_URI__;
     let databaseName = process.env.DB_NAME;
     let collectionName = process.env.DB_USERS_COLLECTION;
     
@@ -56,7 +56,7 @@ describe('User database functionality', () => {
             let actual: any = await userDB.CreateUser(mockUser);
             uid = actual?.uid;
             _id = actual?._id;
-
+            
             expect(actual).toMatchObject(mockUser);
         });
     });
@@ -64,7 +64,7 @@ describe('User database functionality', () => {
     describe('get', () => {
         it ('get users summary', async () => {
             let actual = await userDB.GetUsers();
-
+            
             expect(actual).toMatchObject([mockUserSummary]);
         });
 

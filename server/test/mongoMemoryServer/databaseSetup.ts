@@ -2,6 +2,7 @@ import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 import * as dotenv from 'dotenv';
+import { UserDatabase } from '../../database/UserDatabase';
 dotenv.config();
 
 export = async function globalSetup() {
@@ -12,11 +13,13 @@ export = async function globalSetup() {
 
   (global as any).__MONGOINSTANCE = instance;
 
-  process.env.DB_CONNECTION_STRING_TESTING = uri.slice(0, uri.lastIndexOf('/'));
+  let DB_URL = uri.slice(0, uri.lastIndexOf('/'));
 
-  let client = await MongoClient.connect(process.env.DB_CONNECTION_STRING_TESTING);
+  let client = await MongoClient.connect(DB_URL);
   await client.db(process.env.DB_NAME).dropDatabase();
   await client.db(process.env.DB_NAME).createCollection(process.env.DB_USERS_COLLECTION);
 
   await client.close();
+
+  await instance.stop();
 };

@@ -10,7 +10,8 @@ admin.initializeApp({
  * This class implements IAuthenticator interface and creates a middleware which is based on Firebase-Admin API and can be used
  * for authentication of the accessToken.
  */
-export class Authenticator implements IAuthenticator {
+export default class Authenticator implements IAuthenticator {
+    constructor() {}
     /**
      * This method provides authnetication logic for user authentication using Firebase-Admin API and
      * accessToken which is accessed through authorization header of the request.

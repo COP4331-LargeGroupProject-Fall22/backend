@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --verbose",
     "start:dev": "nodemon",
     "start": "ts-node ./server/Server.ts"
   },
@@ -25,6 +25,7 @@
     "typescript": "^4.8.4"
   },
   "devDependencies": {
+    "@shelf/jest-mongodb": "^4.1.1",
     "@types/jest": "^29.1.2",
     "@types/superagent": "^4.1.15",
     "@types/supertest": "^2.0.12",

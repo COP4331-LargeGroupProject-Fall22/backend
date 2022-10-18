@@ -3,8 +3,8 @@
  */
 import express from 'express';
 import { UserController } from '../api/controller/UserController';
-import { UserDatabase } from '../database/MongoDB';
-import { Authenticator } from '../authentication/Authenticator';
+import { UserDatabase } from '../database/UserDatabase';
+import Authenticator from '../authentication/Authenticator';
 
 export const userRoute = express.Router();
 

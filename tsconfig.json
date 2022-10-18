@@ -34,5 +34,5 @@
   "ts-node": {
     "files": true
   },
-  "exclude": ["./jest.config.js"]
+  "exclude": ["./jest.config.js", "./jest-mongodb-config.js"]
 }

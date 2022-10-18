@@ -4,6 +4,14 @@
 
 import { Request } from "express-serve-static-core";
 
+import { Request } from "supertest";
+
+declare module "supertest" {
+    interface Test extends superagent.SuperAgentRequest{
+        uid?: string;
+    }
+}
+
 declare module "express-serve-static-core" {
     export interface Request {
         uid?: string;

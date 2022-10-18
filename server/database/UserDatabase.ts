@@ -22,7 +22,7 @@ export class UserDatabase implements IUserDatabase {
 
     /**
      * Initializes MongoClient, database and userCollection properties of the MongoDB class.
-     * @returns MongoDB object.
+     * @returns UserDatabase object.
      */
     private constructor(mongoURL: string, name: string, collection: string) {
         try {
@@ -33,17 +33,24 @@ export class UserDatabase implements IUserDatabase {
 
             return this;
         } catch(e) {
-            console.log('💥 Boom!');
+            console.log(e);
             exit(1);
-        } finally {
-            console.log(`☁️ Successfully connected to database: ${this.database.databaseName} and collection: ${this.userCollection.collectionName}`);
         }
+    }
+
+    /**
+     * Returns current instance of the UserDatabase if such exists.
+     * 
+     * @returns UserDatabase object
+     */
+    static getInstance(): UserDatabase | undefined {
+        return UserDatabase.instance;
     }
     
     /**
      * Connects to the database if connection doesn't already exist.
      * 
-     * @returns MongoDB object.
+     * @returns UserDatabase object.
      */
     static connect(mongoURL: string, name: string, collection: string): UserDatabase {
         if (UserDatabase.instance === undefined) {
