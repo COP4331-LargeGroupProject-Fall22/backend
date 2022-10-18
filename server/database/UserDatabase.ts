@@ -3,8 +3,9 @@ dotenv.config();
 
 import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
 import { exit } from 'process';
+import Food from '../serverAPI/model/food/FoodSchema';
 
-import { IUser } from '../api/model/user/IUser';
+import { IUser } from '../serverAPI/model/user/IUser';
 import { IUserDatabase } from './IUserDatabase';
 
 /**

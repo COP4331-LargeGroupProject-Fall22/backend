@@ -2,7 +2,7 @@
  * This file is responsible for construction of the routes for UserController.
  */
 import express from 'express';
-import { UserController } from '../api/controller/UserController';
+import { UserController } from '../serverAPI/controller/UserController';
 import { UserDatabase } from '../database/UserDatabase';
 import Authenticator from '../authentication/Authenticator';
 

@@ -2,7 +2,7 @@
  * This file is responsible for construction of the routes for AuthenticationController.
  */
 import express from 'express';
-import { AuthenticationController } from '../api/controller/AuthenticationController';
+import { AuthenticationController } from '../serverAPI/controller/AuthenticationController';
 import Authenticator from '../authentication/Authenticator';
 import { UserDatabase } from '../database/UserDatabase';
 

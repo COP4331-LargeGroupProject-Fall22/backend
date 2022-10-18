@@ -26,7 +26,7 @@ let collectionName = process.env.DB_USERS_COLLECTION;
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
-import { IUser } from '../../api/model/user/IUser';
+import { IUser } from '../../serverAPI/model/user/IUser';
 
 describe('User endpoints', () => {
     let mockUser: IUser;

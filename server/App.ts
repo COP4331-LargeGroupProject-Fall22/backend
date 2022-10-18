@@ -21,14 +21,10 @@
  }
  
  app.use(Logger.consoleLog);
- app.use(express.static(path.resolve(__dirname, './api/view/html/public')));
+ app.use(express.static(path.resolve(__dirname, './serverAPI/view/html/public')));
  
- app.use('/api', userRoute);
+ app.use('/', userRoute);
  app.use('/auth', authenticationRoute);
- 
- app.all('*', (req, res) => {
-     res.status(404).send('<h1> resource not found </h1>');
- });
  
  export { app, server };
  

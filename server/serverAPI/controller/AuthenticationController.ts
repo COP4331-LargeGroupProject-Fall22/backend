@@ -28,7 +28,7 @@ export class AuthenticationController {
         if (existingUser === null) {
             res.status(400).json({ success: false, data: `user doesn't exists` });
         } else { 
-            res.redirect(302, `/api/user/${existingUser._id}`);
+            res.redirect(302, `/user/${existingUser._id}`);
         }
     }
 

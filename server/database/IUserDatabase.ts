@@ -1,4 +1,4 @@
-import { IUser } from "../api/model/user/IUser";
+import { IUser } from "../serverAPI/model/user/IUser";
 
 /**
  * Database interface describing full CRUD operations of the User.

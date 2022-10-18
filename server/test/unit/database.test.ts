@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { IUser } from "../../api/model/user/IUser";
+import { IUser } from "../../serverAPI/model/user/IUser";
 import { UserDatabase } from "../../database/UserDatabase";
 
 describe('User database functionality', () => {
