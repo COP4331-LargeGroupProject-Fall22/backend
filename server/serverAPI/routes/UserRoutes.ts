@@ -2,8 +2,8 @@
  * This file is responsible for construction of the routes for UserController.
  */
 import express from 'express';
-import { UserController } from '../serverAPI/controller/UserController';
-import { UserDatabase } from '../database/UserDatabase';
+import { UserController } from '../controller/UserController';
+import { UserDatabase } from '../../database/UserDatabase';
 import Authenticator from '../middleware/authentication/Authenticator';
 
 export const userRoute = express.Router();

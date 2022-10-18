@@ -2,9 +2,9 @@
  * This file is responsible for construction of the routes for AuthenticationController.
  */
 import express from 'express';
-import { AuthenticationController } from '../serverAPI/controller/AuthenticationController';
+import { AuthenticationController } from '../controller/AuthenticationController';
 import Authenticator from '../middleware/authentication/Authenticator';
-import { UserDatabase } from '../database/UserDatabase';
+import { UserDatabase } from '../../database/UserDatabase';
 
 export const authenticationRoute = express.Router();
 

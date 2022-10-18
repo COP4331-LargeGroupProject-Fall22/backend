@@ -5,7 +5,7 @@ import { UserDatabase } from '../../database/UserDatabase';
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
 
-jest.mock('../../authentication/Authenticator', () => {
+jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
     return function () {
         return {
             authenticate: (req: Request, res: Response, next: NextFunction) => { next(); }
@@ -13,7 +13,7 @@ jest.mock('../../authentication/Authenticator', () => {
     }
 });
 
-jest.mock('../../logger/Logger', () => {
+jest.mock('../../serverAPI/middleware/logger/Logger', () => {
     return {
         consoleLog: (req: Request, res: Response, next: NextFunction) => { next(); }
     };
@@ -53,20 +53,20 @@ describe('User endpoints', () => {
 
     describe('Get Requests', () => {
         it('Get Users is empty', async () => {
-            let response = await supertest(app).get("/api/users");
+            let response = await supertest(app).get("/users");
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toHaveLength(0);
         });
 
         it('Get User without id', async () => {
-            let response = await supertest(app).get("/api/user/");
+            let response = await supertest(app).get("/user/");
 
             expect(response.statusCode).toBe(404);
         });
 
         it('Get User with unsupported id', async () => {
-            let response = await supertest(app).get("/api/user/asda123");
+            let response = await supertest(app).get("/user/asda123");
 
             expect(response.statusCode).toBe(400);
         });
@@ -74,21 +74,21 @@ describe('User endpoints', () => {
         it(`Get User with supported id (user exist)`, async () => {
             let expected = await UserDatabase.getInstance()?.CreateUser(mockUser);
 
-            let response = await supertest(app).get(`/api/user/${(expected as any)._id}`);
+            let response = await supertest(app).get(`/user/${(expected as any)._id}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject(mockUser);
         });
 
         it(`Get User with supported id (user doesn't exist)`, async () => {
-            let response = await supertest(app).get(`/api/user/${mockID}`);
+            let response = await supertest(app).get(`/user/${mockID}`);
 
             expect(response.statusCode).toBe(404);
             expect(response.body.data).toBeNull();
         });
 
         it('Get Users is not empty', async () => {
-            let response = await supertest(app).get("/api/users");
+            let response = await supertest(app).get("/users");
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toHaveLength(1);
@@ -98,20 +98,20 @@ describe('User endpoints', () => {
 
     describe('Update Requests', () => {
         it('Update User without id', async () => {
-            let response = await supertest(app).get("/api/user/");
+            let response = await supertest(app).get("/user/");
 
             expect(response.statusCode).toBe(404);
         });
 
         it('Update User with unsupported id', async () => {
-            let response = await supertest(app).get("/api/user/1231asd");
+            let response = await supertest(app).get("/user/1231asd");
 
             expect(response.statusCode).toBe(400);
         });
 
         it('Update User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .put(`/api/user/${(mockUser as any)._id}`)
+                .put(`/user/${(mockUser as any)._id}`)
                 .send(`firstName=${mockUserUpdated.firstName}`)
                 .send(`lastName=${mockUserUpdated.lastName}`)
                 .send(`uid=${mockUserUpdated.uid}`);
@@ -122,7 +122,7 @@ describe('User endpoints', () => {
 
         it(`Update User with supported id (user doesn't exist)`, async () => {
             let response = await supertest(app)
-                .put(`/api/user/${mockID}`)
+                .put(`/user/${mockID}`)
                 .send(`firstName=${mockUserUpdated.firstName}`)
                 .send(`lastName=${mockUserUpdated.lastName}`)
                 .send(`uid=${mockUserUpdated.uid}`);
@@ -135,28 +135,28 @@ describe('User endpoints', () => {
     describe('Delete Requests', () => {
         it ('Delete User without id', async () => {
             let response = await supertest(app)
-                .delete(`/api/user/`);
+                .delete(`/user/`);
 
             expect(response.statusCode).toBe(404);
         });
 
         it ('Delete User with unsupported id', async () => {
             let response = await supertest(app)
-                .delete(`/api/user/123asd`);
+                .delete(`/user/123asd`);
 
             expect(response.statusCode).toBe(400);
         });
 
         it ('Delete User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .delete(`/api/user/${(mockUser as any)._id}`);
+                .delete(`/user/${(mockUser as any)._id}`);
 
             expect(response.statusCode).toBe(200);
         });
 
         it (`Delete User with supported id (user doesn't exists)`, async () => {
             let response = await supertest(app)
-                .delete(`/api/user/${mockID}`);
+                .delete(`/user/${mockID}`);
 
             expect(response.statusCode).toBe(404);
         });

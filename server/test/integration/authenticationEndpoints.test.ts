@@ -11,7 +11,7 @@ let mockUser: Partial<IUser> = {
     uid: "123op02osiao30kn1",
 };
 
-jest.mock('../../authentication/Authenticator', () => {
+jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
     return function () {
         return {
             authenticate: (req: Request, res: Response, next: NextFunction) => {
@@ -26,7 +26,7 @@ jest.mock('../../authentication/Authenticator', () => {
     }
 });
 
-jest.mock('../../logger/Logger', () => {
+jest.mock('../../serverAPI/middleware/logger/Logger', () => {
     return {
         consoleLog: (req: Request, res: Response, next: NextFunction) => { next(); }
     };

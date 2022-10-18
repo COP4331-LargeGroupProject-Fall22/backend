@@ -8,9 +8,9 @@
  import express from 'express';
  import path from 'path';
  
- import Logger from './middleware/logger/Logger';
- import { userRoute } from './routes/UserRoutes';
- import { authenticationRoute } from './routes/AuthenticationRoutes';
+ import Logger from './serverAPI/middleware/logger/Logger';
+ import { userRoute } from './serverAPI/routes/UserRoutes';
+ import { authenticationRoute } from './serverAPI/routes/AuthenticationRoutes';
  
  const app = express();
  
