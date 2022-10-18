@@ -74,6 +74,10 @@ Congratulations! Your server side is ready to run.
 
 To run server install latest npm and run `npm install`. All required packages will be installed automatically. Now, go to the project directory and run either `npm start` or `npm run start:dev`. `npm start` will run server as usualy, whereas, `npm run start:dev` will run server with nodemon which allows realtime restart of the server on file changes.
 
+## Testing:
+
+To run tests use `npm run test`
+
 ## User Endpoints:
 
 In order to perform any operations on the User Endpoints you will need accessToken related to the specific user on which you are going to call API calls.
