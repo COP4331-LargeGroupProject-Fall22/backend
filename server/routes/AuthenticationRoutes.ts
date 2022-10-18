@@ -3,7 +3,7 @@
  */
 import express from 'express';
 import { AuthenticationController } from '../serverAPI/controller/AuthenticationController';
-import Authenticator from '../authentication/Authenticator';
+import Authenticator from '../middleware/authentication/Authenticator';
 import { UserDatabase } from '../database/UserDatabase';
 
 export const authenticationRoute = express.Router();

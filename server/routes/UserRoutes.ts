@@ -4,7 +4,7 @@
 import express from 'express';
 import { UserController } from '../serverAPI/controller/UserController';
 import { UserDatabase } from '../database/UserDatabase';
-import Authenticator from '../authentication/Authenticator';
+import Authenticator from '../middleware/authentication/Authenticator';
 
 export const userRoute = express.Router();
 

@@ -8,7 +8,7 @@
  import express from 'express';
  import path from 'path';
  
- import Logger from './logger/Logger';
+ import Logger from './middleware/logger/Logger';
  import { userRoute } from './routes/UserRoutes';
  import { authenticationRoute } from './routes/AuthenticationRoutes';
  
