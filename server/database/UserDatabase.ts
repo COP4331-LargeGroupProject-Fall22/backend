@@ -87,7 +87,7 @@ export class UserDatabase implements IUserDatabase {
      * This information will include everything about user, including their sensitive information.
      * 
      * @param parameters query parameters used for searching.
-     * @returns Promised filled with IUser object or null if user wasn't found.
+     * @returns Promise filled with IUser object or null if user wasn't found.
      */
     async GetUser(parameters: Map<String, any>): Promise<IUser | null> { 
         let filter: Filter<any> = Object.fromEntries(parameters);
@@ -105,7 +105,7 @@ export class UserDatabase implements IUserDatabase {
      * This method is used for getting complete information about user object in the database based on their internal "_id".
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
-     * @returns Promis filled with IUser object or null if user wasn't found.
+     * @returns Promise filled with IUser object or null if user wasn't found.
      */
     private async GetUserById(id: string): Promise<IUser | null> {
         const user = this.userCollection.findOne(

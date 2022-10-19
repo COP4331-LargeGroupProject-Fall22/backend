@@ -14,6 +14,10 @@ export default class FoodSchema implements IFood {
     @IsString()
     readonly brandName: string;
 
+    @IsString()
+    @IsNotEmpty()
+    readonly category: string;
+
     @IsInt()
     @IsNotEmpty()
     @IsPositive()
@@ -21,7 +25,7 @@ export default class FoodSchema implements IFood {
 
     @IsNotEmpty()
     @IsObject()
-    readonly packageWeight: IWeight;
+    readonly packageWeight: IWeight[];
 
     @IsArray()
     @IsNotEmpty()
@@ -35,13 +39,15 @@ export default class FoodSchema implements IFood {
     constructor(
         name: string,
         brandName: string,
+        category: string,
         quantity: number,
-        packageWeight: IWeight,
+        packageWeight: IWeight[],
         nutrients: INutrient[],
         expirationDate: number
     ) {
         this.name = name;
         this.brandName = brandName;
+        this.category = category;
         this.quantity = quantity;
         this.packageWeight = packageWeight;
         this.nutrients = nutrients;
