@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsObject, IsPositive, IsString } from "class-validator";
+import IUnit from "../unit/IUnit";
 import INutrient from "./INutrient";
 
 /**
@@ -14,11 +15,24 @@ export default class NutrientSchema implements INutrient {
     @IsPositive()
     readonly value: number;
 
+    @IsObject()
+    @IsNotEmpty()
+    readonly unit: IUnit;
+
+    @IsNumber()
+    @IsPositive()
+    @IsNotEmpty()
+    readonly percentOfDaily: number;
+
     constructor(
         name: string,
-        value: number
+        value: number,
+        unit: IUnit,
+        percentOfDaily: number
     ) {
         this.name = name;
         this.value = value;
+        this.unit = unit;
+        this.percentOfDaily = percentOfDaily;
     }
 }

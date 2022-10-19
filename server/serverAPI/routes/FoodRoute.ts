@@ -3,17 +3,16 @@
  */
 
 import express from "express";
-import FoodAPI from "../../foodAPI/FoodAPI";
+import SpoonacularAPI from "../../foodAPI/SpoonacularAPI/SpoonacularAPI";
 import FoodController from "../controller/FoodController";
 
 export const foodRoute = express.Router();
 
-let foodDataCentralApiKey = process.env.FOOD_DATA_CENTRAL_API_KEY;
-
 const foodController = new FoodController(
-    new FoodAPI(
-        foodDataCentralApiKey
+    new SpoonacularAPI(
+        process.env.SPOONACULAR_API_KEY
     )
 );
 
-foodRoute.get('/food',foodController.getFood);
+foodRoute.get('/', foodController.getFoods)
+foodRoute.get('/food/:id',foodController.getFood);

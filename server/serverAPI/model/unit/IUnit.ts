@@ -1,7 +1,7 @@
 /**
- * Weight interface.
+ * Unit interface.
  */
-export default interface IWeight {
+export default interface IUnit {
     readonly unit: string;
     readonly value: number;
 }
