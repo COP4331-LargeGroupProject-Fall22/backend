@@ -1,0 +1,34 @@
+@startuml FoodDataModel
+interface IFood {
+    + name: string
+    + category: string
+    + quantity: number
+    + packageWeight: IUnit[]
+    + nutrients: INutrient[]
+    + expirationDate: number
+}
+
+interface IUnit {
+    + name: string
+    + value: number
+}
+
+interface INutrient {
+    + name: string
+    + unit: IUnit
+    + percentOfDaily: number
+}
+
+interface ISpoonacularFood {
+    + id: number
+}
+
+ISpoonacularFood --|> IFood
+
+IFood --* IUnit
+INutrient --* IUnit
+IFood --* INutrient
+
+
+
+@enduml

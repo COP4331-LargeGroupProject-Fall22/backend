@@ -25,8 +25,13 @@ declare global {
             DB_CONNECTION_STRING: string;
             DB_NAME: string;
             DB_USERS_COLLECTION: string;
+            
             FOOD_DATA_CENTRAL_API_KEY: string;
             FOOD_DATA_CENTRAL_SEARCH_URL: string;
+
+            SPOONACULAR_API_KEY: string;
+            SPOONACULAR_GROCERY_PRODUCT_SEARCH_URL: string;
+            SPOONACULAR_GROCERY_PRODUCT_GET_INFO_URL: string;
         }
     }
 }

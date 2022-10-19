@@ -1,9 +1,10 @@
-import { IsArray, IsInt, IsNotEmpty, IsObject, IsPositive, IsString } from "class-validator";
+import IUnit from "../unit/IUnit";
 
 /**
  * Nutrient interface.
  */
 export default interface INutrient {
     readonly name: string;
-    readonly value: number;
+    readonly unit: IUnit;
+    readonly percentOfDaily: number;
 }

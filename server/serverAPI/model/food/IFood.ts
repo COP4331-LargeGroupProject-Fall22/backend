@@ -1,15 +1,14 @@
 import INutrient from "../nutrients/INutrient";
-import IWeight from "../weight/IWeight";
+import IUnit from "../unit/IUnit";
 
 /**
  * Food interface.
  */
 export default interface IFood {
     readonly name: string;
-    readonly brandName: string;
     readonly category: string;
     readonly quantity: number;
-    readonly packageWeight: IWeight[];
-    readonly nutrients: Array<INutrient>;
+    readonly packageWeight: IUnit[];
+    readonly nutrients: INutrient[];
     readonly expirationDate: number;
 }
