@@ -11,15 +11,17 @@
  import Logger from './serverAPI/middleware/logger/Logger';
  import { userRoute } from './serverAPI/routes/UserRoutes';
  import { authenticationRoute } from './serverAPI/routes/AuthenticationRoutes';
- 
+ import { foodRoute } from './serverAPI/routes/FoodRoute';
+
  const app = express();
  
  app.use(Logger.consoleLog);
  app.use(express.static(path.resolve(__dirname, './serverAPI/view/html/public')));
  
- app.use('/', userRoute);
+ app.use('/users', userRoute);
+ app.use('/foods', foodRoute);
  app.use('/auth', authenticationRoute);
- 
+
  const server = (port: number) => {
     app.listen(port, () => {
         console.log(`🚀 Server is running on port ${port}`);

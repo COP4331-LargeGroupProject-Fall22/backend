@@ -60,13 +60,13 @@ describe('User endpoints', () => {
         });
 
         it('Get User without id', async () => {
-            let response = await supertest(app).get("/user/");
+            let response = await supertest(app).get("/users/user/");
 
             expect(response.statusCode).toBe(404);
         });
 
         it('Get User with unsupported id', async () => {
-            let response = await supertest(app).get("/user/asda123");
+            let response = await supertest(app).get("/users/user/asda123");
 
             expect(response.statusCode).toBe(400);
         });
@@ -74,14 +74,14 @@ describe('User endpoints', () => {
         it(`Get User with supported id (user exist)`, async () => {
             let expected = await UserDatabase.getInstance()?.CreateUser(mockUser);
 
-            let response = await supertest(app).get(`/user/${(expected as any)._id}`);
+            let response = await supertest(app).get(`/users/user/${(expected as any)._id}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject(mockUser);
         });
 
         it(`Get User with supported id (user doesn't exist)`, async () => {
-            let response = await supertest(app).get(`/user/${mockID}`);
+            let response = await supertest(app).get(`/users/user/${mockID}`);
 
             expect(response.statusCode).toBe(404);
             expect(response.body.data).toBeNull();
@@ -98,20 +98,20 @@ describe('User endpoints', () => {
 
     describe('Update Requests', () => {
         it('Update User without id', async () => {
-            let response = await supertest(app).get("/user/");
+            let response = await supertest(app).get("/users/user/");
 
             expect(response.statusCode).toBe(404);
         });
 
         it('Update User with unsupported id', async () => {
-            let response = await supertest(app).get("/user/1231asd");
+            let response = await supertest(app).get("/users/user/1231asd");
 
             expect(response.statusCode).toBe(400);
         });
 
         it('Update User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .put(`/user/${(mockUser as any)._id}`)
+                .put(`/users/user/${(mockUser as any)._id}`)
                 .send(`firstName=${mockUserUpdated.firstName}`)
                 .send(`lastName=${mockUserUpdated.lastName}`)
                 .send(`uid=${mockUserUpdated.uid}`);
@@ -122,7 +122,7 @@ describe('User endpoints', () => {
 
         it(`Update User with supported id (user doesn't exist)`, async () => {
             let response = await supertest(app)
-                .put(`/user/${mockID}`)
+                .put(`/users/user/${mockID}`)
                 .send(`firstName=${mockUserUpdated.firstName}`)
                 .send(`lastName=${mockUserUpdated.lastName}`)
                 .send(`uid=${mockUserUpdated.uid}`);
@@ -135,28 +135,28 @@ describe('User endpoints', () => {
     describe('Delete Requests', () => {
         it ('Delete User without id', async () => {
             let response = await supertest(app)
-                .delete(`/user/`);
+                .delete(`/users/user/`);
 
             expect(response.statusCode).toBe(404);
         });
 
         it ('Delete User with unsupported id', async () => {
             let response = await supertest(app)
-                .delete(`/user/123asd`);
+                .delete(`/users/user/123asd`);
 
             expect(response.statusCode).toBe(400);
         });
 
         it ('Delete User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .delete(`/user/${(mockUser as any)._id}`);
+                .delete(`/users/user/${(mockUser as any)._id}`);
 
             expect(response.statusCode).toBe(200);
         });
 
         it (`Delete User with supported id (user doesn't exists)`, async () => {
             let response = await supertest(app)
-                .delete(`/user/${mockID}`);
+                .delete(`/users/user/${mockID}`);
 
             expect(response.statusCode).toBe(404);
         });

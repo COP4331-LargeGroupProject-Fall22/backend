@@ -7,8 +7,9 @@ import IWeight from "../weight/IWeight";
 export default interface IFood {
     readonly name: string;
     readonly brandName: string;
+    readonly category: string;
     readonly quantity: number;
-    readonly packageWeight: IWeight;
+    readonly packageWeight: IWeight[];
     readonly nutrients: Array<INutrient>;
     readonly expirationDate: number;
 }

@@ -22,7 +22,7 @@ const userController = new UserController(
 
 userRoute.use(new Authenticator().authenticate);
 
-userRoute.get('/users', userController.getUsers);
+userRoute.get('/', userController.getUsers);
 userRoute.get('/user/:id', userController.getUser);
 userRoute.route('/user/:id')
     .delete(userController.deleteUser)
