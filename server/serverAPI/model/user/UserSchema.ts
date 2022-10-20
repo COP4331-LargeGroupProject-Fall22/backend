@@ -1,4 +1,5 @@
-import { IsInt, IsNotEmpty } from "class-validator";
+import { IsInt, IsNotEmpty, IsPositive, IsString, ValidateNested } from "class-validator";
+import IFoodItem from "../food/IFoodItem";
 import { IUser } from "./IUser";
 
 /**
@@ -6,25 +7,33 @@ import { IUser } from "./IUser";
  */
 export class UserSchema implements IUser {
     @IsNotEmpty()
+    @IsString()
     firstName: string;
     
     @IsNotEmpty() 
+    @IsString()
     lastName: string;
     
     @IsNotEmpty()
+    @IsString()
     uid: string;
 
     @IsInt()
+    @IsPositive()
     lastSeen: number;
+
+    @ValidateNested()
+    inventory: IFoodItem[];
     
     constructor(
         firstName: string,
         lastName: string,
         uid: string
     ) {
+        this.inventory = [];
         this.firstName = firstName;
         this.lastName = lastName;
         this.uid = uid;
-        this.lastSeen = 0; 
+        this.lastSeen = 1; 
     }
 }

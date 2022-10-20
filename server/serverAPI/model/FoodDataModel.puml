@@ -1,12 +1,15 @@
 @startuml FoodDataModel
 interface IFood {
+    + id: number
     + name: string
     + category: string
-    + quantity: number
-    + packageWeight: IUnit[]
     + nutrients: INutrient[]
+}
+
+interface IFoodItem {
     + expirationDate: number
 }
+
 
 interface IUnit {
     + name: string
@@ -19,16 +22,22 @@ interface INutrient {
     + percentOfDaily: number
 }
 
-interface ISpoonacularFood {
-    + id: number
+interface IUser {
+    firstName: string;
+    lastName: string;
+    uid: string;
+    lastSeen: number;
+    inventory: IFoodItem[];
+    shoppingList: IFood[];
 }
-
-ISpoonacularFood --|> IFood
 
 IFood --* IUnit
 INutrient --* IUnit
 IFood --* INutrient
 
+IFoodItem --|> IFood
 
+IFood *-- IUser
+IFoodItem *-- IUser
 
 @enduml
