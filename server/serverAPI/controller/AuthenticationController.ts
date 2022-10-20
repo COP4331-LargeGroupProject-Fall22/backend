@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { IUserDatabase } from "../../database/IUserDatabase";
+import ResponseFormatter from "../../utils/ResponseFormatter";
+import { ResponseTypes } from "../../utils/ResponseTypes";
 import { Validator } from "../../utils/Validator";
 import { UserSchema } from "../model/user/UserSchema";
 
@@ -23,13 +25,24 @@ export class AuthenticationController {
      * @param res Response parameter that holds information about response
      */
     login = async (req: Request, res: Response) => {
-        let existingUser : any = await this.database.GetUser(new Map([["uid", req.uid!]]));
-
-        if (existingUser === null) {
-            res.status(400).json({ success: false, data: `user doesn't exists` });
-        } else { 
-            res.redirect(302, `/user/${existingUser._id}`);
+        if (req.uid === undefined) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "UID hasn't been found."));
+            return;
         }
+
+        let parameters = new Map([
+            ["uid", req.uid]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exists.`));
+            return;
+        }
+
+        // Workaround has yet to be found
+        res.redirect(302, `/user/${(user as any)._id}`);
     }
 
     /**
@@ -41,33 +54,45 @@ export class AuthenticationController {
      * @param res Response parameter that holds information about response
      */
     register = async (req: Request, res: Response) => {
+        if (req.uid === undefined) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "UID hasn't been found."));
+            return;
+        }
+
+        let parameters = new Map([
+            ["uid", req.uid]
+        ]);
+
         const newUser =
             new UserSchema(
-                req.body.firstName,
-                req.body.lastName,
-                req.uid === undefined ? "" : req.uid
+                req.body?.firstName,
+                req.body?.lastName,
+                req.uid
             );
 
-        const validator = new Validator<UserSchema>();
+        const validator = new Validator();
 
         let logs = await validator.validate(newUser);
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let existingUser = await this.database.GetUser(new Map([["uid", newUser.uid]]));
-
-            if (existingUser !== null) {
-                res.status(400).json({ success: false, data: `uid ${newUser.uid} already exists` });
-            } else {
-                let createdUser = await this.database.CreateUser(newUser);
-
-                if (createdUser === null) {
-                    res.status(400).json({ success: false, data: newUser });
-                } else {
-                    res.status(200).json({ success: true, data: newUser });
-                }
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user !== null) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such UID already exists.`));
+            return;
+        }
+
+        let createdUser = await this.database.CreateUser(newUser);
+
+        if (createdUser === null) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, createdUser));
     }
 }
