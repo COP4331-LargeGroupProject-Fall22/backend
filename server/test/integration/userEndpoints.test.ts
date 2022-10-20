@@ -97,7 +97,7 @@ describe('User endpoints', () => {
             let response = await supertest(app).get("/users");
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.data).toHaveLength(0);
+            expect(response.body.data).toStrictEqual([]);
         });
 
         it('Get User without id', async () => {
@@ -126,7 +126,7 @@ describe('User endpoints', () => {
             let response = await supertest(app).get(`/users/user/${mockID}`);
 
             expect(response.statusCode).toBe(404);
-            expect(response.body.data).toBeNull();
+            expect(response.body.data).toBe(undefined);
         });
 
         it('Get Users is not empty', async () => {
@@ -170,7 +170,7 @@ describe('User endpoints', () => {
                 .send(`uid=${mockUserUpdated.uid}`);
 
             expect(response.statusCode).toBe(404);
-            expect(response.body.data).toBeNull();
+            expect(response.body.data).toBe(undefined);
         });
     });
 
