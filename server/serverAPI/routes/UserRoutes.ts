@@ -23,7 +23,14 @@ const userController = new UserController(
 userRoute.use(new Authenticator().authenticate);
 
 userRoute.get('/', userController.getUsers);
-userRoute.get('/user/:id', userController.getUser);
-userRoute.route('/user/:id')
+userRoute.get('/user/:userID', userController.getUser);
+
+userRoute.get('/user/:userID/foods', userController.getFoods);
+userRoute.post('/user/:userID/foods/food', express.urlencoded({ extended: true }), userController.addFood);
+userRoute.get('/user/:userID/foods/food/:foodID', userController.getFood);
+userRoute.put('/user/:userID/foods/food/:foodID', express.urlencoded({ extended: true }), userController.updateFood);
+userRoute.delete('/user/:userID/foods/food/:foodID', userController.deleteFood);
+
+userRoute.route('/user/:userID')
     .delete(userController.deleteUser)
     .put(express.urlencoded({ extended: true }), userController.updateUser);

@@ -29,7 +29,23 @@ describe('User database functionality', () => {
             firstName: "Mikhail",
             lastName: "Plekunov",
             uid: "123op02osiao30kn1",
-            lastSeen: 12345213567
+            lastSeen: 12345213567,
+            inventory: [{
+                expirationDate: 1231123,
+                name: "Test",
+                id: 234,
+                category: "testCategory",
+                nutrients: [
+                    {
+                        name: "nutrientA",
+                        unit: {
+                            unit: "g",
+                            value: 10
+                        },
+                        percentOfDaily: 10.4
+                    }
+                ]
+            }]
         };
 
         mockUserSummary = {
@@ -42,7 +58,23 @@ describe('User database functionality', () => {
             firstName: "Alex",
             lastName: "The Great",
             uid: "123lk02psiao30412",
-            lastSeen: 123454093567
+            lastSeen: 123454093567,
+            inventory: [{
+                expirationDate: 1231123,
+                name: "Test",
+                id: 234,
+                category: "testCategory",
+                nutrients: [
+                    {
+                        name: "nutrientB",
+                        unit: {
+                            unit: "g",
+                            value: 10
+                        },
+                        percentOfDaily: 10.4
+                    }
+                ]
+            }]
         }
     });
 
@@ -52,7 +84,6 @@ describe('User database functionality', () => {
 
     describe('create', () => {
         it('create user ', async () => {
-
             let actual: any = await userDB.CreateUser(mockUser);
             uid = actual?.uid;
             _id = actual?._id;

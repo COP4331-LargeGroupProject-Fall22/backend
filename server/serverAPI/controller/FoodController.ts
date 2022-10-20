@@ -27,6 +27,23 @@ export default class FoodController {
         this.foodAPI.GetFood(parameters)
             .then(foods => res.status(200).json(foods));
     }
+    /**
+     * This property is a handler that is used for "getFoodsByUPC" action of the user.
+     * It provides user with an ability get complete information about specific food item by item's UPC in the FoodAPI.
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */        
+    getFoodByUPC =async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>();
+
+        if (req.params?.upc !== undefined) {
+            parameters.set("upc", req.params.upc);
+        }
+
+        this.foodAPI.GetFoodByUPC(parameters)
+            .then(food => res.status(200).json(food));
+    }
 
     /**
      * This property is a handler that is used for "getFoods" action of the user.
@@ -40,10 +57,6 @@ export default class FoodController {
 
         if (req.query?.query !== undefined) {
             parameters.set("query", req.query.query);
-        }
-
-        if (req.query?.pageNumber !== undefined) {
-            parameters.set("offset", req.query.pageNumber);
         }
 
         if (req.query?.size !== undefined) {

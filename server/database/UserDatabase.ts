@@ -3,7 +3,6 @@ dotenv.config();
 
 import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
 import { exit } from 'process';
-import Food from '../serverAPI/model/food/FoodSchema';
 
 import { IUser } from '../serverAPI/model/user/IUser';
 import { IUserDatabase } from './IUserDatabase';
@@ -143,7 +142,8 @@ export class UserDatabase implements IUserDatabase {
                     "uid": user.uid,
                     "firstName": user.firstName,
                     "lastName": user.lastName,
-                    "lastSeen": user.lastSeen
+                    "lastSeen": user.lastSeen,
+                    "inventory": user.inventory
                 }
             }
         );
