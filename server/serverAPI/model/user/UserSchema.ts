@@ -1,5 +1,4 @@
 import { IsInt, IsNotEmpty, IsPositive, IsString, ValidateNested } from "class-validator";
-import { ObjectId } from "mongodb";
 import IFoodItem from "../food/IFoodItem";
 import { IUser } from "./IUser";
 
