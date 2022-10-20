@@ -9,7 +9,6 @@ import IFoodItem from "../../serverAPI/model/food/IFoodItem";
 import { IUser } from "../../serverAPI/model/user/IUser";
 
 let mockUser: IUser;
-let mockUserUpdated: Partial<IUser>;
 
 let mockFood: IFoodItem;
 let mockFoodUpdated: IFoodItem;
@@ -56,36 +55,13 @@ describe(`User inventory endpoints`, () => {
                 }
             ]
         };
-    
-        mockFoodUpdated = {
-            expirationDate: 77777,
-            id: mockFoodID,
-            name: "FoodItemB",
-            category: "CatB",
-            nutrients: [
-                {
-                    name: "nutrientA",
-                    unit: {
-                        unit: "grams",
-                        value: 123
-                    },
-                    percentOfDaily: 12.4
-                }
-            ]
-        }
-    
+
         mockUser = {
             firstName: "Mikhail",
             lastName: "Plekunov",
             uid: "123op02osiao30kn1",
             lastSeen: 12345213567,
             inventory: []
-        };
-    
-        mockUserUpdated = {
-            firstName: "Alex",
-            lastName: "The Great",
-            uid: "123lk02psiao30412"
         };
     });
 
