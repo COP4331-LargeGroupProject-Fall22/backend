@@ -15,6 +15,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
     constructor(apiKey: string) {
         this.apiKey = apiKey;
+
         this.foodSearchParameters = new Set([
             'query',
             'number',
@@ -34,11 +35,15 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         let foods: Partial<IFood>[] = [];
 
+        let parseFood = this.parseFood;
+
         parsedData.forEach((ingredient: any) => {
+            let food = this.parseFood(ingredient);
+
             foods.push({
-                id: ingredient.id,
-                name: ingredient.name,
-                category: ingredient.aisle
+                id: food.id,
+                name: food.name,
+                category: food.category
             });
         });
 
@@ -91,7 +96,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         });
     }
 
-    private parseFoodComplete = (data: any): IFood => {
+    private parseFood = (data: any): IFood => {
         let parsedData = JSON.parse(data);
 
         let name = parsedData.name;
@@ -125,7 +130,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         let searchParams = new URLSearchParams();
 
         keys.forEach(key => {
-            if (this.foodSearchParameters.has(String(key))) {
+            if (this.foodInfoParameters.has(String(key))) {
                 searchParams.append(String(key), String(parameters.get(key)));    
             }
         });
@@ -146,7 +151,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         searchParams.append("apiKey", this.apiKey);
 
-        let parseFoodComplete = this.parseFoodComplete;
+        let parseFoodComplete = this.parseFood;
 
         let response = axios.get(
             foodGetInfoBaseURL,
