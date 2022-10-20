@@ -1,5 +1,8 @@
+import { IsInt, IsPositive } from "class-validator";
 import { Request, Response } from "express";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
+import ResponseFormatter from "../../utils/ResponseFormatter";
+import { ResponseTypes } from "../../utils/ResponseTypes";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -20,12 +23,25 @@ export default class FoodController {
      * @param res Response parameter that holds information about response
      */    
     getFood = async (req: Request, res: Response) => {
+        let foodID = Number.parseInt(req.params.foodID);
+
+        if (Number.isNaN(foodID) || foodID < 0) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Invlid foodID."));
+            return;
+        }
+        
         let parameters = new Map<string, any>([
             ["id", req.params.id]
         ]);
         
-        this.foodAPI.GetFood(parameters)
-            .then(foods => res.status(200).json(foods));
+        let food = await this.foodAPI.GetFood(parameters);
+
+        if (food === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
     }
     /**
      * This property is a handler that is used for "getFoodsByUPC" action of the user.
@@ -35,14 +51,15 @@ export default class FoodController {
      * @param res Response parameter that holds information about response
      */        
     getFoodByUPC =async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>();
+        throw new Error("Not implemented yet.");
+        // let parameters = new Map<string, any>();
 
-        if (req.params?.upc !== undefined) {
-            parameters.set("upc", req.params.upc);
-        }
+        // if (req.params?.upc !== undefined) {
+        //     parameters.set("upc", req.params.upc);
+        // }
 
-        this.foodAPI.GetFoodByUPC(parameters)
-            .then(food => res.status(200).json(food));
+        // this.foodAPI.GetFoodByUPC(parameters)
+        //     .then(food => res.status(200).json(food));
     }
 
     /**
@@ -55,15 +72,19 @@ export default class FoodController {
     getFoods = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
 
-        if (req.query?.query !== undefined) {
-            parameters.set("query", req.query.query);
+        if (req.query?.query === undefined) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Query is missing."));
+            return;
         }
+
+        parameters.set("query", req.query.query);
 
         if (req.query?.size !== undefined) {
             parameters.set("number", req.query.size);
         }
 
-        this.foodAPI.GetFoods(parameters)
-            .then(food => res.status(200).json(food));
+        let foods = await this.foodAPI.GetFoods(parameters);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
     }
 }

@@ -16,5 +16,5 @@ const foodController = new FoodController(
 );
 
 foodRoute.get('/', foodController.getFoods)
-foodRoute.get('/food/:id',foodController.getFood);
+foodRoute.get('/food/:foodID',foodController.getFood);
 foodRoute.get('/food/upc/:upc', foodController.getFoodByUPC);
