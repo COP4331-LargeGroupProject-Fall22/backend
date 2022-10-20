@@ -95,9 +95,7 @@ export class UserDatabase implements IUserDatabase {
             filter._id = new ObjectId(filter._id);
         }
         
-        const user = this.userCollection.findOne(filter);
-
-        return user;
+        return this.userCollection.findOne(filter);
     }
 
     /**
