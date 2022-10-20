@@ -15,10 +15,11 @@ jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
     return function () {
         return {
             authenticate: (req: Request, res: Response, next: NextFunction) => {
-                if (req.headers.authorization) {
+                if (req.headers.authorization && req.headers.authorization.length > 0) {
                     req.uid = mockUser.uid;
                     next();
-                } else {
+                }
+                else {
                     res.status(403).send();
                 }
             }
@@ -43,7 +44,17 @@ import { IUser } from '../../serverAPI/model/user/IUser';
 
 describe('Authentication endpoints', () => {
     describe('Post Requests', () => {
-        it('Register', async () => {
+        it('Register with incorrect field formats', async () => {
+            let response = await supertest(app)
+                .post('/auth/register')
+                .set('Authorization', 'accessToken')
+                .send(`firstName=`)
+                .send(`lastName=`);
+
+            expect(response.statusCode).toBe(400);
+        });
+
+        it('Register with correct authorization token', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
                 .set('Authorization', 'accessToken')
@@ -58,6 +69,16 @@ describe('Authentication endpoints', () => {
             expect(expected).toMatchObject(mockUser);
 
             mockUser = expected as IUser;
+        });
+
+        it(`Register with already existing UID`, async () => {
+            let response = await supertest(app)
+                .post('/auth/register')
+                .set('Authorization', 'accessToken')
+                .send(`firstName=${mockUser.firstName}`)
+                .send(`lastName=${mockUser.lastName}`);
+
+            expect(response.statusCode).toBe(400);
         });
     });
 
