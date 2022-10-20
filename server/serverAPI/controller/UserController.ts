@@ -3,11 +3,11 @@ import { Request, Response } from "express";
 import { IUserDatabase } from '../../database/IUserDatabase';
 import { UserSchema } from '../model/user/UserSchema';
 import FoodItemSchema from "../model/food/FoodItemSchema";
-import INutrient from "../model/nutrients/INutrient";
-import { exit } from "process";
 import NutrientSchema from "../model/nutrients/NutrientSchema";
 import UnitSchema from "../model/unit/UnitSchema";
 import IFoodItem from "../model/food/IFoodItem";
+import ResponseFormatter from "../../utils/ResponseFormatter";
+import { ResponseTypes } from "../../utils/ResponseTypes";
 
 /**
  * This class creates several properties responsible for user-actions 
@@ -29,7 +29,7 @@ export class UserController {
      */
     getUsers = async (req: Request, res: Response) => {
         this.database.GetUsers()
-            .then(users => res.status(200).json({ success: true, data: users }));
+            .then(users => res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, users)));
     }
 
     /**
@@ -47,21 +47,22 @@ export class UserController {
         let logs = await validator.validateObjectId(userID)
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-
-            let parameters = new Map<String, any>([
-                ["_id", userID]
-            ]);
-
-            let userFound = await this.database.GetUser(parameters);
-
-            if (userFound === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                res.status(200).json({ success: true, data: userFound });
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let parameters = new Map<String, any>([
+            ["_id", userID]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
     }
 
     /**
@@ -76,31 +77,37 @@ export class UserController {
 
         const newUser =
             new UserSchema(
-                req.body.firstName,
-                req.body.lastName,
-                req.body.uid
+                req.body?.firstName,
+                req.body?.lastName,
+                req.body?.uid
             );
 
-        const validator = new Validator<UserSchema>();
+        const validator = new Validator();
 
         let logs = (await validator.validate(newUser))
             .concat(await validator.validateObjectId(userID));
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let existingUser = await this.database.GetUser(new Map([["_id", userID]]));
-
-            if (existingUser === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                newUser.inventory = existingUser.inventory;
-
-                let updatedUser = await this.database.UpdateUser(userID, newUser);
-
-                res.status(200).json({ success: true, data: updatedUser });
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let parameters = new Map<string, any>([
+            ["_id", userID]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        newUser.inventory = user.inventory;
+
+        let updatedUser = await this.database.UpdateUser(userID, newUser);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
     }
 
     /**
@@ -113,21 +120,22 @@ export class UserController {
     deleteUser = async (req: Request, res: Response) => {
         let userID = req.params.userID;
 
-        const validator = new Validator<UserSchema>();
+        const validator = new Validator();
 
         let logs = await validator.validateObjectId(userID);
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let result = await this.database.DeleteUser(userID);
-
-            if (result) {
-                res.status(200).json({ success: true, data: null });
-            } else {
-                res.status(404).json({ success: false, data: null });
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+        let result = await this.database.DeleteUser(userID);
+
+        if (!result) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
     }
 
     /**
@@ -145,20 +153,22 @@ export class UserController {
         let logs = await validator.validateObjectId(userID)
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let parameters = new Map<String, any>([
-                ["_id", userID]
-            ]);
-
-            let userFound = await this.database.GetUser(parameters);
-
-            if (userFound === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                res.status(200).json({ success: true, data: userFound.inventory });
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let parameters = new Map<String, any>([
+            ["_id", userID]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
     }
 
     /**
@@ -170,6 +180,11 @@ export class UserController {
     */
     addFood = async (req: Request, res: Response) => {
         let userID = req.params.userID;
+
+        if (req.body.nutrients == undefined) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Nutrition is not part of the payload."));
+            return;
+        }
 
         let parsedNutrients = JSON.parse(req.body.nutrients);
 
@@ -202,25 +217,38 @@ export class UserController {
             .concat(await validator.validate(newFood))
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let existingUser = await this.database.GetUser(new Map([["_id", userID]]));
-
-            if (existingUser === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                let existingFood = existingUser.inventory.find(foodItem => foodItem.id === newFood.id);
-                if (existingFood !== undefined) {
-                    res.status(400).json({ success: false, data: "Food item already exists in inventory" });
-                }
-
-                existingUser.inventory.push(newFood);
-
-                let updatedUser = await this.database.UpdateUser(userID, existingUser);
-
-                res.status(200).json({ success: true, data: updatedUser?.inventory });
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let parameters = new Map<string, any>([
+            ["_id", userID]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found"));
+            return;
+        }
+
+        let food = user.inventory.find(foodItem => foodItem.id === newFood.id);
+
+        if (food !== undefined) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
+            return;
+        }
+
+        user.inventory.push(newFood);
+
+        let updatedUser = await this.database.UpdateUser(userID, user);
+
+        if (updatedUser === null) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
     }
 
     /**
@@ -239,26 +267,29 @@ export class UserController {
         let logs = await validator.validateObjectId(userID)
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let parameters = new Map<String, any>([
-                ["_id", userID]
-            ]);
-
-            let userFound = await this.database.GetUser(parameters);
-
-            if (userFound === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                let foodItem = userFound.inventory.find(foodItem => foodItem.id === Number.parseInt(foodID));
-
-                if (foodItem === undefined) {
-                    res.status(400).json({ success: false, data: "Food item doesn't exist in inventory" });
-                }
-
-                res.status(200).json({ success: true, data: foodItem });
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let parameters = new Map<String, any>([
+            ["_id", userID]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        let foodItem = user.inventory.find(foodItem => foodItem.id === Number.parseInt(foodID));
+
+        if (foodItem === undefined) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foodItem));
     }
 
     /**
@@ -271,6 +302,11 @@ export class UserController {
     updateFood = async (req: Request, res: Response) => {
         let userID = req.params.userID;
         let foodID = Number.parseInt(req.params.foodID);
+
+        if (req.body.nutrients == undefined) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Nutrition is not part of the payload."));
+            return;
+        }
 
         let parsedNutrients = JSON.parse(req.body.nutrients);
 
@@ -302,41 +338,53 @@ export class UserController {
             .concat(await validator.validate(newFood))
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let existingUser = await this.database.GetUser(new Map([["_id", userID]]));
-
-            if (existingUser === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                let inventory = existingUser.inventory;
-
-                let isFound: boolean = false;
-
-                let newInventory: IFoodItem[] = [];
-
-                for (let i = 0; i < inventory.length; i++) {
-                    let foodToAdd = inventory[i];
-
-                    if (inventory[i].id === foodID) {
-                        isFound = true;
-                        foodToAdd = newFood;
-                    }
-
-                    newInventory.push(foodToAdd);
-                }
-
-                if (!isFound) {
-                    res.status(404).json({ success: false, data: null });
-                }
-                else {
-                    existingUser.inventory = newInventory;
-
-                    let updatedUser = await this.database.UpdateUser(userID, existingUser);
-                    res.status(200).json({ success: true, data: updatedUser?.inventory });
-                }
-            }
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
         }
+
+        let parameters = new Map([
+            ["_id", userID]
+        ]);
+
+        let user = await this.database.GetUser(parameters);
+
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        let inventory = user.inventory;
+
+        let isFound: boolean = false;
+
+        let newInventory: IFoodItem[] = [];
+
+        for (let i = 0; i < inventory.length; i++) {
+            let foodToAdd = inventory[i];
+
+            if (inventory[i].id === foodID) {
+                isFound = true;
+                foodToAdd = newFood;
+            }
+
+            newInventory.push(foodToAdd);
+        }
+
+        if (!isFound) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR));
+            return;
+        }
+
+        user!.inventory = newInventory;
+
+        let updatedUser = await this.database.UpdateUser(userID, user!);
+
+        if (updatedUser === null) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
     }
 
     /**
@@ -346,7 +394,7 @@ export class UserController {
     * @param req Request parameter that holds information about request
     * @param res Response parameter that holds information about response
     */
-     deleteFood = async (req: Request, res: Response) => {
+    deleteFood = async (req: Request, res: Response) => {
         let userID = req.params.userID;
         let foodID = Number.parseInt(req.params.foodID);
 
@@ -355,42 +403,50 @@ export class UserController {
         let logs = await validator.validateObjectId(userID)
 
         if (logs.length > 0) {
-            res.status(400).json({ success: false, data: logs });
-        } else {
-            let parameters = new Map<String, any>([
-                ["_id", userID]
-            ]);
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
+        }
 
-            let existingUser = await this.database.GetUser(parameters);
+        let parameters = new Map<String, any>([
+            ["_id", userID]
+        ]);
 
-            if (existingUser === null) {
-                res.status(404).json({ success: false, data: null });
-            } else {
-                let inventory = existingUser.inventory;
+        let user = await this.database.GetUser(parameters);
 
-                let isFound: boolean = false;
+        if (user === null) {
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
+        }
 
-                let newInventory: IFoodItem[] = [];
+        let inventory = user.inventory;
 
-                for (let i = 0; i < inventory.length; i++) {
-                    if (inventory[i].id === foodID) {
-                        isFound = true;
-                    }
-                    else {
-                        newInventory.push(inventory[i]);
-                    }
-                }
+        let isFound: boolean = false;
 
-                if (!isFound) {
-                    res.status(400).json({ success: false, data: "Food item doesn't exist in inventory" });
-                }
+        let newInventory: IFoodItem[] = [];
 
-                existingUser.inventory = newInventory;
-
-                let updatedUser = await this.database.UpdateUser(userID, existingUser);
-            
-                res.status(200).json({ success: true, data:  updatedUser?.inventory});
+        for (let i = 0; i < inventory.length; i++) {
+            if (inventory[i].id === foodID) {
+                isFound = true;
+            }
+            else {
+                newInventory.push(inventory[i]);
             }
         }
+
+        if (!isFound) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory"));
+            return;
+        }
+
+        user.inventory = newInventory;
+
+        let updatedUser = await this.database.UpdateUser(userID, user);
+
+        if (updatedUser === null) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
+            return;
+        }
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
     }
 }
