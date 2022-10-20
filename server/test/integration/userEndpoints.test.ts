@@ -28,6 +28,7 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 import { app } from '../../App';
 import { IUser } from '../../serverAPI/model/user/IUser';
 import IFoodItem from '../../serverAPI/model/food/IFoodItem';
+import { ObjectId } from 'mongodb';
 
 describe('User endpoints', () => {
     let mockUser: IUser;
