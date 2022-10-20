@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { IAuthenticator } from './IAuthenticator';
 import * as admin from 'firebase-admin'
+import ResponseFormatter from '../../../utils/ResponseFormatter';
+import { ResponseTypes } from '../../../utils/ResponseTypes';
 
 admin.initializeApp({
     credential: admin.credential.applicationDefault(),
@@ -11,7 +13,7 @@ admin.initializeApp({
  * for authentication of the accessToken.
  */
 export default class Authenticator implements IAuthenticator {
-    constructor() {}
+    constructor() { }
     /**
      * This method provides authnetication logic for user authentication using Firebase-Admin API and
      * accessToken which is accessed through authorization header of the request.
@@ -28,11 +30,11 @@ export default class Authenticator implements IAuthenticator {
 
                     next();
                 }).catch(() => {
-                    res.status(403).send({ success: false, data: { isAuthorized: "User authorization failed" } });
+                    res.status(403).send(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User authorization failed."));
+                    return;
                 });
         }
-        else {
-            res.status(403).send({ success: false, data: { isValidToken: "Token is empty or invalid" } });
-        }
+
+        res.status(403).send(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is empty or invalid."));
     }
 }
