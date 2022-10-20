@@ -28,7 +28,6 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 import { app } from '../../App';
 import { IUser } from '../../serverAPI/model/user/IUser';
 import IFoodItem from '../../serverAPI/model/food/IFoodItem';
-import { ObjectId } from 'mongodb';
 
 describe('User endpoints', () => {
     let mockUser: IUser;
@@ -202,67 +201,6 @@ describe('User endpoints', () => {
                 .delete(`/users/user/${mockID}`);
 
             expect(response.statusCode).toBe(404);
-        });
-    });
-
-    describe('Create Food Requests', () => {
-        it(`Create Food Item in user's inventory`, async () => {
-            let expected = await UserDatabase.getInstance()?.CreateUser(mockUser);
-            mockUser = expected!;
-
-            let response = await supertest(app)
-                .post(`/users/user/${(mockUser as any)._id}/foods/food`)
-                .send(`name=${mockFood.name}`)
-                .send(`category=${mockFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
-                .send(`expirationDate=${mockFood.expirationDate}`)
-                .send(`id=${mockFood.id}`);
-
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject([mockFood]);
-        });
-    });
-
-    describe('Get Food Requests', () => {
-        it(`Get Food Item from user's inventory`, async () => {
-            let response = await supertest(app)
-                .get(`/users/user/${(mockUser as any)._id}/foods/food/${mockFoodID}`);
-            
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject(mockFood);
-        });
-
-        it(`Get Food inventory`, async () => {
-            let response = await supertest(app)
-                .get(`/users/user/${(mockUser as any)._id}/foods`);
-
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject([mockFood]);
-        });
-    });
-
-    describe(`Update Food Requests`, () => {
-        it(`Update Food Item from user's inventory`, async () => {
-            let response = await supertest(app)
-                .put(`/users/user/${(mockUser as any)._id}/foods/food/${mockFoodID}`)
-                .send(`id=${mockFoodUpdated.id}`)
-                .send(`name=${mockFoodUpdated.name}`)
-                .send(`category=${mockFoodUpdated.category}`)
-                .send(`nutrients=${JSON.stringify(mockFoodUpdated.nutrients)}`)
-                .send(`expirationDate=${mockFoodUpdated.expirationDate}`);
-                
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject([mockFoodUpdated]);
-        });
-    });
-
-    describe(`Delete Food Requests`, () => {
-        it(`Delete Food Item from user's inventory`, async () => {
-            let response = await supertest(app)
-                .delete(`/users/user/${(mockUser as any)._id}/foods/food/${mockFoodID}`);
-
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toStrictEqual([]);
         });
     });
 });
