@@ -11,8 +11,7 @@ export const foodRoute = express.Router();
 const foodController = new FoodController(
     new SpoonacularFoodAPI(
         process.env.SPOONACULAR_API_KEY
-    ),
-
+    )
 );
 
 foodRoute.get('/', foodController.getFoods)

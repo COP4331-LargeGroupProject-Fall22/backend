@@ -17,28 +17,24 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         this.apiKey = apiKey;
 
         this.foodSearchParameters = new Set([
-            'query',
             'number',
             'language',
-            'metaInformation'
+            'intolerence'
         ]);
 
         this.foodInfoParameters = new Set([
-            'id',
             'amount',
             'unit'
         ])
     }
 
     private parseFoodSummary = (data: any): Partial<IFood>[] => {
-        let parsedData = JSON.parse(data);
-
         let foods: Partial<IFood>[] = [];
 
         let parseFood = this.parseFood;
 
-        parsedData.forEach((ingredient: any) => {
-            let food = this.parseFood(ingredient);
+        data.forEach((ingredient: any) => {
+            let food = parseFood(ingredient);
 
             foods.push({
                 id: food.id,
@@ -51,7 +47,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
     }
 
     private convertFoodSummaryParameters = (parameters: Map<String, any>): URLSearchParams => {
-        let keys =  Array.from(parameters.keys());
+        let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
 
@@ -60,7 +56,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         keys.forEach(key => {
             if (this.foodSearchParameters.has(String(key))) {
-                searchParams.append(String(key), String(parameters.get(key)));    
+                searchParams.append(String(key), String(parameters.get(key)));
             }
         });
 
@@ -69,7 +65,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
     async GetFoods(parameters: Map<string, any>): Promise<Partial<IFood>[]> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
-        
+
         let searchParams = this.convertFoodSummaryParameters(parameters);
 
         if (searchParams.toString().length === 0) {
@@ -81,31 +77,29 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         let parseFoodSummary = this.parseFoodSummary;
 
+
         let response = axios.get(
             foodSearchBaseURL,
             {
                 transformResponse: [function (data) {
-                    return parseFoodSummary(data);
+                    let parsedData = JSON.parse(data);
+                    return parseFoodSummary(parsedData);
                 }],
                 params: searchParams
             }
         );
 
-        return new Promise(async (resolve) => {
-            resolve((await response).data);
-        });
+        return new Promise(async (resolve) => resolve((await response).data));
     }
 
     private parseFood = (data: any): IFood => {
-        let parsedData = JSON.parse(data);
-
-        let name = parsedData.name;
-        let id = parsedData.id;
-        let category = parsedData.aisle;
+        let name = data.name;
+        let id = data.id;
+        let category = data.aisle;
 
         let nutrients: INutrient[] = [];
 
-        parsedData?.nutrition?.nutrients.forEach((nutrient: any) => {
+        data?.nutrition?.nutrients.forEach((nutrient: any) => {
             nutrients.push({
                 name: nutrient.name,
                 unit: {
@@ -125,13 +119,13 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
     }
 
     private convertFoodInfoParameters = (parameters: Map<String, any>): URLSearchParams => {
-        let keys =  Array.from(parameters.keys());
+        let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
 
         keys.forEach(key => {
             if (this.foodInfoParameters.has(String(key))) {
-                searchParams.append(String(key), String(parameters.get(key)));    
+                searchParams.append(String(key), String(parameters.get(key)));
             }
         });
 
@@ -157,44 +151,17 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
             foodGetInfoBaseURL,
             {
                 transformResponse: [function (data) {
-                    return parseFoodComplete(data);
+                    let parsedData = JSON.parse(data);
+                    return parseFoodComplete(parsedData);
                 }],
                 params: searchParams
             }
         );
 
-        return new Promise(async (resolve) => {
-            resolve((await response).data);
-        });
+        return new Promise(async (resolve) => resolve((await response).data));
     }
 
     GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null> {
         throw new Error('not implemented yet');
-        
-        // if (!parameters.has("upc")) {
-        //     return new Promise((resolve) => resolve(null));
-        // }
-
-        // let foodGetInfoBaseURL: string = process.env.SPOONACULAR_GROCERY_PRODUCT_GET_INFO_BY_UPC_URL + parameters.get("upc");
-
-        // let searchParams = new URLSearchParams();
-
-        // searchParams.append("apiKey", this.apiKey);
-
-        // let parseFoodComplete = this.parseFoodComplete;
-
-        // let response = axios.get(
-        //     foodGetInfoBaseURL,
-        //     {
-        //         transformResponse: [function (data) {
-        //             return parseFoodComplete(data);
-        //         }],
-        //         params: searchParams
-        //     }
-        // );
-
-        // return new Promise(async (resolve) => {
-        //     resolve((await response).data);
-        // });
     }
 }

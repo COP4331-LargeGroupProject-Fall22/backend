@@ -83,7 +83,7 @@ describe('Authentication endpoints', () => {
     });
 
     describe('Get Requests', () => {
-        it('Login without uid', async () => {
+        it('Login without UID', async () => {
             let response = await supertest(app)
                 .get('/auth/login')
                 .set('Authorization', 'accessToken');
