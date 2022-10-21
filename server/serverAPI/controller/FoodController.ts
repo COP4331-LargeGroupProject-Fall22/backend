@@ -25,13 +25,14 @@ export default class FoodController {
     getFood = async (req: Request, res: Response) => {
         let foodID = Number.parseInt(req.params.foodID);
 
+
         if (Number.isNaN(foodID) || foodID < 0) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Invlid foodID."));
             return;
         }
         
         let parameters = new Map<string, any>([
-            ["id", req.params.id]
+            ["id", foodID]
         ]);
         
         let food = await this.foodAPI.GetFood(parameters);
@@ -52,14 +53,6 @@ export default class FoodController {
      */        
     getFoodByUPC =async (req: Request, res: Response) => {
         throw new Error("Not implemented yet.");
-        // let parameters = new Map<string, any>();
-
-        // if (req.params?.upc !== undefined) {
-        //     parameters.set("upc", req.params.upc);
-        // }
-
-        // this.foodAPI.GetFoodByUPC(parameters)
-        //     .then(food => res.status(200).json(food));
     }
 
     /**
@@ -81,6 +74,10 @@ export default class FoodController {
 
         if (req.query?.size !== undefined) {
             parameters.set("number", req.query.size);
+        }
+
+        if (req.query?.intolerence !== undefined) {
+            parameters.set("intolerence", req.query.intolerences);
         }
 
         let foods = await this.foodAPI.GetFoods(parameters);

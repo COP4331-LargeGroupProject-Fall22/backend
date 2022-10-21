@@ -434,7 +434,7 @@ export class UserController {
         }
 
         if (!isFound) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory"));
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory"));
             return;
         }
 
