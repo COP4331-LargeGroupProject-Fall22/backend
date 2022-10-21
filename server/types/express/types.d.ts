@@ -2,8 +2,7 @@
  * This file is responsible for extension of the Request interface provided by Express.js.
  */
 
-import { Request } from "express-serve-static-core";
-import { Request } from "supertest";
+import superagent from "superagent";
 
 declare module "supertest" {
     interface Test extends superagent.SuperAgentRequest{
