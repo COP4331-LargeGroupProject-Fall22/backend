@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsPositive } from "class-validator";
+import { IsNotEmpty, IsNumber, IsPositive } from "class-validator";
 import IWeight from "./IWeight";
 import { WeightUnits } from "./WeightUnits";
 

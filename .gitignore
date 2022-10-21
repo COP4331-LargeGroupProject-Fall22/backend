@@ -3,4 +3,5 @@ package-lock.json
 build/
 node_modules/
 food-app*.json
+server/database/databaseGenerator.js
 
