@@ -2,7 +2,6 @@ import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 import * as dotenv from 'dotenv';
-import { UserDatabase } from '../../database/UserDatabase';
 dotenv.config();
 
 export = async function globalSetup() {

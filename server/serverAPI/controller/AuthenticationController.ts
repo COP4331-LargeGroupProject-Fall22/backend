@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
-import { IUserDatabase } from "../../database/IUserDatabase";
+import IUserDatabase from "../../database/IUserDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import { Validator } from "../../utils/Validator";
-import { UserSchema } from "../model/user/UserSchema";
+import UserSchema from "../model/user/UserSchema";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export class AuthenticationController {
+export default class AuthenticationController {
     private database: IUserDatabase;
 
     constructor(database: IUserDatabase) {

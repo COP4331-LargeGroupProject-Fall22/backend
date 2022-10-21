@@ -1,10 +1,9 @@
-import { ObjectId } from "mongodb";
 import IFoodItem from "../food/IFoodItem";
 
 /**
  * User interface.
  */
-export interface IUser {
+export default interface IUser {
     firstName: string;
     lastName: string;
     uid: string;

@@ -1,7 +1,7 @@
 import { Validator } from "../../utils/Validator";
 import { Request, Response } from "express";
-import { IUserDatabase } from '../../database/IUserDatabase';
-import { UserSchema } from '../model/user/UserSchema';
+import IUserDatabase from '../../database/IUserDatabase';
+import UserSchema from '../model/user/UserSchema';
 import FoodItemSchema from "../model/food/FoodItemSchema";
 import NutrientSchema from "../model/nutrients/NutrientSchema";
 import UnitSchema from "../model/unit/UnitSchema";
@@ -13,7 +13,7 @@ import { ResponseTypes } from "../../utils/ResponseTypes";
  * This class creates several properties responsible for user-actions 
  * provided to the user.
  */
-export class UserController {
+export default class UserController {
     private database: IUserDatabase;
 
     constructor(database: IUserDatabase) {

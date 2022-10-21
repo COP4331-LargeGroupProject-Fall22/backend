@@ -4,15 +4,15 @@ dotenv.config();
 import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
 import { exit } from 'process';
 
-import { IUser } from '../serverAPI/model/user/IUser';
-import { IUserDatabase } from './IUserDatabase';
+import IUser from '../serverAPI/model/user/IUser';
+import IUserDatabase from './IUserDatabase';
 
 /**
  * This class implements IUserDatabase interface using MongoDB database.
  * It uses Singelton design pattern to avoid establishing several connection to the same database inside of one
  * application instance.
  */
-export class UserDatabase implements IUserDatabase {
+export default class UserDatabase implements IUserDatabase {
     private static instance?: UserDatabase;
 
     protected client!: MongoClient;

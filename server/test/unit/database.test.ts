@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { IUser } from "../../serverAPI/model/user/IUser";
-import { UserDatabase } from "../../database/UserDatabase";
+import IUser from "../../serverAPI/model/user/IUser";
+import UserDatabase from "../../database/UserDatabase";
 
 describe('User database functionality', () => {
     let userDB: UserDatabase
