@@ -1,11 +1,11 @@
 import { IsInt, IsNotEmpty, IsPositive, IsString, ValidateNested } from "class-validator";
 import IFoodItem from "../food/IFoodItem";
-import { IUser } from "./IUser";
+import IUser from "./IUser";
 
 /**
  * This class implements IUser interface and provides several built-in validations of its own properties.
  */
-export class UserSchema implements IUser {
+export default class UserSchema implements IUser {
     @IsNotEmpty()
     @IsString()
     firstName: string;

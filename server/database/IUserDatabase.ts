@@ -1,9 +1,9 @@
-import { IUser } from "../serverAPI/model/user/IUser";
+import IUser from "../serverAPI/model/user/IUser";
 
 /**
  * Database interface describing full CRUD operations of the User.
  */
-export interface IUserDatabase {
+export default interface IUserDatabase {
     GetUsers(parameters?: Map<String, any>): Promise<Partial<IUser>[] | null>;
 
     GetUser(parameters: Map<String, any>): Promise<IUser | null>;

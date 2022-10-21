@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { IAuthenticator } from './IAuthenticator';
+import IAuthenticator from './IAuthenticator';
 import * as admin from 'firebase-admin'
 import ResponseFormatter from '../../../utils/ResponseFormatter';
 import { ResponseTypes } from '../../../utils/ResponseTypes';

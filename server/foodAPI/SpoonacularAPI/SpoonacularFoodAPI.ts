@@ -1,5 +1,4 @@
 import axios from "axios";
-import { exit } from "process";
 import IFood from "../../serverAPI/model/food/IFood";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
 import IFoodAPI from "../IFoodAPI";

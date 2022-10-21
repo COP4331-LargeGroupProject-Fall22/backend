@@ -4,9 +4,9 @@ dotenv.config();
 import { NextFunction, Request, Response } from "express";
 import supertest from "supertest";
 import { app } from "../../App";
-import { UserDatabase } from "../../database/UserDatabase";
+import UserDatabase from "../../database/UserDatabase";
 import IFoodItem from "../../serverAPI/model/food/IFoodItem";
-import { IUser } from "../../serverAPI/model/user/IUser";
+import IUser from "../../serverAPI/model/user/IUser";
 
 let mockUser: IUser;
 

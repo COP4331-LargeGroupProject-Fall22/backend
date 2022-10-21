@@ -1,9 +1,11 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { UserDatabase } from '../../database/UserDatabase';
+import UserDatabase from '../../database/UserDatabase';
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
+import IUser from '../../serverAPI/model/user/IUser';
+import IFoodItem from '../../serverAPI/model/food/IFoodItem';
 
 jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
     return function () {
@@ -26,8 +28,6 @@ let collectionName = process.env.DB_USERS_COLLECTION;
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
-import { IUser } from '../../serverAPI/model/user/IUser';
-import IFoodItem from '../../serverAPI/model/food/IFoodItem';
 
 describe('User endpoints', () => {
     let mockUser: IUser;
