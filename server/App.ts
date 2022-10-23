@@ -21,9 +21,9 @@ if (process.env.NODE_ENV === 'production') {
     // app.use(express.static('frontend/build'));
     app.use(express.static(path.resolve(__dirname, './serverAPI/view/html/public')));
 
-    app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, './serverAPI/view/html/public/index.html'));
-    });
+    // app.get('*', (req, res) => {
+    //     res.sendFile(path.resolve(__dirname, './serverAPI/view/html/public/index.html'));
+    // });
 
     app.use('/users', userRoute);
     app.use('/foods', foodRoute);
