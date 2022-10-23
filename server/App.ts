@@ -18,7 +18,7 @@ const app = express();
 app.use(Logger.consoleLog);
 
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.resolve(__dirname, './serverAPI/view/html/public')));
+    app.use(express.static(path.resolve(__dirname, '../frontend/html/public')));
 }
 
 app.use('/users', userRoute);

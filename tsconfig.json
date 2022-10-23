@@ -35,5 +35,5 @@
   //   "files": true
   // },
 
-  "exclude": ["build", "server/tests", "jest-mongodb-config.js", "jest.config.js"]
+  "exclude": ["build", "server/tests", "jest-mongodb-config.js", "jest.config.js", "frontend"]
 }
