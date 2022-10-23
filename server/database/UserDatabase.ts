@@ -95,11 +95,12 @@ export default class UserDatabase implements IDatabase<IUser> {
     }
 
     /**
+     * Attempts to validate IUser fields.
      * 
      * @param user IUser object
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      */
-    private async tryToValidateUser(user: IUser) {
+    private async validateSchema(user: IUser) {
         let definedUser = new UserSchema(
             user.firstName,
             user.lastName,
@@ -175,7 +176,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async CreateUser(user: IUser): Promise<IUser | null> {
-        this.tryToValidateUser(user);
+        this.validateSchema(user);
 
         let insertResult = await this.userCollection.insertOne(user);
 
@@ -185,13 +186,19 @@ export default class UserDatabase implements IDatabase<IUser> {
     /**
      * Updates user object in the database
      * 
-     * @param id unique identifier of the existing user.
+     * @param id unique identifier of the user that is used internally in the MongoDB.
      * @param user IUser object filled with information about user.
      * 
      * @returns Promise filled with updated IUser object or null if user wasn't updated.
      */
     async UpdateUser(id: string, user: IUser): Promise<IUser | null> {
-        this.tryToValidateUser(user);
+        this.validateSchema(user);
+
+        let existingUser = await this.GetUserById(id);
+
+        if (existingUser === null) {
+            return new Promise(resolve => resolve(null));
+        }
 
         await this.userCollection.updateOne(
             { "_id": new ObjectId(id) },
@@ -211,16 +218,22 @@ export default class UserDatabase implements IDatabase<IUser> {
     }
 
     /**
-     * This method is used for deletion of the user object in the MongoDB.
+     * Deletes user object from database.
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
      * @returns Promise filled with boolean value indication status of the operation.
      */
     async DeleteUser(id: string): Promise<boolean> {
+        let existingUser = await this.GetUserById(id);
+
+        if (existingUser === null) {
+            return new Promise(resolve => resolve(false));
+        }
+
         let deleteResult = await this.userCollection.deleteOne(
             { "_id": new ObjectId(id) }
         );
 
-        return Promise.resolve(deleteResult.deletedCount >= 1);
+        return new Promise(resolve => resolve(deleteResult.deletedCount >= 1));
     }
 }
