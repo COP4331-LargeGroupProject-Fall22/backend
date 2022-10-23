@@ -16,6 +16,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         this.apiKey = apiKey;
 
         this.foodSearchParameters = new Set([
+            'query',
             'number',
             'language',
             'intolerence'
@@ -143,7 +144,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         if (!searchParams.has("amount")) {
             searchParams.set("amount", "1");
         }
-        
+
         searchParams.append("apiKey", this.apiKey);
 
         let parseFoodComplete = this.parseFood;

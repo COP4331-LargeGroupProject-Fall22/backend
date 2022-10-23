@@ -8,8 +8,6 @@
     "test": "jest --verbose",
     "start": "node build/Server.js",
     "postinstall": "tsc",
-    "watch-node": "nodemon build/Server.js",
-    "watch-ts": "tsc -w",
     "deploy": "git add . && git commit -m Heroku && git push heroku master"
   },
   "keywords": [],
