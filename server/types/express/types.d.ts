@@ -19,6 +19,9 @@ declare module "express-serve-static-core" {
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
+            PORT: number;
+            NODE_ENV: string;
+
             DB_CONNECTION_STRING_TESTING: string;
             DB_CONNECTION_STRING: string;
             DB_NAME: string;

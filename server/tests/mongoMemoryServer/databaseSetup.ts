@@ -4,7 +4,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-export = async function globalSetup() {
+export default async function globalSetup() {
   // Config to decided if an mongodb-memory-server instance should be used
   // it's needed in global space, because we don't want to create a new instance every test-suite
   const instance = await MongoMemoryServer.create();
@@ -16,7 +16,7 @@ export = async function globalSetup() {
 
   let client = await MongoClient.connect(DB_URL);
   await client.db(process.env.DB_NAME).dropDatabase();
-  await client.db(process.env.DB_NAME).createCollection(process.env.DB_USERS_COLLECTION);
+  await client.db(process.env.DB_NAME).createCollection(process.env.DB_USERS_COLLECTION!);
 
   await client.close();
 

@@ -8,15 +8,16 @@ import UnitSchema from "../model/unit/UnitSchema";
 import IFoodItem from "../model/food/IFoodItem";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import IUser from "../model/user/IUser";
 
 /**
  * This class creates several properties responsible for user-actions 
  * provided to the user.
  */
 export default class UserController {
-    private database: IDatabase;
+    private database: IDatabase<IUser>;
 
-    constructor(database: IDatabase) {
+    constructor(database: IDatabase<IUser>) {
         this.database = database;
     }
 
@@ -29,7 +30,7 @@ export default class UserController {
      */
     getUsers = async (req: Request, res: Response) => {
         this.database.GetUsers()
-            .then(users => res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, users)));
+            .then((users: Partial<IUser>[] | null) => res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, users)));
     }
 
     /**
@@ -232,7 +233,7 @@ export default class UserController {
             return;
         }
 
-        let food = user.inventory.find(foodItem => foodItem.id === newFood.id);
+        let food = user.inventory.find((foodItem: IFoodItem) => foodItem.id === newFood.id);
 
         if (food !== undefined) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
@@ -282,7 +283,7 @@ export default class UserController {
             return;
         }
 
-        let foodItem = user.inventory.find(foodItem => foodItem.id === Number.parseInt(foodID));
+        let foodItem = user.inventory.find((foodItem: IFoodItem) => foodItem.id === Number.parseInt(foodID));
 
         if (foodItem === undefined) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory."));

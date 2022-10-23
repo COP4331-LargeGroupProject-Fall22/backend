@@ -6,8 +6,9 @@ module.exports = {
   preset: '@shelf/jest-mongodb',
   transform: tsjPreset.transform,
   setupFiles: [
-    "<rootDir>/server/test/mongoMemoryServer/databaseSetup.ts"
-  ]
+    "<rootDir>/server/tests/mongoMemoryServer/databaseSetup.ts"
+  ],
+  testPathIgnorePatterns: [".js"]
 };
 
 // const tsPreset = require('ts-jest/jest-preset');
