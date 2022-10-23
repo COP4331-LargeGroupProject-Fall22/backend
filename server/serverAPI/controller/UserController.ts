@@ -1,6 +1,6 @@
 import { Validator } from "../../utils/Validator";
 import { Request, Response } from "express";
-import IUserDatabase from '../../database/IUserDatabase';
+import IDatabase from '../../database/IDatabase';
 import UserSchema from '../model/user/UserSchema';
 import FoodItemSchema from "../model/food/FoodItemSchema";
 import NutrientSchema from "../model/nutrients/NutrientSchema";
@@ -14,9 +14,9 @@ import { ResponseTypes } from "../../utils/ResponseTypes";
  * provided to the user.
  */
 export default class UserController {
-    private database: IUserDatabase;
+    private database: IDatabase;
 
-    constructor(database: IUserDatabase) {
+    constructor(database: IDatabase) {
         this.database = database;
     }
 

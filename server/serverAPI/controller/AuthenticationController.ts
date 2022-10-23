@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
-import IUserDatabase from "../../database/IUserDatabase";
+import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import { Validator } from "../../utils/Validator";
+import IUser from "../model/user/IUser";
 import UserSchema from "../model/user/UserSchema";
 
 /**
@@ -10,9 +11,9 @@ import UserSchema from "../model/user/UserSchema";
  * provided to the user.
  */
 export default class AuthenticationController {
-    private database: IUserDatabase;
+    private database: IDatabase<IUser>;
 
-    constructor(database: IUserDatabase) {
+    constructor(database: IDatabase<IUser>) {
         this.database = database;
     }
 

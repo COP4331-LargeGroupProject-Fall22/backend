@@ -3,16 +3,24 @@ dotenv.config();
 
 import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
 import { exit } from 'process';
+import EmptyID from '../exceptions/EmptyID';
+import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
+import IncorrectSchema from '../exceptions/IncorrectSchema';
+import NoParameterFound from '../exceptions/NoParameterFound';
 
 import IUser from '../serverAPI/model/user/IUser';
-import IUserDatabase from './IUserDatabase';
+import UserSchema from '../serverAPI/model/user/UserSchema';
+import { Validator } from '../utils/Validator';
+import IDatabase from './IDatabase';
 
 /**
- * This class implements IUserDatabase interface using MongoDB database.
- * It uses Singelton design pattern to avoid establishing several connection to the same database inside of one
- * application instance.
+ * UserDatabase is responsible for providing an interface for the end-user filled with methods which allows
+ * CRUD operations on the User collection.
+ * 
+ * It also uses Singleton design pattern. As such, there is only one database instance that will be created through out
+ * execution lifetime.
  */
-export default class UserDatabase implements IUserDatabase {
+export default class UserDatabase implements IDatabase<IUser> {
     private static instance?: UserDatabase;
 
     protected client!: MongoClient;
@@ -20,35 +28,31 @@ export default class UserDatabase implements IUserDatabase {
     protected database!: Db;
     protected userCollection!: Collection<IUser>;
 
-    /**
-     * Initializes MongoClient, database and userCollection properties of the MongoDB class.
-     * @returns UserDatabase object.
-     */
     private constructor(mongoURL: string, name: string, collection: string) {
         try {
             this.client = new MongoClient(mongoURL);
-        
+
             this.database = this.client.db(name);
             this.userCollection = this.database.collection<IUser>(collection);
 
             return this;
-        } catch(e) {
+        } catch (e) {
             console.log(e);
             exit(1);
         }
     }
 
     /**
-     * Returns current instance of the UserDatabase if such exists.
+     * Retrieves current instance of the UserDatabase if such exists.
      * 
-     * @returns UserDatabase object
+     * @returns UserDatabase object or undefined.
      */
     static getInstance(): UserDatabase | undefined {
         return UserDatabase.instance;
     }
-    
+
     /**
-     * Connects to the database if connection doesn't already exist.
+     * Connects to the database if database instance doesn't exist
      * 
      * @returns UserDatabase object.
      */
@@ -60,6 +64,9 @@ export default class UserDatabase implements IUserDatabase {
         return UserDatabase.instance;
     }
 
+    /**
+     * Disconnects database from database provider.
+     */
     async disconnect() {
         if (this.client) {
             await this.client.close();
@@ -68,74 +75,121 @@ export default class UserDatabase implements IUserDatabase {
     }
 
     /**
-     * This method is used for getting summary of all user objects in the database.
-     * Summary will contain only non-sensitive information about users.
+     * Retrieves general information about all user objects stored in the database. 
      * 
      * @param parameters query parameters used for searching.
-     * @returns Promise filled with Partial<IUser> where each IUser object will contain only non-sensitive information or null if useres weren't found.
+     * @returns Promise filled with Partial<IUser> where each IUser object will contain only general information or null if useres weren't found.
      */
     async GetUsers(parameters?: Map<String, any>): Promise<Partial<IUser>[] | null> {
         const users = this.userCollection.find()
-            .project({ firstName:1, lastName:1, lastSeen:1, _id: 0 });
+            .project({ firstName: 1, lastName: 1, lastSeen: 1, _id: 0 });
 
         return users.toArray();
     }
 
     /**
-     * This method is used for getting complete information about user object in the database.
-     * This information will include everything about user, including their sensitive information.
+     * 
+     * @param user IUser object
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
+     */
+    private async tryToValidateUser(user: IUser) {
+        let definedUser = new UserSchema(
+            user.firstName,
+            user.lastName,
+            user.uid
+        );
+
+        definedUser.inventory = user.inventory;
+        definedUser.lastSeen = user.lastSeen;
+
+        let logs = new Validator().validate(definedUser);
+
+        if ((await logs).length > 0) {
+            throw new IncorrectSchema(`User object doesn't have correct format.\n${logs}`);
+        }
+    }
+
+    /**
+     * Retrieves complete information about specific user defined by user's _id.
      * 
      * @param parameters query parameters used for searching.
+     * - _id - required parameter that defines user's _id.
+     * 
+     * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with IUser object or null if user wasn't found.
      */
-    async GetUser(parameters: Map<String, any>): Promise<IUser | null> { 
+    async GetUser(parameters: Map<String, any>): Promise<IUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
-        
-        if (filter._id !== undefined) {
-            filter._id = new ObjectId(filter._id);
+
+        if (filter._id === undefined) {
+            throw new NoParameterFound("_id is missing in parameters dictionary.");
         }
-        
+
+        filter._id = new ObjectId(filter._id);
+
         return this.userCollection.findOne(filter);
     }
 
     /**
-     * This method is used for getting complete information about user object in the database based on their internal "_id".
+     * Retrieves complete information about specific user defined by only user's _id.
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
+     * 
+     * @throws EmptyID exception when id is empty.
+     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with IUser object or null if user wasn't found.
      */
     private async GetUserById(id: string): Promise<IUser | null> {
+        if (id.length === 0) {
+            throw new EmptyID("_id cannot be empty string.");
+        }
+
+        let objectID: ObjectId;
+        try {
+            objectID = new ObjectId(id);
+        }
+        catch (e) {
+            throw new IncorrectIDFormat("_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
+        }
+
         const user = this.userCollection.findOne(
-            { "_id" : new ObjectId(id) }
+            { "_id": objectID }
         );
 
         return user;
     }
-    
+
     /**
-     * This method is used for creation of the user object in the MongoDB.
+     * Creates user object in the database.
      * 
      * @param user IUser object filled with information about user.
+     * 
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async CreateUser(user: IUser): Promise<IUser | null> {
+        this.tryToValidateUser(user);
+
         let insertResult = await this.userCollection.insertOne(user);
 
         return this.GetUserById(insertResult.insertedId.toString());
     }
 
     /**
-     * This method is used for updating of the user object in the MongoDB.
+     * Updates user object in the database
      * 
-     * @param id unique identifier of the user that is used internally in the MongoDB.
+     * @param id unique identifier of the existing user.
      * @param user IUser object filled with information about user.
+     * 
      * @returns Promise filled with updated IUser object or null if user wasn't updated.
      */
     async UpdateUser(id: string, user: IUser): Promise<IUser | null> {
+        this.tryToValidateUser(user);
+
         await this.userCollection.updateOne(
-            { "_id" : new ObjectId(id) },
-            { 
-                $set: 
+            { "_id": new ObjectId(id) },
+            {
+                $set:
                 {
                     "uid": user.uid,
                     "firstName": user.firstName,

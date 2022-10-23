@@ -50,8 +50,9 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         let searchParams = new URLSearchParams();
 
-        if (!parameters.has("query"))
+        if (!parameters.has("query")) {
             return searchParams;
+        }
 
         keys.forEach(key => {
             if (this.foodSearchParameters.has(String(key))) {
@@ -139,9 +140,10 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         let searchParams = this.convertFoodInfoParameters(parameters);
 
-        if (!searchParams.has("amount"))
+        if (!searchParams.has("amount")) {
             searchParams.set("amount", "1");
-
+        }
+        
         searchParams.append("apiKey", this.apiKey);
 
         let parseFoodComplete = this.parseFood;
