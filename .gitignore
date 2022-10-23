@@ -1,7 +1,6 @@
 package-lock.json
 .env
-#production
-#build/
+build/
 node_modules/
 food-app*.json
 server/database/databaseGenerator.js
