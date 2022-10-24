@@ -96,11 +96,12 @@ class UserDatabase {
         return userArr;
     }
     /**
+     * Attempts to validate IUser fields.
      *
      * @param user IUser object
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      */
-    async tryToValidateUser(user) {
+    async validateSchema(user) {
         let definedUser = new UserSchema_1.default(user.firstName, user.lastName, user.uid);
         definedUser.inventory = user.inventory;
         definedUser.lastSeen = user.lastSeen;
@@ -120,10 +121,12 @@ class UserDatabase {
      */
     async GetUser(parameters) {
         let filter = Object.fromEntries(parameters);
-        if (filter._id === undefined) {
-            throw new NoParameterFound_1.default("_id is missing in parameters dictionary.");
+        if (filter._id === undefined && filter.uid === undefined) {
+            throw new NoParameterFound_1.default("Need to provide either _id or uid");
         }
-        filter._id = new mongodb_1.ObjectId(filter._id);
+        if (filter._id !== undefined) {
+            filter._id = new mongodb_1.ObjectId(filter._id);
+        }
         return this.userCollection.findOne(filter);
     }
     /**
@@ -158,20 +161,24 @@ class UserDatabase {
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async CreateUser(user) {
-        this.tryToValidateUser(user);
+        this.validateSchema(user);
         let insertResult = await this.userCollection.insertOne(user);
         return this.GetUserById(insertResult.insertedId.toString());
     }
     /**
      * Updates user object in the database
      *
-     * @param id unique identifier of the existing user.
+     * @param id unique identifier of the user that is used internally in the MongoDB.
      * @param user IUser object filled with information about user.
      *
      * @returns Promise filled with updated IUser object or null if user wasn't updated.
      */
     async UpdateUser(id, user) {
-        this.tryToValidateUser(user);
+        this.validateSchema(user);
+        let existingUser = await this.GetUserById(id);
+        if (existingUser === null) {
+            return new Promise(resolve => resolve(null));
+        }
         await this.userCollection.updateOne({ "_id": new mongodb_1.ObjectId(id) }, {
             $set: {
                 "uid": user.uid,
@@ -184,14 +191,18 @@ class UserDatabase {
         return this.GetUserById(id);
     }
     /**
-     * This method is used for deletion of the user object in the MongoDB.
+     * Deletes user object from database.
      *
      * @param id unique identifier of the user that is used internally in the MongoDB.
      * @returns Promise filled with boolean value indication status of the operation.
      */
     async DeleteUser(id) {
+        let existingUser = await this.GetUserById(id);
+        if (existingUser === null) {
+            return new Promise(resolve => resolve(false));
+        }
         let deleteResult = await this.userCollection.deleteOne({ "_id": new mongodb_1.ObjectId(id) });
-        return Promise.resolve(deleteResult.deletedCount >= 1);
+        return new Promise(resolve => resolve(deleteResult.deletedCount >= 1));
     }
 }
 exports.default = UserDatabase;

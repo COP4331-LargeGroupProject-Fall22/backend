@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
-import { resolve } from 'path';
 import { exit } from 'process';
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
@@ -129,11 +128,13 @@ export default class UserDatabase implements IDatabase<IUser> {
     async GetUser(parameters: Map<String, any>): Promise<IUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
 
-        if (filter._id === undefined) {
-            throw new NoParameterFound("_id is missing in parameters dictionary.");
+        if (filter._id === undefined && filter.uid === undefined) {
+            throw new NoParameterFound("Need to provide either _id or uid");
         }
 
-        filter._id = new ObjectId(filter._id);
+        if (filter._id !== undefined) {
+            filter._id = new ObjectId(filter._id);
+        }
 
         return this.userCollection.findOne(filter);
     }

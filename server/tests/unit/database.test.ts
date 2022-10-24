@@ -8,8 +8,8 @@ describe('User database functionality', () => {
     let userDB: UserDatabase
     
     let databaseURL = (global as any).__MONGO_URI__;
-    let databaseName = process.env.DB_NAME;
-    let collectionName = process.env.DB_USERS_COLLECTION;
+    let databaseName = process.env.DB_NAME!;
+    let collectionName = process.env.DB_USERS_COLLECTION!;
     
     let uid: string | undefined;
     let _id: string | undefined;
@@ -24,7 +24,7 @@ describe('User database functionality', () => {
             databaseName,
             collectionName
         );
-
+        
         mockUser = {
             firstName: "Mikhail",
             lastName: "Plekunov",
@@ -84,9 +84,9 @@ describe('User database functionality', () => {
 
     describe('create', () => {
         it('create user ', async () => {
-            let actual: any = await userDB.CreateUser(mockUser);
+            let actual = await userDB.CreateUser(mockUser);
             uid = actual?.uid;
-            _id = actual?._id;
+            _id = (actual as any)?._id;
             
             expect(actual).toMatchObject(mockUser);
         });

@@ -91,7 +91,6 @@ class SpoonacularFoodAPI {
         let response = axios_1.default.get(foodSearchBaseURL, {
             transformResponse: [function (data) {
                     let parsedData = JSON.parse(data);
-                    console.log(parsedData);
                     return parseFoodSummary(parsedData);
                 }],
             params: searchParams

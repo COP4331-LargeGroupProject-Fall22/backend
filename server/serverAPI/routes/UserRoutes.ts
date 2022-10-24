@@ -1,6 +1,9 @@
 /**
  * This file is responsible for construction of the routes for UserController.
  */
+ import * as dotenv from 'dotenv';
+ dotenv.config();
+ 
 import express from 'express';
 import UserController from '../controller/UserController';
 import UserDatabase from '../../database/UserDatabase';

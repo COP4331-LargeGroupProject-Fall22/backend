@@ -22,8 +22,8 @@ jest.mock('../../serverAPI/middleware/logger/Logger', () => {
 });
 
 let databaseURL = (global as any).__MONGO_URI__;
-let databaseName = process.env.DB_NAME;
-let collectionName = process.env.DB_USERS_COLLECTION;
+let databaseName = process.env.DB_NAME!;
+let collectionName = process.env.DB_USERS_COLLECTION!;
 
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
@@ -97,7 +97,7 @@ describe('User endpoints', () => {
             let response = await supertest(app).get("/users");
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.data).toStrictEqual([]);
+            expect(response.body.data).toBeNull();
         });
 
         it('Get User without id', async () => {

@@ -39,7 +39,7 @@ const app = (0, express_1.default)();
 exports.app = app;
 app.use(Logger_1.default.consoleLog);
 if (process.env.NODE_ENV === 'production') {
-    app.use(express_1.default.static(path_1.default.resolve(__dirname, './serverAPI/view/html/public')));
+    app.use(express_1.default.static(path_1.default.resolve(__dirname, '../frontend/html/public')));
 }
 app.use('/users', UserRoutes_1.userRoute);
 app.use('/foods', FoodRoute_1.foodRoute);

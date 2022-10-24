@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "Server.js",
-  "engines": { "node": "18.10.0" },
+  "engines": {
+    "node": "18.10.0"
+  },
   "scripts": {
     "test": "jest --verbose",
     "start": "node build/Server.js",
@@ -14,16 +16,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^4.17.14",
-    "@types/node": "^18.8.3",
     "axios": "^1.1.3",
     "class-validator": "^0.13.2",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "firebase": "^9.11.0",
     "firebase-admin": "^11.1.0",
-    "heroku": "^7.65.0",
-    "immutable": "^4.1.0",
     "mongodb": "^4.10.0",
     "nodejs": "^0.0.0",
     "ts-node": "^10.9.1",
@@ -31,7 +29,9 @@
   },
   "devDependencies": {
     "@shelf/jest-mongodb": "^4.1.1",
+    "@types/express": "^4.17.14",
     "@types/jest": "^29.1.2",
+    "@types/node": "^18.11.4",
     "@types/superagent": "^4.1.15",
     "@types/supertest": "^2.0.12",
     "jest": "^29.2.0",
