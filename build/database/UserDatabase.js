@@ -96,18 +96,40 @@ class UserDatabase {
         return userArr;
     }
     /**
-     * Attempts to validate IUser fields.
+     * Attempts to convert IUser to UserSchema.
      *
      * @param user IUser object
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
+     * @return UserScema if conversion was successful.
      */
-    async validateSchema(user) {
+    async convertToUserSchema(user) {
         let definedUser = new UserSchema_1.default(user.firstName, user.lastName, user.uid);
         definedUser.inventory = user.inventory;
         definedUser.lastSeen = user.lastSeen;
         let logs = new Validator_1.Validator().validate(definedUser);
         if ((await logs).length > 0) {
             throw new IncorrectSchema_1.default(`User object doesn't have correct format.\n${logs}`);
+        }
+        return definedUser;
+    }
+    /**
+    * Attempts to convert id to ObjectID.
+    *
+    * @param id unique identifier of the user that is used internally in the MongoDB.
+    *
+    * @throws EmptyID exception when id is empty.
+    * @throws IncorrectIDFormat exception when id has incorrect format.
+    * @return ObjectID if conversion was successful.
+    */
+    convertToObjectID(id) {
+        if (id.length === 0) {
+            throw new EmptyID_1.default("_id cannot be empty string.");
+        }
+        try {
+            return new mongodb_1.ObjectId(id);
+        }
+        catch (e) {
+            throw new IncorrectIDFormat_1.default("_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
         }
     }
     /**
@@ -117,6 +139,8 @@ class UserDatabase {
      * - _id - required parameter that defines user's _id.
      *
      * @throws NoParameterFound exception when required parameters weren't found.
+     * @throws EmptyID exception when id is empty.
+     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with IUser object or null if user wasn't found.
      */
     async GetUser(parameters) {
@@ -125,7 +149,7 @@ class UserDatabase {
             throw new NoParameterFound_1.default("Need to provide either _id or uid");
         }
         if (filter._id !== undefined) {
-            filter._id = new mongodb_1.ObjectId(filter._id);
+            filter._id = this.convertToObjectID(filter._id);
         }
         return this.userCollection.findOne(filter);
     }
@@ -134,22 +158,10 @@ class UserDatabase {
      *
      * @param id unique identifier of the user that is used internally in the MongoDB.
      *
-     * @throws EmptyID exception when id is empty.
-     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with IUser object or null if user wasn't found.
      */
-    async GetUserById(id) {
-        if (id.length === 0) {
-            throw new EmptyID_1.default("_id cannot be empty string.");
-        }
-        let objectID;
-        try {
-            objectID = new mongodb_1.ObjectId(id);
-        }
-        catch (e) {
-            throw new IncorrectIDFormat_1.default("_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
-        }
-        const user = this.userCollection.findOne({ "_id": objectID });
+    async GetUserByObjectId(id) {
+        const user = this.userCollection.findOne({ "_id": id });
         return user;
     }
     /**
@@ -161,9 +173,9 @@ class UserDatabase {
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async CreateUser(user) {
-        this.validateSchema(user);
-        let insertResult = await this.userCollection.insertOne(user);
-        return this.GetUserById(insertResult.insertedId.toString());
+        let userSchema = await this.convertToUserSchema(user);
+        let insertResult = await this.userCollection.insertOne(userSchema);
+        return this.GetUserByObjectId(insertResult.insertedId);
     }
     /**
      * Updates user object in the database
@@ -171,37 +183,45 @@ class UserDatabase {
      * @param id unique identifier of the user that is used internally in the MongoDB.
      * @param user IUser object filled with information about user.
      *
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
+     * @throws EmptyID exception when id is empty.
+     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated IUser object or null if user wasn't updated.
      */
     async UpdateUser(id, user) {
-        this.validateSchema(user);
-        let existingUser = await this.GetUserById(id);
+        let userSchema = await this.convertToUserSchema(user);
+        let objectID = this.convertToObjectID(id);
+        let existingUser = await this.GetUserByObjectId(objectID);
         if (existingUser === null) {
             return new Promise(resolve => resolve(null));
         }
-        await this.userCollection.updateOne({ "_id": new mongodb_1.ObjectId(id) }, {
+        await this.userCollection.updateOne({ "_id": objectID }, {
             $set: {
-                "uid": user.uid,
-                "firstName": user.firstName,
-                "lastName": user.lastName,
-                "lastSeen": user.lastSeen,
-                "inventory": user.inventory
+                "uid": userSchema.uid,
+                "firstName": userSchema.firstName,
+                "lastName": userSchema.lastName,
+                "lastSeen": userSchema.lastSeen,
+                "inventory": userSchema.inventory
             }
         });
-        return this.GetUserById(id);
+        return this.GetUserByObjectId(objectID);
     }
     /**
      * Deletes user object from database.
      *
      * @param id unique identifier of the user that is used internally in the MongoDB.
+     *
+     * @throws EmptyID exception when id is empty.
+     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with boolean value indication status of the operation.
      */
     async DeleteUser(id) {
-        let existingUser = await this.GetUserById(id);
+        let objectID = this.convertToObjectID(id);
+        let existingUser = await this.GetUserByObjectId(objectID);
         if (existingUser === null) {
             return new Promise(resolve => resolve(false));
         }
-        let deleteResult = await this.userCollection.deleteOne({ "_id": new mongodb_1.ObjectId(id) });
+        let deleteResult = await this.userCollection.deleteOne({ "_id": objectID });
         return new Promise(resolve => resolve(deleteResult.deletedCount >= 1));
     }
 }
