@@ -32,4 +32,3 @@ const server = (port: number) => {
 }
 
 export { app, server };
-
