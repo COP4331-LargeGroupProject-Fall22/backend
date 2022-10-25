@@ -38,8 +38,9 @@ login.addEventListener("click", () => {
     .then((userCredential) => {
         // Signed in 
         const user = userCredential.user;
-
+        
         console.log(user);
+        console.log(user.getIdToken());
     })
     .catch((error) => {
         console.log("Boom");

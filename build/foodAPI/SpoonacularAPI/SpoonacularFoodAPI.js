@@ -112,10 +112,16 @@ class SpoonacularFoodAPI {
         let foodSearchBaseURL = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
         let searchParams = this.convertFoodsParameters(parameters);
         searchParams.append("metaInformation", "true");
-        let response = await axios_1.default.get(foodSearchBaseURL, {
-            headers: this.headers,
-            params: searchParams
-        });
+        let response;
+        try {
+            response = await axios_1.default.get(foodSearchBaseURL, {
+                headers: this.headers,
+                params: searchParams
+            });
+        }
+        catch (error) {
+            return Promise.resolve([]);
+        }
         let jsonArray = response.data;
         let partialFoods = [];
         for (let i = 0; i < jsonArray.length; i++) {
@@ -171,10 +177,16 @@ class SpoonacularFoodAPI {
         if (!searchParams.has("amount")) {
             searchParams.set("amount", "1");
         }
-        let response = await axios_1.default.get(foodGetInfoBaseURL, {
-            headers: this.headers,
-            params: searchParams
-        });
+        let response;
+        try {
+            response = await axios_1.default.get(foodGetInfoBaseURL, {
+                headers: this.headers,
+                params: searchParams
+            });
+        }
+        catch (error) {
+            return Promise.resolve(null);
+        }
         let jsonObject = response.data;
         let parsedFood = await this.parseFood(jsonObject);
         let foodSchema = this.convertToFoodSchema(parsedFood);

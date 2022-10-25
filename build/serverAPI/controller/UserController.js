@@ -54,10 +54,6 @@ class UserController {
                 return;
             }
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, user));
-            // if (user.uid !== req.params.uid) {
-            //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
-            //     return;
-            // }
         };
         /**
          * Lets client to update information of the user at specified userID.
@@ -127,10 +123,6 @@ class UserController {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
                 return;
             }
-            // if (user.uid !== req.params.uid) {
-            //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
-            //     return;
-            // }
             let result;
             try {
                 result = await this.database.DeleteUser(req.params.userID);
