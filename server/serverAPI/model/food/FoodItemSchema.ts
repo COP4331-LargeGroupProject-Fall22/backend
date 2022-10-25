@@ -2,6 +2,9 @@ import { IsArray, IsNotEmpty, IsNumber, IsPositive, IsString, ValidateNested } f
 import INutrient from "../nutrients/INutrient";
 import IFoodItem from "./IFoodItem";
 
+/**
+ * This class implements IFoodItem interface and provides several built-in validations of its own properties.
+ */
 export default class FoodItemSchema implements IFoodItem {
     @IsNumber()
     @IsPositive()
