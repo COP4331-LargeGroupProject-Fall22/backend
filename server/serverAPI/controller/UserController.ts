@@ -69,11 +69,6 @@ export default class UserController {
         }
 
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
-        // if (user.uid !== req.params.uid) {
-        //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
-        //     return;
-        // }
-
     }
 
     /**
@@ -152,11 +147,6 @@ export default class UserController {
             res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
-
-        // if (user.uid !== req.params.uid) {
-        //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
-        //     return;
-        // }
 
         let result: boolean
         try {
