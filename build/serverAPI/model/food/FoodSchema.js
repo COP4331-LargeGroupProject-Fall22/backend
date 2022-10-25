@@ -11,13 +11,11 @@ const class_validator_1 = require("class-validator");
  * This class implements IFood interface and provides several built-in validations of its own properties.
  */
 class FoodSchema {
-    constructor(name, category, packageWeight, nutrients, expirationDate) {
-        this.id = -1;
+    constructor(id, name, category, nutrients) {
+        this.id = id;
         this.name = name;
         this.category = category;
-        this.packageWeight = packageWeight;
         this.nutrients = nutrients;
-        this.expirationDate = expirationDate;
     }
 }
 __decorate([
@@ -29,17 +27,8 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)()
 ], FoodSchema.prototype, "category", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsObject)()
-], FoodSchema.prototype, "packageWeight", void 0);
-__decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsNotEmpty)()
 ], FoodSchema.prototype, "nutrients", void 0);
-__decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsPositive)()
-], FoodSchema.prototype, "expirationDate", void 0);
 exports.default = FoodSchema;
 //# sourceMappingURL=FoodSchema.js.map

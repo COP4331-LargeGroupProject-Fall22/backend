@@ -1,6 +1,10 @@
 import axios from "axios";
+import IncorrectSchema from "../../exceptions/IncorrectSchema";
+import NoParameterFound from "../../exceptions/NoParameterFound";
+import FoodSchema from "../../serverAPI/model/food/FoodSchema";
 import IFood from "../../serverAPI/model/food/IFood";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
+import { Validator } from "../../utils/Validator";
 import IFoodAPI from "../IFoodAPI";
 
 /**
@@ -28,31 +32,21 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         ])
     }
 
-    private parseFoodSummary = (data: any): Partial<IFood>[] => {
-        let foods: Partial<IFood>[] = [];
-
-        let parseFood = this.parseFood;
-
-        data.forEach((ingredient: any) => {
-            let food = parseFood(ingredient);
-
-            foods.push({
-                id: food.id,
-                name: food.name,
-                category: food.category
-            });
-        });
-
-        return foods;
-    }
-
-    private convertFoodSummaryParameters = (parameters: Map<String, any>): URLSearchParams => {
+    /**
+     * Converts parameters of getFoods method to URLSearchParams object.
+     * 
+     * @param parameters defined for the summary search.
+     * 
+     * @throws NoParameterFound exception when required parameters weren't found.
+     * @returns URLSearchParams filled with parameters.
+     */
+    private convertFoodsParameters = (parameters: Map<String, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
 
         if (!parameters.has("query")) {
-            return searchParams;
+            throw new NoParameterFound("Query parameter is missing.");
         }
 
         keys.forEach(key => {
@@ -64,27 +58,49 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         return searchParams;
     }
 
+    /**
+     * Retrieves array of food items that satisfy searching parameters.
+     * 
+     * @param parameters query parameters used for searching.
+     * - query - required parameter that defines the name of the Food Item (partial names are accepted).
+     * - number - optional parameter that defines max numbe of the results to be returned.
+     * - intolerence - optional parameter that defines the type of intolerences to be taken in consideration during searching.
+     * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
+     * 
+     * @throws NoParameterFound exception when required parameters weren't found.
+     * @returns Promise filled with an array of IFood objects.
+     */
     async GetFoods(parameters: Map<string, any>): Promise<Partial<IFood>[]> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
-        let searchParams = this.convertFoodSummaryParameters(parameters);
-
-        if (searchParams.toString().length === 0) {
-            return new Promise((resolve) => resolve([]));
-        }
+        let searchParams = this.convertFoodsParameters(parameters);
 
         searchParams.append("apiKey", this.apiKey);
         searchParams.append("metaInformation", "true");
 
-        let parseFoodSummary = this.parseFoodSummary;
-
+        let parseFood = this.parseFood;
+        let converter = this.convertToFoodSchema;
 
         let response = axios.get(
             foodSearchBaseURL,
             {
                 transformResponse: [function (data) {
-                    let parsedData = JSON.parse(data);
-                    return parseFoodSummary(parsedData);
+                    let jsonObject = JSON.parse(data);
+
+                    let partialFoods: Partial<IFood>[] = [];
+
+                    jsonObject.forEach(async (object: any) => {
+                        let parsedFood = await parseFood(object);
+                        let foodSchema = await converter(parsedFood);
+
+                        partialFoods.push({
+                            id: foodSchema.id,
+                            name: foodSchema.name,
+                            category: foodSchema.category
+                        });
+                    });
+                    
+                    return partialFoods;
                 }],
                 params: searchParams
             }
@@ -93,9 +109,15 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         return new Promise(async (resolve) => resolve((await response).data));
     }
 
-    private parseFood = (data: any): IFood => {
-        let name = data.name;
+    /**
+     * Parses plain javascript object as IFood object.
+     * 
+     * @param data representing food as plain javascript object.
+     * @returns Promise filled with IFood object.
+     */
+    private parseFood = async (data: any): Promise<IFood> => {
         let id = data.id;
+        let name = data.name;
         let category = data.aisle;
 
         let nutrients: INutrient[] = [];
@@ -119,7 +141,37 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         };
     }
 
-    private convertFoodInfoParameters = (parameters: Map<String, any>): URLSearchParams => {
+    /**
+     * Converts IFood object to FoodSchema object.
+     * 
+     * @param food IFood object.
+     * @throws IncorrectSchema exception when food doesn't have correct format.
+     * @returns Promise filled with FoodSchema on succss/
+     */
+    private async convertToFoodSchema(food: IFood): Promise<FoodSchema> {
+        let foodSchema = new FoodSchema(
+            food.id,
+            food.name,
+            food.category,
+            food.nutrients
+        );
+
+        let logs = new Validator().validate(foodSchema);
+
+        if ((await logs).length > 0) {
+            throw new IncorrectSchema(`Unit object doesn't have correct format.\n${logs}`);
+        }
+
+        return foodSchema;
+    }
+
+    /**
+    * Converts parameters of getFood method to URLSearchParams object.
+    * 
+    * @param parameters defined for the summary search.
+    * @returns URLSearchParams filled with parameters.
+    */
+    private convertFoodParameters = (parameters: Map<String, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
@@ -133,13 +185,27 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         return searchParams;
     }
 
+    /**
+     * Retrieves food item that is specified by searching parameters.
+     * 
+     * @param parameters query parameters used for searching.
+     * - id - required parameter that defines unique identifier of the Food Item.
+     * - amount - optional parameter that defines max number of the food items. (default = 1)
+     * 
+     * @throws NoParameterFound exception when required parameters weren't found. 
+     * @returns Promise filled with IFood object on successful search or null.
+     */
     GetFood(parameters: Map<string, any>): Promise<IFood | null> {
-        if (!parameters.has("id"))
-            return new Promise((resolve) => resolve(null));
+        if (!parameters.has("id")) {
+            throw new NoParameterFound("id parameter is missing");
+        }
+
+        // id is not part of the query
+        parameters.delete("id");
 
         let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${parameters.get("id")}/information`;
 
-        let searchParams = this.convertFoodInfoParameters(parameters);
+        let searchParams = this.convertFoodParameters(parameters);
 
         if (!searchParams.has("amount")) {
             searchParams.set("amount", "1");
@@ -147,14 +213,18 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         searchParams.append("apiKey", this.apiKey);
 
-        let parseFoodComplete = this.parseFood;
+        let parseFood = this.parseFood;
+        let converter = this.convertToFoodSchema;
 
         let response = axios.get(
             foodGetInfoBaseURL,
             {
-                transformResponse: [function (data) {
-                    let parsedData = JSON.parse(data);
-                    return parseFoodComplete(parsedData);
+                transformResponse: [async function (data) {
+                    let jsonObject = JSON.parse(data);
+                    let parsedFood = await parseFood(jsonObject);
+                    let foodSchema = converter(parsedFood);
+
+                    return foodSchema;
                 }],
                 params: searchParams
             }

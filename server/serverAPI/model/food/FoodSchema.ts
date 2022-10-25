@@ -1,6 +1,5 @@
-import { IsArray, IsInt, IsNotEmpty, IsObject, IsPositive, IsString } from "class-validator";
+import { IsArray, IsNotEmpty,IsString } from "class-validator";
 import INutrient from "../nutrients/INutrient";
-import IUnit from "../unit/IUnit";
 import IFood from "./IFood";
 
 /**
@@ -17,31 +16,19 @@ export default class FoodSchema implements IFood {
     @IsNotEmpty()
     readonly category: string;
 
-    @IsNotEmpty()
-    @IsObject()
-    readonly packageWeight: IUnit[];
-
     @IsArray()
     @IsNotEmpty()
     readonly nutrients: INutrient[];
 
-    @IsNotEmpty()
-    @IsInt()
-    @IsPositive()
-    readonly expirationDate: number;
-
     constructor(
+        id: number,
         name: string,
         category: string,
-        packageWeight: IUnit[],
         nutrients: INutrient[],
-        expirationDate: number
     ) {
-        this.id = -1;
+        this.id = id;
         this.name = name;
         this.category = category;
-        this.packageWeight = packageWeight;
         this.nutrients = nutrients;
-        this.expirationDate = expirationDate;
     }
 }
