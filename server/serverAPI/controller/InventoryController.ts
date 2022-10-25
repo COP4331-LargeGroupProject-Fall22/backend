@@ -2,11 +2,7 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import { Validator } from "../../utils/Validator";
-import FoodItemSchema from "../model/food/FoodItemSchema";
 import IFoodItem from "../model/food/IFoodItem";
-import NutrientSchema from "../model/nutrients/NutrientSchema";
-import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
 
 /**

@@ -17,6 +17,14 @@ export default class AuthenticationController {
         this.database = database;
     }
 
+    private getException(error: unknown): string {
+        if (error instanceof Error) {
+            return error.message;
+        }
+
+        return String(error);
+    }
+
     /**
      * Lets client to login into the server using token from authorization header.
      * Upon successful login operation, this handler will redirect user to the /api/user route.
@@ -25,16 +33,17 @@ export default class AuthenticationController {
      * @param res Response parameter that holds information about response
      */
     login = async (req: Request, res: Response) => {
-        if (req.uid === undefined) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "UID hasn't been found."));
-            return;
-        }
-
         let parameters = new Map([
             ["uid", req.uid]
         ]);
 
-        let user = await this.database.GetUser(parameters);
+        let user: IUser | null;
+        try {
+            user = await this.database.GetUser(parameters);
+        } catch (error) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            return;
+        }
 
         if (user === null) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exists.`));
@@ -54,42 +63,41 @@ export default class AuthenticationController {
      * @param res Response parameter that holds information about response
      */
     register = async (req: Request, res: Response) => {
-        if (req.uid === undefined) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "UID hasn't been found."));
-            return;
-        }
-
         let parameters = new Map([
             ["uid", req.uid]
         ]);
 
-        const newUser =
-            new UserSchema(
-                req.body?.firstName,
-                req.body?.lastName,
-                req.uid
-            );
-
-        const validator = new Validator();
-
-        let logs = await validator.validate(newUser);
-
-        if (logs.length > 0) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+        let user: IUser | null;
+        try {
+            user = await this.database.GetUser(parameters);
+        } catch (error) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
-
-        let user = await this.database.GetUser(parameters);
 
         if (user !== null) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such UID already exists.`));
             return;
         }
 
-        let createdUser = await this.database.CreateUser(newUser);
+        const newUser: IUser = {
+            uid: String(req.uid),
+            firstName: req.body?.firstName,
+            lastName: req.body?.lastName,
+            lastSeen: Date.now(),
+            inventory: []
+        };
+
+        let createdUser: IUser | null;
+        try {
+            createdUser = await this.database.CreateUser(newUser);
+        } catch (error) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            return;
+        }
 
         if (createdUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR));
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
             return;
         }
 

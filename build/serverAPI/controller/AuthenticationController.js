@@ -5,8 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ResponseFormatter_1 = __importDefault(require("../../utils/ResponseFormatter"));
 const ResponseTypes_1 = require("../../utils/ResponseTypes");
-const Validator_1 = require("../../utils/Validator");
-const UserSchema_1 = __importDefault(require("../model/user/UserSchema"));
 /**
  * This class creates several properties responsible for authentication actions
  * provided to the user.
@@ -21,14 +19,17 @@ class AuthenticationController {
          * @param res Response parameter that holds information about response
          */
         this.login = async (req, res) => {
-            if (req.uid === undefined) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "UID hasn't been found."));
-                return;
-            }
             let parameters = new Map([
                 ["uid", req.uid]
             ]);
-            let user = await this.database.GetUser(parameters);
+            let user;
+            try {
+                user = await this.database.GetUser(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
+                return;
+            }
             if (user === null) {
                 res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, `User doesn't exists.`));
                 return;
@@ -45,33 +46,49 @@ class AuthenticationController {
          * @param res Response parameter that holds information about response
          */
         this.register = async (req, res) => {
-            if (req.uid === undefined) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "UID hasn't been found."));
-                return;
-            }
             let parameters = new Map([
                 ["uid", req.uid]
             ]);
-            const newUser = new UserSchema_1.default(req.body?.firstName, req.body?.lastName, req.uid);
-            const validator = new Validator_1.Validator();
-            let logs = await validator.validate(newUser);
-            if (logs.length > 0) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, logs));
+            let user;
+            try {
+                user = await this.database.GetUser(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
                 return;
             }
-            let user = await this.database.GetUser(parameters);
             if (user !== null) {
                 res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, `User with such UID already exists.`));
                 return;
             }
-            let createdUser = await this.database.CreateUser(newUser);
+            const newUser = {
+                uid: String(req.uid),
+                firstName: req.body?.firstName,
+                lastName: req.body?.lastName,
+                lastSeen: Date.now(),
+                inventory: []
+            };
+            let createdUser;
+            try {
+                createdUser = await this.database.CreateUser(newUser);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
+                return;
+            }
             if (createdUser === null) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR));
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "Couldn't create user."));
                 return;
             }
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, createdUser));
         };
         this.database = database;
+    }
+    getException(error) {
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return String(error);
     }
 }
 exports.default = AuthenticationController;
