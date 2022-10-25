@@ -21,7 +21,7 @@ jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
                     next();
                 }
                 else {
-                    res.status(403).send();
+                    res.status(401).send();
                 }
             }
         }
