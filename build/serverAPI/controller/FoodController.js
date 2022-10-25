@@ -12,8 +12,8 @@ const ResponseTypes_1 = require("../../utils/ResponseTypes");
 class FoodController {
     constructor(foodAPI) {
         /**
-         * This property is a handler that is used for "getFood" action of the user.
-         * It provides user with an ability to get complete information about specific food item in the FoodAPI.
+         * Lets client to get information about specific food defined by foodID parameter provided in the URL.
+         * Upon successful operation, this handler will return full information about food.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -35,8 +35,8 @@ class FoodController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, food));
         };
         /**
-         * This property is a handler that is used for "getFoodsByUPC" action of the user.
-         * It provides user with an ability get complete information about specific food item by item's UPC in the FoodAPI.
+         * Lets client to get information about specific food defined by UPC parameter provided in the URL.
+         * Upon successful operation, this handler will return full information about food.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -45,8 +45,8 @@ class FoodController {
             throw new Error("Not implemented yet.");
         };
         /**
-         * This property is a handler that is used for "getFoods" action of the user.
-         * It provides user with an ability to search for all food items that satisfy query parameters in the FoodAPI.
+         * Lets client to search for foods using query.
+         * Upon successful operation, this handler will return all foods that satisfy search query.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response

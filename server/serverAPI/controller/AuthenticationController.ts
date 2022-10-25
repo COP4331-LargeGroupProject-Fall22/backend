@@ -18,7 +18,7 @@ export default class AuthenticationController {
     }
 
     /**
-     * Lets user to login into the server using token from authorization header.
+     * Lets client to login into the server using token from authorization header.
      * Upon successful login operation, this handler will redirect user to the /api/user route.
      * 
      * @param req Request parameter that holds information about request
@@ -46,8 +46,8 @@ export default class AuthenticationController {
     }
 
     /**
-     * Let's user to register their account on the server.
-     * User is expected to provide all required information and token in authorization header.
+     * Let's client to register their account on the server.
+     * Client is expected to provide all required information and token in authorization header.
      * Upon successful register operation, this handler will return full information about registered user. 
      * 
      * @param req Request parameter that holds information about request

@@ -15,7 +15,7 @@ export default class FoodController {
     }
 
     /**
-     * Lets user to get information about specific food defined by foodID parameter provided in the URL.
+     * Lets client to get information about specific food defined by foodID parameter provided in the URL.
      * Upon successful operation, this handler will return full information about food. 
      * 
      * @param req Request parameter that holds information about request
@@ -43,7 +43,7 @@ export default class FoodController {
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
     }
     /**
-     * Lets user to get information about specific food defined by UPC parameter provided in the URL.
+     * Lets client to get information about specific food defined by UPC parameter provided in the URL.
      * Upon successful operation, this handler will return full information about food. 
      * 
      * @param req Request parameter that holds information about request
@@ -54,7 +54,7 @@ export default class FoodController {
     }
 
     /**
-     * Lets user to search for foods using query.
+     * Lets client to search for foods using query.
      * Upon successful operation, this handler will return all foods that satisfy search query. 
      * 
      * @param req Request parameter that holds information about request

@@ -17,8 +17,8 @@ const ResponseTypes_1 = require("../../utils/ResponseTypes");
 class UserController {
     constructor(database) {
         /**
-         * This property is a handler that is used for "getUsers" action of the user.
-         * It provides user with an ability to receive summary of non-sensitive information about all existing users in the database.
+         * Lets client to get information about all users existed on the server.
+         * Upon successful operation, this handler will return all users (including their non-sensitive information) existed on the server.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -28,8 +28,9 @@ class UserController {
                 .then((users) => res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, users)));
         };
         /**
-         * This property is a handler that is used for "getUser" action of the user.
-         * It provides user with an ability to receive their own information (complete information) from the database.
+         * Lets client to get information about user at specified userID.
+         * Upon successful operation, this handler will return complete information about specific user only if uid of the user with accessToken and uid of the
+         * user at userID are the same.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -50,11 +51,16 @@ class UserController {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
                 return;
             }
+            // if (user.uid !== req.params.uid) {
+            //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
+            //     return;
+            // }
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, user));
         };
         /**
-         * This property is a handler that is used for "updateUser" action of the user.
-         * It provides user with an ability to update their own information on the database.
+         * Lets client to update information of the user at specified userID.
+         * Upon successful operation, this handler will return updated user object only if uid of the user with accessToken and uid of the
+         * user at userID are the same.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -77,13 +83,18 @@ class UserController {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
                 return;
             }
+            // if (user.uid !== req.params.uid) {
+            //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
+            //     return;
+            // }
             newUser.inventory = user.inventory;
             let updatedUser = await this.database.UpdateUser(userID, newUser);
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, updatedUser));
         };
         /**
-         * This property is a handler that is used for "deleteUser" action of the user.
-         * It provides user with an ability to delete their own information from the database.
+         * Lets client to delete user object at specified userID.
+         * Upon successful operation, this handler will delete user object only if uid of the user with accessToken and uid of the
+         * user at userID are the same.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -96,6 +107,15 @@ class UserController {
                 res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, logs));
                 return;
             }
+            let user = await this.database.GetUser(new Map([["_id", userID]]));
+            if (user === null) {
+                res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
+                return;
+            }
+            // if (user.uid !== req.params.uid) {
+            //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
+            //     return;
+            // }
             let result = await this.database.DeleteUser(userID);
             if (!result) {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "Delete was unsuccessful."));
@@ -104,8 +124,8 @@ class UserController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS));
         };
         /**
-         * This property is a handler that is used for "getFoods" action of the user.
-         * It provides user with an ability to retrieve information about their food inventory.
+         * Lets client to get all foods in user's inventory where user is at specified userID.
+         * Upon successful operation, this handler will return all food items in user's inventory.
          *
          * @param req Request parameter that holds information about request
          * @param res Response parameter that holds information about response
@@ -129,8 +149,8 @@ class UserController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, user.inventory));
         };
         /**
-        * This property is a handler that is used for "addFood" action of the user.
-        * It provides user with an ability to add food to the inventory.
+        * Lets client to add food to user's inventory where user is at specified userID.
+        * Upon successful operation, this handler will return all food items from user's inventory.
         *
         * @param req Request parameter that holds information about request
         * @param res Response parameter that holds information about response
@@ -176,8 +196,8 @@ class UserController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, updatedUser.inventory));
         };
         /**
-        * This property is a handler that is used for "getFood" action of the user.
-        * It provides user with an ability to retrieve information about specific food in their inventory.
+         * Lets client to get complete informations of the food item from user's inventory where user is at specified userID.
+         * Upon successful operation, this handler will return food item from user's inventory.
         *
         * @param req Request parameter that holds information about request
         * @param res Response parameter that holds information about response
@@ -207,8 +227,8 @@ class UserController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, foodItem));
         };
         /**
-        * This property is a handler that is used for "updateFood" action of the user.
-        * It provides user with an ability to update food in the user's inventory.
+         * Lets client to update information of the food item from user's inventory where user is at specified userID.
+         * Upon successful operation, this handler will return all food items in user's inventory.
         *
         * @param req Request parameter that holds information about request
         * @param res Response parameter that holds information about response
@@ -265,8 +285,8 @@ class UserController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, updatedUser.inventory));
         };
         /**
-        * This property is a handler that is used for "deleteFood" action of the user.
-        * It provides user with an ability to delete specific food from their inventory.
+        * Lets client to delete food item from user's inventory where user is at specified userID.
+        * Upon successful operation, this handler will return all food items in user's inventory.
         *
         * @param req Request parameter that holds information about request
         * @param res Response parameter that holds information about response
