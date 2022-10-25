@@ -2,9 +2,7 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import { Validator } from "../../utils/Validator";
 import IUser from "../model/user/IUser";
-import UserSchema from "../model/user/UserSchema";
 
 /**
  * This class creates several properties responsible for authentication actions 
