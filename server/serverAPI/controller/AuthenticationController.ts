@@ -48,8 +48,7 @@ export default class AuthenticationController {
             return;
         }
 
-        // Workaround has yet to be found
-        res.redirect(302, `/user/${(user as any)._id}`);
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
     }
 
     /**

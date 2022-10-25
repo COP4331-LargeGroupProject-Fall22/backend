@@ -88,7 +88,7 @@ describe('Authentication endpoints', () => {
                 .get('/auth/login')
                 .set('Authorization', 'accessToken');
 
-            expect(response.statusCode).toBe(302);
+            expect(response.statusCode).toBe(200);
         });
     });
 });
