@@ -15,15 +15,14 @@ export default class FoodController {
     }
 
     /**
-     * This property is a handler that is used for "getFood" action of the user.
-     * It provides user with an ability to get complete information about specific food item in the FoodAPI.
+     * Lets user to get information about specific food defined by foodID parameter provided in the URL.
+     * Upon successful operation, this handler will return full information about food. 
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */    
     getFood = async (req: Request, res: Response) => {
         let foodID = Number.parseInt(req.params.foodID);
-
 
         if (Number.isNaN(foodID) || foodID < 0) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Invlid foodID."));
@@ -44,8 +43,8 @@ export default class FoodController {
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
     }
     /**
-     * This property is a handler that is used for "getFoodsByUPC" action of the user.
-     * It provides user with an ability get complete information about specific food item by item's UPC in the FoodAPI.
+     * Lets user to get information about specific food defined by UPC parameter provided in the URL.
+     * Upon successful operation, this handler will return full information about food. 
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -55,8 +54,8 @@ export default class FoodController {
     }
 
     /**
-     * This property is a handler that is used for "getFoods" action of the user.
-     * It provides user with an ability to search for all food items that satisfy query parameters in the FoodAPI.
+     * Lets user to search for foods using query.
+     * Upon successful operation, this handler will return all foods that satisfy search query. 
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
