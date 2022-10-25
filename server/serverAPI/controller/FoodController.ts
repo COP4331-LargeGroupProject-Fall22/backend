@@ -70,8 +70,8 @@ export default class FoodController {
      */
     getFoods = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
-
-        if (req.query?.query === undefined) {
+        
+        if (req.query?.query !== undefined) {
             parameters.set("query", req.query.query);
         }
 

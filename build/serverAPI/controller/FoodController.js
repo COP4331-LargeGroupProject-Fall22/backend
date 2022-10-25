@@ -55,7 +55,7 @@ class FoodController {
          */
         this.getFoods = async (req, res) => {
             let parameters = new Map();
-            if (req.query?.query === undefined) {
+            if (req.query?.query !== undefined) {
                 parameters.set("query", req.query.query);
             }
             if (req.query?.size !== undefined) {

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
@@ -13,19 +13,28 @@ import IFoodAPI from "../IFoodAPI";
  */
 export default class SpoonacularFoodAPI implements IFoodAPI {
     private apiKey: string;
+    private host: string;
 
     private foodSearchParameters: Set<string>;
     private foodInfoParameters: Set<string>;
 
-    constructor(apiKey: string) {
-        this.apiKey = apiKey;
+    private headers: any;
 
-        this.foodSearchParameters = new Set([
-            'query',
-            'number',
-            'language',
-            'intolerence'
-        ]);
+    constructor() {
+        this.apiKey = process.env.SPOONACULAR_API_KEY;
+        this.host = process.env.SPOONACULAR_HOST;
+
+        this.headers = {
+            "X-RapidAPI-Key": this.apiKey,
+            "X-RapidAPI-Host": this.host
+        },
+
+            this.foodSearchParameters = new Set([
+                'query',
+                'number',
+                'language',
+                'intolerence'
+            ]);
 
         this.foodInfoParameters = new Set([
             'amount',
@@ -76,38 +85,38 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         let searchParams = this.convertFoodsParameters(parameters);
 
-        searchParams.append("apiKey", this.apiKey);
         searchParams.append("metaInformation", "true");
 
-        let parseFood = this.parseFood;
-        let converter = this.convertToFoodSchema;
+        let response: AxiosResponse<any, any>;
+        try {
+            response = await axios.get(
+                foodSearchBaseURL,
+                {
+                    headers: this.headers,
+                    params: searchParams
+                }
+            );
+        } catch(error) {
+            return Promise.resolve([]);
+        }
 
-        let response = axios.get(
-            foodSearchBaseURL,
-            {
-                transformResponse: [function (data) {
-                    let jsonObject = JSON.parse(data);
+        let jsonArray = response.data;
+        let partialFoods: Partial<IFood>[] = [];
 
-                    let partialFoods: Partial<IFood>[] = [];
+        for (let i = 0; i < jsonArray.length; i++) {
+            let object = jsonArray[i];
 
-                    jsonObject.forEach(async (object: any) => {
-                        let parsedFood = await parseFood(object);
-                        let foodSchema = await converter(parsedFood);
+            let parsedFood = await this.parseFood(object);
+            let foodSchema = await this.convertToFoodSchema(parsedFood);
 
-                        partialFoods.push({
-                            id: foodSchema.id,
-                            name: foodSchema.name,
-                            category: foodSchema.category
-                        });
-                    });
+            partialFoods.push({
+                id: foodSchema.id,
+                name: foodSchema.name,
+                category: foodSchema.category
+            });
+        }
 
-                    return partialFoods;
-                }],
-                params: searchParams
-            }
-        );
-
-        return new Promise(async (resolve) => resolve((await response).data));
+        return partialFoods;
     }
 
     /**
@@ -197,7 +206,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
-    GetFood(parameters: Map<string, any>): Promise<IFood | null> {
+    async GetFood(parameters: Map<string, any>): Promise<IFood | null> {
         if (!parameters.has("id")) {
             throw new NoParameterFound("id parameter is missing");
         }
@@ -218,26 +227,24 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
             searchParams.set("amount", "1");
         }
 
-        searchParams.append("apiKey", this.apiKey);
+        let response: AxiosResponse<any, any>;
+        try {
+            response = await axios.get(
+                foodGetInfoBaseURL,
+                {
+                    headers: this.headers,
+                    params: searchParams
+                }
+            );
+        } catch (error) {
+            return Promise.resolve(null);
+        }
 
-        let parseFood = this.parseFood;
-        let converter = this.convertToFoodSchema;
+        let jsonObject = response.data;
+        let parsedFood = await this.parseFood(jsonObject);
+        let foodSchema = this.convertToFoodSchema(parsedFood);
 
-        let response = axios.get(
-            foodGetInfoBaseURL,
-            {
-                transformResponse: [async function (data) {
-                    let jsonObject = JSON.parse(data);
-                    let parsedFood = await parseFood(jsonObject);
-                    let foodSchema = converter(parsedFood);
-
-                    return foodSchema;
-                }],
-                params: searchParams
-            }
-        );
-
-        return new Promise(async (resolve) => resolve((await response).data));
+        return foodSchema;
     }
 
     GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null> {

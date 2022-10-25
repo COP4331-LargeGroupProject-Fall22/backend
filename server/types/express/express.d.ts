@@ -31,6 +31,7 @@ declare global {
             FOOD_DATA_CENTRAL_SEARCH_URL: string;
 
             SPOONACULAR_API_KEY: string;
+            SPOONACULAR_HOST: string;
             SPOONACULAR_INGREDIENTS_BASE_URL: string;
             SPOONACULAR_GROCERY_PRODUCT_GET_INFO_BY_UPC_URL: string;
         }

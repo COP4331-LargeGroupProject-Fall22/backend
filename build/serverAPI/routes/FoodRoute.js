@@ -11,7 +11,7 @@ const express_1 = __importDefault(require("express"));
 const SpoonacularFoodAPI_1 = __importDefault(require("../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI"));
 const FoodController_1 = __importDefault(require("../controller/FoodController"));
 exports.foodRoute = express_1.default.Router();
-const foodController = new FoodController_1.default(new SpoonacularFoodAPI_1.default(process.env.SPOONACULAR_API_KEY));
+const foodController = new FoodController_1.default(new SpoonacularFoodAPI_1.default());
 exports.foodRoute.get('/', foodController.getFoods);
 exports.foodRoute.get('/food/:foodID', foodController.getFood);
 exports.foodRoute.get('/food/upc/:upc', foodController.getFoodByUPC);

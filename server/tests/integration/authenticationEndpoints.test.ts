@@ -17,7 +17,7 @@ jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
         return {
             authenticate: (req: Request, res: Response, next: NextFunction) => {
                 if (req.headers.authorization && req.headers.authorization.length > 0) {
-                    req.uid = mockUser.uid;
+                    (req as any).uid = mockUser.uid;
                     next();
                 }
                 else {
@@ -35,8 +35,8 @@ jest.mock('../../serverAPI/middleware/logger/Logger', () => {
 });
 
 let databaseURL = (global as any).__MONGO_URI__;
-let databaseName = process.env.DB_NAME;
-let collectionName = process.env.DB_USERS_COLLECTION;
+let databaseName = process.env.DB_NAME!;
+let collectionName = process.env.DB_USERS_COLLECTION!;
 
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
