@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
+const IncorrectIDFormat_1 = __importDefault(require("../../exceptions/IncorrectIDFormat"));
 const IncorrectSchema_1 = __importDefault(require("../../exceptions/IncorrectSchema"));
 const NoParameterFound_1 = __importDefault(require("../../exceptions/NoParameterFound"));
 const FoodSchema_1 = __importDefault(require("../../serverAPI/model/food/FoodSchema"));
@@ -150,6 +151,7 @@ class SpoonacularFoodAPI {
      * - id - required parameter that defines unique identifier of the Food Item.
      * - amount - optional parameter that defines max number of the food items. (default = 1)
      *
+     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with IFood object on successful search or null.
      */
@@ -157,9 +159,13 @@ class SpoonacularFoodAPI {
         if (!parameters.has("id")) {
             throw new NoParameterFound_1.default("id parameter is missing");
         }
-        // id is not part of the query
+        let foodID = Number.parseInt(parameters.get("id"));
+        // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
-        let foodGetInfoBaseURL = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${parameters.get("id")}/information`;
+        if (Number.isNaN(foodID) || foodID < 0) {
+            throw new IncorrectIDFormat_1.default("FoodID has incorrect format.");
+        }
+        let foodGetInfoBaseURL = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${foodID}/information`;
         let searchParams = this.convertFoodParameters(parameters);
         if (!searchParams.has("amount")) {
             searchParams.set("amount", "1");

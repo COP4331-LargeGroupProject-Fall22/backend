@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import IFood from "../model/food/IFood";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -14,26 +15,33 @@ export default class FoodController {
         this.foodAPI = foodAPI;
     }
 
+    private getException(error: unknown): string {
+        if (error instanceof Error) {
+            return error.message;
+        }
+
+        return String(error);
+    }
+
     /**
      * Lets client to get information about specific food defined by foodID parameter provided in the URL.
      * Upon successful operation, this handler will return full information about food. 
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
-     */    
+     */
     getFood = async (req: Request, res: Response) => {
-        let foodID = Number.parseInt(req.params.foodID);
+        let parameters = new Map<string, any>([
+            ["id", req.params.foodID]
+        ]);
 
-        if (Number.isNaN(foodID) || foodID < 0) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Invlid foodID."));
+        let food: IFood | null;
+        try {
+            food = await this.foodAPI.GetFood(parameters);
+        } catch (error) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
-        
-        let parameters = new Map<string, any>([
-            ["id", foodID]
-        ]);
-        
-        let food = await this.foodAPI.GetFood(parameters);
 
         if (food === null) {
             res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));
@@ -48,8 +56,8 @@ export default class FoodController {
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
-     */        
-    getFoodByUPC =async (req: Request, res: Response) => {
+     */
+    getFoodByUPC = async (req: Request, res: Response) => {
         throw new Error("Not implemented yet.");
     }
 
@@ -59,16 +67,13 @@ export default class FoodController {
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
-     */        
+     */
     getFoods = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
 
         if (req.query?.query === undefined) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Query is missing."));
-            return;
+            parameters.set("query", req.query.query);
         }
-
-        parameters.set("query", req.query.query);
 
         if (req.query?.size !== undefined) {
             parameters.set("number", req.query.size);
@@ -78,8 +83,14 @@ export default class FoodController {
             parameters.set("intolerence", req.query.intolerences);
         }
 
-        let foods = await this.foodAPI.GetFoods(parameters);
-
+        let foods: Partial<IFood>[];
+        try {
+            foods = await this.foodAPI.GetFoods(parameters);
+        } catch(error) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            return;
+        }
+        
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
     }
 }

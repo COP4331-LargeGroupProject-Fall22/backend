@@ -1,4 +1,5 @@
 import axios from "axios";
+import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import FoodSchema from "../../serverAPI/model/food/FoodSchema";
@@ -99,7 +100,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
                             category: foodSchema.category
                         });
                     });
-                    
+
                     return partialFoods;
                 }],
                 params: searchParams
@@ -192,6 +193,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
      * - id - required parameter that defines unique identifier of the Food Item.
      * - amount - optional parameter that defines max number of the food items. (default = 1)
      * 
+     * @throws IncorrectIDFormat exception when id has incorrect format.
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
@@ -200,10 +202,15 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
             throw new NoParameterFound("id parameter is missing");
         }
 
-        // id is not part of the query
+        let foodID = Number.parseInt(parameters.get("id"));
+        // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
 
-        let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${parameters.get("id")}/information`;
+        if (Number.isNaN(foodID) || foodID < 0) {
+            throw new IncorrectIDFormat("FoodID has incorrect format.");
+        }
+
+        let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${foodID}/information`;
 
         let searchParams = this.convertFoodParameters(parameters);
 

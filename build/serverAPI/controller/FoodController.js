@@ -19,15 +19,17 @@ class FoodController {
          * @param res Response parameter that holds information about response
          */
         this.getFood = async (req, res) => {
-            let foodID = Number.parseInt(req.params.foodID);
-            if (Number.isNaN(foodID) || foodID < 0) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "Invlid foodID."));
+            let parameters = new Map([
+                ["id", req.params.foodID]
+            ]);
+            let food;
+            try {
+                food = await this.foodAPI.GetFood(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
                 return;
             }
-            let parameters = new Map([
-                ["id", foodID]
-            ]);
-            let food = await this.foodAPI.GetFood(parameters);
             if (food === null) {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "Food item hasn't been found"));
                 return;
@@ -54,20 +56,31 @@ class FoodController {
         this.getFoods = async (req, res) => {
             let parameters = new Map();
             if (req.query?.query === undefined) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "Query is missing."));
-                return;
+                parameters.set("query", req.query.query);
             }
-            parameters.set("query", req.query.query);
             if (req.query?.size !== undefined) {
                 parameters.set("number", req.query.size);
             }
             if (req.query?.intolerence !== undefined) {
                 parameters.set("intolerence", req.query.intolerences);
             }
-            let foods = await this.foodAPI.GetFoods(parameters);
+            let foods;
+            try {
+                foods = await this.foodAPI.GetFoods(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
+                return;
+            }
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, foods));
         };
         this.foodAPI = foodAPI;
+    }
+    getException(error) {
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return String(error);
     }
 }
 exports.default = FoodController;
