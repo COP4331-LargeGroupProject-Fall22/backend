@@ -3,8 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Validator_1 = require("../../utils/Validator");
-const UserSchema_1 = __importDefault(require("../model/user/UserSchema"));
 const ResponseFormatter_1 = __importDefault(require("../../utils/ResponseFormatter"));
 const ResponseTypes_1 = require("../../utils/ResponseTypes");
 /**
@@ -21,8 +19,15 @@ class UserController {
          * @param res Response parameter that holds information about response
          */
         this.getUsers = async (req, res) => {
-            this.database.GetUsers()
-                .then((users) => res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, users)));
+            let users;
+            try {
+                users = await this.database.GetUsers();
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
+                return;
+            }
+            res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, users));
         };
         /**
          * Lets client to get information about user at specified userID.
@@ -33,26 +38,26 @@ class UserController {
          * @param res Response parameter that holds information about response
          */
         this.getUser = async (req, res) => {
-            let userID = req.params.userID;
-            const validator = new Validator_1.Validator();
-            let logs = await validator.validateObjectId(userID);
-            if (logs.length > 0) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, logs));
+            let parameters = new Map([
+                ["_id", req.params.userID]
+            ]);
+            let user;
+            try {
+                user = await this.database.GetUser(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
                 return;
             }
-            let parameters = new Map([
-                ["_id", userID]
-            ]);
-            let user = await this.database.GetUser(parameters);
             if (user === null) {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
                 return;
             }
+            res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, user));
             // if (user.uid !== req.params.uid) {
             //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
             //     return;
             // }
-            res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, user));
         };
         /**
          * Lets client to update information of the user at specified userID.
@@ -63,29 +68,39 @@ class UserController {
          * @param res Response parameter that holds information about response
          */
         this.updateUser = async (req, res) => {
-            let userID = req.params.userID;
-            const newUser = new UserSchema_1.default(req.body?.firstName, req.body?.lastName, req.body?.uid);
-            const validator = new Validator_1.Validator();
-            let logs = (await validator.validate(newUser))
-                .concat(await validator.validateObjectId(userID));
-            if (logs.length > 0) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, logs));
+            let parameters = new Map([
+                ["_id", req.params.userID]
+            ]);
+            let user;
+            try {
+                user = await this.database.GetUser(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
                 return;
             }
-            let parameters = new Map([
-                ["_id", userID]
-            ]);
-            let user = await this.database.GetUser(parameters);
             if (user === null) {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
                 return;
             }
-            // if (user.uid !== req.params.uid) {
-            //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
-            //     return;
-            // }
-            newUser.inventory = user.inventory;
-            let updatedUser = await this.database.UpdateUser(userID, newUser);
+            let updatedUser;
+            try {
+                updatedUser = await this.database.UpdateUser(req.params.userID, {
+                    uid: req.body?.uid,
+                    firstName: req.body?.firstName,
+                    lastName: req.body?.lastName,
+                    lastSeen: user.lastSeen,
+                    inventory: user.inventory
+                });
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
+                return;
+            }
+            if (updatedUser === null) {
+                res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User couldn't been updated."));
+                return;
+            }
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS, updatedUser));
         };
         /**
@@ -97,14 +112,17 @@ class UserController {
          * @param res Response parameter that holds information about response
          */
         this.deleteUser = async (req, res) => {
-            let userID = req.params.userID;
-            const validator = new Validator_1.Validator();
-            let logs = await validator.validateObjectId(userID);
-            if (logs.length > 0) {
-                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, logs));
+            let parameters = new Map([
+                ["_id", req.params.userID]
+            ]);
+            let user;
+            try {
+                user = await this.database.GetUser(parameters);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
                 return;
             }
-            let user = await this.database.GetUser(new Map([["_id", userID]]));
             if (user === null) {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "User hasn't been found."));
                 return;
@@ -113,7 +131,14 @@ class UserController {
             //     res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Cannot access other people information."));
             //     return;
             // }
-            let result = await this.database.DeleteUser(userID);
+            let result;
+            try {
+                result = await this.database.DeleteUser(req.params.userID);
+            }
+            catch (error) {
+                res.status(400).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, this.getException(error)));
+                return;
+            }
             if (!result) {
                 res.status(404).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.ERROR, "Delete was unsuccessful."));
                 return;
@@ -121,6 +146,12 @@ class UserController {
             res.status(200).json(ResponseFormatter_1.default.formatAsJSON(ResponseTypes_1.ResponseTypes.SUCCESS));
         };
         this.database = database;
+    }
+    getException(error) {
+        if (error instanceof Error) {
+            return error.message;
+        }
+        return String(error);
     }
 }
 exports.default = UserController;
