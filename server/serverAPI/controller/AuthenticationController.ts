@@ -18,8 +18,7 @@ export default class AuthenticationController {
     }
 
     /**
-     * This property is a handler that is used for "login" action of the user.
-     * User will only be able to login if request body contains UID of the user.
+     * Lets user to login into the server using token from authorization header.
      * Upon successful login operation, this handler will redirect user to the /api/user route.
      * 
      * @param req Request parameter that holds information about request
@@ -47,8 +46,8 @@ export default class AuthenticationController {
     }
 
     /**
-     * This property is a handler that is used for "register" action of the user.
-     * User will only be able to register if request body contains UID of the user and no user with the same UID is already existing in the database.
+     * Let's user to register their account on the server.
+     * User is expected to provide all required information and token in authorization header.
      * Upon successful register operation, this handler will return full information about registered user. 
      * 
      * @param req Request parameter that holds information about request
