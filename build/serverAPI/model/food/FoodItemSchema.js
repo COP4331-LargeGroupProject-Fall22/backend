@@ -7,6 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const class_validator_1 = require("class-validator");
+/**
+ * This class implements IFoodItem interface and provides several built-in validations of its own properties.
+ */
 class FoodItemSchema {
     constructor(id, name, category, nutrients, expirationDate) {
         this.expirationDate = expirationDate;
