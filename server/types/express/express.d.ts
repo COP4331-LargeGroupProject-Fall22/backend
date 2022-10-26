@@ -27,13 +27,12 @@ declare global {
             DB_NAME: string;
             DB_USERS_COLLECTION: string;
 
-            FOOD_DATA_CENTRAL_API_KEY: string;
-            FOOD_DATA_CENTRAL_SEARCH_URL: string;
-
             SPOONACULAR_API_KEY: string;
             SPOONACULAR_HOST: string;
+
             SPOONACULAR_INGREDIENTS_BASE_URL: string;
-            SPOONACULAR_GROCERY_PRODUCT_GET_INFO_BY_UPC_URL: string;
+            SPOONACULAR_GROCERY_PRODUCT_BASE_URL: string;
+            SPOONACULAR_RECIPE_BASE_URL: string;
 
             FIREBASE_ADMIN_SERVICE_ACCOUNT: string;
         }
