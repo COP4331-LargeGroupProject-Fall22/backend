@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as dotenv from 'dotenv';
+import { exit } from 'process';
 import { URLSearchParams } from 'url';
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
@@ -31,19 +32,24 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         this.apiKey = process.env.SPOONACULAR_API_KEY;
         this.host = process.env.SPOONACULAR_HOST;
 
-        this.dishTypes = new Set([
-            "main course",
-            "side dish",
-            "dessert",
-            "appetizer",
-            "salad",
-            "bread",
-            "breakfast",
-            "soup",
-            "beverage",
-            "sauce",
-            "drink"
-        ]);
+        this.headers = {
+            "X-RapidAPI-Key": this.apiKey,
+            "X-RapidAPI-Host": this.host
+        },
+
+            this.dishTypes = new Set([
+                "main course",
+                "side dish",
+                "dessert",
+                "appetizer",
+                "salad",
+                "bread",
+                "breakfast",
+                "soup",
+                "beverage",
+                "sauce",
+                "drink"
+            ]);
 
         this.recipeSearchParameters = new Set([
             'query',
@@ -138,25 +144,54 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         });
 
         searchParameters.append("instructionRequired", "true");
+        searchParameters.append("addRecipeInformation", "true");
 
         return searchParameters;
     }
 
     protected async parseRecipe(recipeObject: any): Promise<IRecipe> {
+        let types: string = this.parseDishTypes(recipeObject.dishTypes);
+
+        let instructionSteps: IInstruction[] = await this.parseInstructionSteps(recipeObject);
+
+        let ingredientsMap: Map<string, IFood> = new Map();
+        let instrucions: string = "";
+
+        for (let i = 0; i < instructionSteps.length; i++) {
+            let ingredients = instructionSteps[i].ingredients;
+            instrucions += instructionSteps[i].instructions + " ";
+
+            for (let j = 0; j < ingredients.length; j++) {
+                let foodHash = this.calculateFoodHash(ingredients[j]);
+
+                if (!ingredientsMap.has(foodHash)) {
+                    ingredientsMap.set(foodHash, ingredients[j]);
+                }
+            }
+        }
+
+        instrucions = instrucions.slice(0, instrucions.length - 1);
+
+        let instruction: IInstruction = {
+            instructions: instrucions,
+            ingredients: Array.from(ingredientsMap.values())
+        };
+
         return {
             id: recipeObject.id,
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
-            type: this.parseDishTypes(recipeObject.dishTypes),
-            instruction: await this.parseInstructions(recipeObject),
-            instructionSteps: await this.parseInstructionSteps(recipeObject),
+            type: types,
+            instruction: instruction,
+            instructionSteps: instructionSteps,
             servings: recipeObject.servings,
             preparationInMinutes: recipeObject.preparationMinutes,
             cookingTimeInMinutes: recipeObject.readyInMinutes,
             totalCost: recipeObject.pricePerServing * recipeObject.servings
         }
     }
+
 
     protected async parseInstructionSteps(recipeObject: any): Promise<IInstruction[]> {
         let instructons: any[] = recipeObject.analyzedInstructions[0].steps;
@@ -196,7 +231,7 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
             parsedInstructions += instructons[i].step + " ";
 
             let ingredients: any[] = instructons[i].ingredients;
-            
+
             for (let j = 0; j < ingredients.length; j++) {
                 let parseIngredient = await this.parseIngredient(ingredients[j]);
                 let hash = this.calculateFoodHash(parseIngredient);
@@ -222,33 +257,17 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         let parsedID = ingredientObject.id !== undefined ? ingredientObject.id : -1;
         let parsedCategory = ingredientObject.aisle !== undefined ? ingredientObject.aisle : "";
 
-        let food = await this.foodAPI.GetFood(new Map([["id", parsedID]]))
-            .then((food) => {
-                if (food !== null && food.name === parsedName) {
-                    return food;
-                }
-
-                return null;
-            }, () => null);
-
-        if (food !== null) {
-            return food;
-        }
-
-        food = await this.foodAPI.GetFoods(new Map([["query", parsedName]]))
-            .then(async (foods) => {
-                if (foods.length !== 0) {
-                    // Need better logic here...
-                    return (await this.foodAPI.GetFood(new Map([["id", foods[0].id]])));
-                }
-
-                return null;
-            }, () => null);
-
-        if (food !== null) {
-            return food;
-        }
-
+        // Is there any other way to avoid "exception eating"
+        // 1 request call to API
+        let food: IFood | null;
+        try {
+            food = await this.foodAPI.GetFood(new Map([["id", parsedID]])); 
+        
+            if (food !== null) {
+                return food;
+            }
+        } catch (error) {}
+        
         return {
             id: parsedID,
             name: parsedName,
@@ -259,7 +278,6 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
     protected parseDishTypes(recipeDishTypes: string[]): string {
         let types = "";
-
         recipeDishTypes.forEach((type: string) => {
             if (this.dishTypes.has(type)) {
                 types += type + ", ";
@@ -302,9 +320,9 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
                 headers: this.headers
             }
         );
-        
+
         let jsonObject: any = response.data;
-        let parsedRecipe = this.parseRecipe(jsonObject); 
+        let parsedRecipe = this.parseRecipe(jsonObject);
 
         return parsedRecipe;
     }

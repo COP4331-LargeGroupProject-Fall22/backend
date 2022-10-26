@@ -27,19 +27,19 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         this.headers = {
             "X-RapidAPI-Key": this.apiKey,
             "X-RapidAPI-Host": this.host
-        },
+        };
 
-            this.foodSearchParameters = new Set([
-                'query',
-                'number',
-                'language',
-                'intolerence'
-            ]);
+        this.foodSearchParameters = new Set([
+            'query',
+            'number',
+            'language',
+            'intolerence'
+        ]);
 
         this.foodInfoParameters = new Set([
             'amount',
             'unit'
-        ])
+        ]);
     }
 
     /**
@@ -96,7 +96,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
                     params: searchParams
                 }
             );
-        } catch(error) {
+        } catch (error) {
             return Promise.resolve([]);
         }
 
@@ -169,7 +169,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         let logs = new Validator().validate(foodSchema);
 
         if ((await logs).length > 0) {
-            throw new IncorrectSchema(`Unit object doesn't have correct format.\n${logs}`);
+            throw new IncorrectSchema(`Food object doesn't have correct format.\n ${JSON.stringify(await logs)}`);
         }
 
         return foodSchema;
@@ -215,7 +215,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
 
-        if (Number.isNaN(foodID) || foodID < 0) {
+        if (Number.isNaN(foodID) || foodID <= 0) {
             throw new IncorrectIDFormat("FoodID has incorrect format.");
         }
 
