@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import { URLSearchParams } from 'url';
+import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
 import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
 import IFoodAPI from '../../foodAPI/IFoodAPI';
@@ -265,7 +266,7 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
             }
         });
 
-        types = types.slice(0, types.length - 1);
+        types = types.slice(0, types.length - 2);
 
         return types;
     }
@@ -278,11 +279,34 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
      * - id - required parameter that defines unique identifier of the Recipe item
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
-     *
+     * @throws IncorrectIDFormat exception when unique identifier has incorrect format.
+     * 
      * @returns Promise filled with a IRecipe object or null when Recipe item wasn't found.
      */
-    GetRecipe(parameters: Map<string, any>): Promise<IRecipe | null> {
-        throw new Error("Method not implemented.");
+    async GetRecipe(parameters: Map<string, any>): Promise<IRecipe | null> {
+        if (!parameters.has("id")) {
+            throw new NoParameterFound("Required parameter is missing.");
+        }
+
+        let recipeID = Number.parseInt(parameters.get("id"));
+
+        if (Number.isNaN(recipeID) || recipeID < 0) {
+            throw new IncorrectIDFormat("ID should be a positive integer.");
+        }
+
+        let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
+
+        let response = await axios.get(
+            getRecipeURL,
+            {
+                headers: this.headers
+            }
+        );
+        
+        let jsonObject: any = response.data;
+        let parsedRecipe = this.parseRecipe(jsonObject); 
+
+        return parsedRecipe;
     }
 
 }
