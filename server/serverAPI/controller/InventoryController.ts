@@ -3,6 +3,7 @@ import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IFoodItem from "../model/food/IFoodItem";
+import INutrient from "../model/nutrients/INutrient";
 import IUser from "../model/user/IUser";
 
 /**
@@ -77,11 +78,17 @@ export default class InventoryController {
             return;
         }
 
+        let nutrients: string = req.body?.nutrients;
+
+        if (nutrients.at(0) !== '[') {
+            nutrients = "[" + req.body?.nutrients + "]";
+        }
+
         let newFood: IFoodItem = {
             id: Number.parseInt(req.body?.id),
             name: req.body?.name,
             category: req.body?.category,
-            nutrients: JSON.parse(req.body?.nutrients),
+            nutrients: JSON.parse(nutrients),
             expirationDate: Number.parseFloat(req.body?.expirationDate)
         };
 
