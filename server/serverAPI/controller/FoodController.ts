@@ -5,7 +5,7 @@ import { ResponseTypes } from "../../utils/ResponseTypes";
 import IFood from "../model/food/IFood";
 
 /**
- * This class creates several properties responsible for authentication actions 
+ * This class creates several properties responsible for food actions 
  * provided to the user.
  */
 export default class FoodController {
