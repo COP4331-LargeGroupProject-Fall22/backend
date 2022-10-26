@@ -149,6 +149,12 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         return searchParameters;
     }
 
+    /**
+     * Parses recipe object.
+     * 
+     * @param recipeObject json object that represents recipe in the API.
+     * @returns Promise filled with IRecipe object.
+     */
     protected async parseRecipe(recipeObject: any): Promise<IRecipe> {
         let types: string = this.parseDishTypes(recipeObject.dishTypes);
 
@@ -171,7 +177,12 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         }
     }
 
-
+    /**
+     * Parses recipe object for instructions.
+     * 
+     * @param recipeObject json object that represents recipe in the API.
+     * @returns Promise filled with collection of Instruction object.
+     */
     protected async parseInstructionSteps(recipeObject: any): Promise<IInstruction[]> {
         let instructons: any[] = recipeObject.analyzedInstructions[0].steps;
 
@@ -203,10 +214,22 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         return instructionSteps;
     }
 
+    /**
+     * Hashing an object.
+     * 
+     * @param food Ifood object.
+     * @returns pseudo hash of he food object.
+     */
     private calculateFoodHash(food: IFood): string {
         return "#" + String(food.id) + "#" + food.name + "#" + food.category + "#" + String(food.nutrients);
     }
 
+    /**
+     * Combines collection of instructions into one global Instruction object.
+     * 
+     * @param instructionSteps collection of Instruction objects.
+     * @returns Promise filled with Instruction object.
+     */
     protected async combineInstructionSteps(instructionSteps: IInstruction[]): Promise<IInstruction> {
         let ingredientsMap: Map<string, IFood> = new Map();
         let instrucions: string = "";
@@ -232,6 +255,12 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         };
     }
 
+    /**
+     * Looks for an ingredient through foodAPI.
+     * 
+     * @param ingredientObject json object that represents ingredient in the API.
+     * @returns Promise filled with IFood object.
+     */
     protected async parseIngredient(ingredientObject: any): Promise<IFood> {
         let parsedName = ingredientObject.name !== undefined ? ingredientObject.name : "undefined";
         let parsedID = ingredientObject.id !== undefined ? ingredientObject.id : -1;
@@ -256,6 +285,12 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         }
     }
 
+    /**
+     * Parses dishes to specified format.
+     * 
+     * @param recipeDishTypes types of dishes as collection of string
+     * @returns parsed dishes as string
+     */
     protected parseDishTypes(recipeDishTypes: string[]): string {
         let types = "";
         recipeDishTypes.forEach((type: string) => {
@@ -306,5 +341,4 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
         return parsedRecipe;
     }
-
 }
