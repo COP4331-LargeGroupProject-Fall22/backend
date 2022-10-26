@@ -43,20 +43,20 @@ export default interface IRecipe {
     /**
      * Cooking time in minutes.
      */
-    readonly cookingTimeInMinutes?: number;
+    readonly cookingTimeInMinutes: number;
 
     /**
      * Preparation time in minutes.
      */
-    readonly preparationInMinutes?: number;
+    readonly preparationInMinutes: number;
 
     /**
      * Type of the dish that is going to be cooked. e.g. main dish, dessert etc.
      */
-    readonly type?: string;
+    readonly type: string;
 
     /**
      * Approximate total cost of ingredients.
      */
-    readonly totalCost?:number;
+    readonly totalCost:number;
 }
