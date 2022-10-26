@@ -78,10 +78,10 @@ export default class InventoryController {
             return;
         }
 
-        let nutrients: string = req.body?.nutrients;
+        let nutrients: string = req.body.nutrients;
 
         if (nutrients.at(0) !== '[') {
-            nutrients = "[" + req.body?.nutrients + "]";
+            nutrients = "[" + nutrients + "]";
         }
 
         let newFood: IFoodItem = {
@@ -189,10 +189,10 @@ export default class InventoryController {
             if (inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;
 
-                let nutrients: string = req.body?.nutrients;
+                let nutrients: string = req.body.nutrients;
 
                 if (nutrients.at(0) !== '[') {
-                    nutrients = "[" + req.body?.nutrients + "]";
+                    nutrients = "[" + nutrients + "]";
                 }
 
                 foodToAdd = {
