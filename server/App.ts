@@ -12,6 +12,7 @@ import Logger from './serverAPI/middleware/logger/Logger';
 import { userRoute } from './serverAPI/routes/UserRoutes';
 import { authenticationRoute } from './serverAPI/routes/AuthenticationRoutes';
 import { foodRoute } from './serverAPI/routes/FoodRoute';
+import { recipeRoute } from './serverAPI/routes/RecipeRoute';
 
 const app = express();
 
@@ -22,6 +23,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.use('/users', userRoute);
+app.use('/recipes', recipeRoute)
 app.use('/foods', foodRoute);
 app.use('/auth', authenticationRoute);
 
