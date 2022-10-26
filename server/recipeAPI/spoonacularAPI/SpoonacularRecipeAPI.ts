@@ -154,28 +154,7 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
         let instructionSteps: IInstruction[] = await this.parseInstructionSteps(recipeObject);
 
-        let ingredientsMap: Map<string, IFood> = new Map();
-        let instrucions: string = "";
-
-        for (let i = 0; i < instructionSteps.length; i++) {
-            let ingredients = instructionSteps[i].ingredients;
-            instrucions += instructionSteps[i].instructions + " ";
-
-            for (let j = 0; j < ingredients.length; j++) {
-                let foodHash = this.calculateFoodHash(ingredients[j]);
-
-                if (!ingredientsMap.has(foodHash)) {
-                    ingredientsMap.set(foodHash, ingredients[j]);
-                }
-            }
-        }
-
-        instrucions = instrucions.slice(0, instrucions.length - 1);
-
-        let instruction: IInstruction = {
-            instructions: instrucions,
-            ingredients: Array.from(ingredientsMap.values())
-        };
+        let instruction: IInstruction = await this.combineInstructionSteps(instructionSteps);
 
         return {
             id: recipeObject.id,
@@ -220,36 +199,29 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         return "#" + String(food.id) + "#" + food.name + "#" + food.category + "#" + String(food.nutrients);
     }
 
-    protected async parseInstructions(recipeObject: any): Promise<IInstruction> {
-        let instructons: any[] = recipeObject.analyzedInstructions[0].steps;
-
+    protected async combineInstructionSteps(instructionSteps: IInstruction[]): Promise<IInstruction> {
         let ingredientsMap: Map<string, IFood> = new Map();
+        let instrucions: string = "";
 
-        let parsedInstructions: string = "";
-
-        for (let i = 0; i < instructons.length; i++) {
-            parsedInstructions += instructons[i].step + " ";
-
-            let ingredients: any[] = instructons[i].ingredients;
+        for (let i = 0; i < instructionSteps.length; i++) {
+            let ingredients = instructionSteps[i].ingredients;
+            instrucions += instructionSteps[i].instructions + " ";
 
             for (let j = 0; j < ingredients.length; j++) {
-                let parseIngredient = await this.parseIngredient(ingredients[j]);
-                let hash = this.calculateFoodHash(parseIngredient);
+                let foodHash = this.calculateFoodHash(ingredients[j]);
 
-                if (!ingredientsMap.has(hash)) {
-                    ingredientsMap.set(hash, parseIngredient);
+                if (!ingredientsMap.has(foodHash)) {
+                    ingredientsMap.set(foodHash, ingredients[j]);
                 }
             }
         }
 
-        let parsedIngredients = Array.from(ingredientsMap.values());
-
-        parsedInstructions = parsedInstructions.slice(0, parsedInstructions.length - 1);
+        instrucions = instrucions.slice(0, instrucions.length - 1);
 
         return {
-            instructions: parsedInstructions,
-            ingredients: parsedIngredients
-        }
+            instructions: instrucions,
+            ingredients: Array.from(ingredientsMap.values())
+        };
     }
 
     protected async parseIngredient(ingredientObject: any): Promise<IFood> {
