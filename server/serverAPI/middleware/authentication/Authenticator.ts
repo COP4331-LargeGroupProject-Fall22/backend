@@ -24,8 +24,11 @@ export default class Authenticator implements IAuthenticator {
      */
     authenticate(req: Request, res: Response, next: NextFunction) {
         if (req.headers.authorization) {
-            admin.auth().verifyIdToken((req.headers.authorization)).then(
-                token => {
+            let authHeaderItems = req.headers.authorization.split(' ');
+            let accessToken: string = authHeaderItems.length === 2 ? authHeaderItems[1] : authHeaderItems[0];
+
+            admin.auth().verifyIdToken((accessToken))
+                .then(token => {
                     req.uid = token.uid;
 
                     next();
