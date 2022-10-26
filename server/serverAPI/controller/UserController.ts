@@ -102,9 +102,9 @@ export default class UserController {
             updatedUser = await this.database.UpdateUser(
                 req.params.userID,
                 {
-                    uid: req.body?.uid,
-                    firstName: req.body?.firstName,
-                    lastName: req.body?.lastName,
+                    uid: req.body.uid === undefined ? user.uid : req.body.uid,
+                    firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
+                    lastName: req.body.lastName === undefined ? user.lastName : req.body.lastName,
                     lastSeen: user.lastSeen,
                     inventory: user.inventory
                 }

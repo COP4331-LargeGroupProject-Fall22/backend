@@ -177,14 +177,6 @@ export default class InventoryController {
             return;
         }
 
-        const updatedFood: IFoodItem = {
-            id: Number.parseInt(req.params.foodID),
-            name: req.body?.name,
-            category: req.body?.category,
-            nutrients: JSON.parse(req.body?.nutrients),
-            expirationDate: Number.parseFloat(req.body.expirationDate)
-        };
-
         let inventory = user.inventory;
 
         let isFound: boolean = false;
@@ -196,7 +188,20 @@ export default class InventoryController {
 
             if (inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;
-                foodToAdd = updatedFood;
+
+                let nutrients: string = req.body?.nutrients;
+
+                if (nutrients.at(0) !== '[') {
+                    nutrients = "[" + req.body?.nutrients + "]";
+                }
+
+                foodToAdd = {
+                    id: Number.parseInt(req.params.foodID),
+                    name: req.body.name === undefined ? foodToAdd.name : req.body.name,
+                    category: req.body.category === undefined ? foodToAdd.category : req.body.category,
+                    nutrients: JSON.parse(nutrients),
+                    expirationDate: Number.parseFloat(req.body.expirationDate)
+                };
             }
 
             newInventory.push(foodToAdd);

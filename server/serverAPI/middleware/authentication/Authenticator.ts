@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { NextFunction, Request, Response } from 'express';
 import IAuthenticator from './IAuthenticator';
 import * as admin from 'firebase-admin'
@@ -5,7 +8,7 @@ import ResponseFormatter from '../../../utils/ResponseFormatter';
 import { ResponseTypes } from '../../../utils/ResponseTypes';
 
 admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
+    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT)),
 });
 
 /**

@@ -34,6 +34,8 @@ declare global {
             SPOONACULAR_HOST: string;
             SPOONACULAR_INGREDIENTS_BASE_URL: string;
             SPOONACULAR_GROCERY_PRODUCT_GET_INFO_BY_UPC_URL: string;
+
+            FIREBASE_ADMIN_SERVICE_ACCOUNT: string;
         }
 
     }
