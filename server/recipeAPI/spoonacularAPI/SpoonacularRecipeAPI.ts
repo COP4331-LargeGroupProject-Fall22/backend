@@ -177,13 +177,21 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
         let instructionSteps: IInstruction[] = [];
 
+        let ingredientSet: Set<string> = new Set();
+
         for (let i = 0; i < instructons.length; i++) {
             let ingredients: any[] = instructons[i].ingredients;
             let parsedIngredients: IFood[] = [];
 
             for (let j = 0; j < ingredients.length; j++) {
-                let parsedIngredient = await this.parseIngredient(ingredients[j]);
-                parsedIngredients.push(parsedIngredient);
+                let hashIngredient = JSON.stringify(ingredients[j]);
+
+                if (!ingredientSet.has(hashIngredient)) {
+                    let parsedIngredient = await this.parseIngredient(ingredients[j]);
+                    parsedIngredients.push(parsedIngredient);
+
+                    ingredientSet.add(hashIngredient);
+                }
             }
 
             instructionSteps.push({
@@ -233,13 +241,13 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         // 1 request call to API
         let food: IFood | null;
         try {
-            food = await this.foodAPI.GetFood(new Map([["id", parsedID]])); 
-        
+            food = await this.foodAPI.GetFood(new Map([["id", parsedID]]));
+
             if (food !== null) {
                 return food;
             }
-        } catch (error) {}
-        
+        } catch (error) { }
+
         return {
             id: parsedID,
             name: parsedName,
