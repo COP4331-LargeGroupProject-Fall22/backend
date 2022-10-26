@@ -1,4 +1,4 @@
-export const recipeResponse = {
+export const recipeSearchResponse = {
     "results": [
         {
             "vegetarian": false,
