@@ -17,7 +17,7 @@ jest.mock('../../serverAPI/middleware/logger/Logger', () => {
     };
 });
 
-let mockGetFoods = new MockAdapter(axios);
+let mockAxios = new MockAdapter(axios);
 let getFoodsBaseURL: string;
 let getFoodBaseURL: string;
 
@@ -56,7 +56,7 @@ describe('Food endpoints', () => {
 
     describe('Get Requests', () => {
         it('Get Food items using correct query', async () => {
-            mockGetFoods.onGet(getFoodsBaseURL).reply(200, foods);
+            mockAxios.onGet(getFoodsBaseURL).reply(200, foods);
 
             let response = await supertest(app)
                 .get(`/foods?query=yogurt`);
@@ -72,7 +72,7 @@ describe('Food endpoints', () => {
         })
 
         it('Get Food Item using correct query', async () => {
-            mockGetFoods.onGet(getFoodBaseURL).reply(200, food);
+            mockAxios.onGet(getFoodBaseURL).reply(200, food);
 
             let response = await supertest(app)
                 .get(`/foods/food/${foodID}`);
@@ -81,7 +81,7 @@ describe('Food endpoints', () => {
         });
 
         it('Get Food Item with incorrect foodID', async () => {
-            mockGetFoods.onGet(getFoodBaseURL).reply(200, food);
+            mockAxios.onGet(getFoodBaseURL).reply(200, food);
 
             let response = await supertest(app)
                 .get(`/foods/food/${mockIncorrectFoodID}`);
@@ -90,17 +90,17 @@ describe('Food endpoints', () => {
         });
 
         it('Get Food Item with non-existant foodID', async () => {
-            mockGetFoods.onGet(getFoodBaseURL).reply(200, food);
+            mockAxios.onGet(getFoodBaseURL).reply(200, food);
 
             let response = await supertest(app)
                 .get(`/foods/food/${mockFoodID}`);
 
-            console.log(response);
             expect(response.statusCode).toBe(404);
         });
     });
 
     afterAll(() => {
+        mockAxios.restore();
         UserDatabase.getInstance()?.disconnect();
     });
 });
