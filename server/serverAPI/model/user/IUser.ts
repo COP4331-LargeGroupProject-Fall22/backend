@@ -1,12 +1,17 @@
 import IFoodItem from "../food/IFoodItem";
+import IBaseUser from "./IBaseUser";
 
 /**
  * User interface.
  */
-export default interface IUser {
-    firstName: string;
-    lastName: string;
+export default interface IUser extends IBaseUser {
+    /**
+     * Unique user identifier.
+     */
     uid: string;
-    lastSeen: number;
+
+    /**
+     * Collection of IFoodItem representing user's inventory.
+     */
     inventory: IFoodItem[];
 }

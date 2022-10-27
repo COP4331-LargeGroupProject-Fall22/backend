@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export default async function globalSetup() {
-  // Config to decided if an mongodb-memory-server instance should be used
+  // Config to decide if an mongodb-memory-server instance should be used
   // it's needed in global space, because we don't want to create a new instance every test-suite
   const instance = await MongoMemoryServer.create();
   const uri = instance.getUri();
