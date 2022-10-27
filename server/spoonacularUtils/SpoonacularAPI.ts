@@ -24,8 +24,11 @@ export default abstract class SpoonacularAPI {
     }
 
     protected updateRequestCounters(headers: any): void {
-        SpoonacularAPI.requestRateLimit = headers[SpoonacularAPI.requestRateLimitHeader] as number;
-        SpoonacularAPI.requestRateRemaining = headers[SpoonacularAPI.requestRateRemainingHeader] as number;
+        let requestLimit = headers[SpoonacularAPI.requestRateLimitHeader];
+        let requestRemaining = headers[SpoonacularAPI.requestRateRemainingHeader];
+
+        SpoonacularAPI.requestRateLimit = requestLimit !== undefined ? requestLimit as number : SpoonacularAPI.requestRateLimit;
+        SpoonacularAPI.requestRateRemaining = requestRemaining as number ? requestRemaining as number : SpoonacularAPI.requestRateRemaining;
     }
 
     protected async sendRequest(url: string, params?: URLSearchParams, headers?: any): Promise<any> {
@@ -43,7 +46,6 @@ export default abstract class SpoonacularAPI {
                 }
             );
         } catch (error) {
-            console.log(error);
             return Promise.resolve(null);
         }
 
