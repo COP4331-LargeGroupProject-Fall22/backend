@@ -1,23 +1,14 @@
 import IFood from "../food/IFood";
 import IInstruction from "../instruction/IInstruction";
+import IBaseRecipe from "./IBaseRecipe";
 
 /**
  * Recipe interface.
  */
-export default interface IRecipe {
-    /**
-     * Unique recipe identifier.
-     */
-    readonly id: number;
-
-    /**
-     * Recipe name.
-     */
-    readonly name: string;
-    
+export default interface IRecipe extends IBaseRecipe {
     /**
      * Collection of cuisines to which recipe belongs.
-     */
+     */ 
     readonly cuisines: string[];
 
     /**
