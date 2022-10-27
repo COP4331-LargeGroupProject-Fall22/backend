@@ -10,9 +10,14 @@ import RecipeController from "../controller/RecipeController";
 
 export const recipeRoute = express.Router();
 
+let apiKey = process.env.SPOONACULAR_API_KEY;
+let apiHost = process.env.SPOONACULAR_HOST;
+
 const recipeController = new RecipeController(
     new SpoonacularRecipeAPI(
-        new SpoonacularFoodAPI()
+        apiKey, 
+        apiHost,
+        new SpoonacularFoodAPI(apiKey, apiHost)
     )
 );
 

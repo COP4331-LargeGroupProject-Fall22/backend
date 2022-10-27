@@ -11,45 +11,35 @@ import IInstruction from '../../serverAPI/model/instruction/IInstruction';
 dotenv.config();
 
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
+import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 import IRecipeAPI from "../IRecipeAPI";
 
-export default class SpoonacularRecipeAPI implements IRecipeAPI {
+export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected foodAPI: IFoodAPI;
-
-    protected apiKey: string;
-    protected host: string;
 
     protected recipeSearchParameters: Set<string>;
     protected recipeGetParameters: Set<string>;
 
     protected dishTypes: Set<string>;
 
-    protected headers: any;
+    constructor(apiKey: string, apiHost: string, foodAPI: IFoodAPI) {
+        super(apiKey, apiHost);
 
-    constructor(foodAPI: IFoodAPI) {
         this.foodAPI = foodAPI;
 
-        this.apiKey = process.env.SPOONACULAR_API_KEY;
-        this.host = process.env.SPOONACULAR_HOST;
-
-        this.headers = {
-            "X-RapidAPI-Key": this.apiKey,
-            "X-RapidAPI-Host": this.host
-        },
-
-            this.dishTypes = new Set([
-                "main course",
-                "side dish",
-                "dessert",
-                "appetizer",
-                "salad",
-                "bread",
-                "breakfast",
-                "soup",
-                "beverage",
-                "sauce",
-                "drink"
-            ]);
+        this.dishTypes = new Set([
+            "main course",
+            "side dish",
+            "dessert",
+            "appetizer",
+            "salad",
+            "bread",
+            "breakfast",
+            "soup",
+            "beverage",
+            "sauce",
+            "drink"
+        ]);
 
         this.recipeSearchParameters = new Set([
             'query',
@@ -86,15 +76,9 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
 
-        let response = await axios(
-            searchRecipeURL,
-            {
-                headers: this.headers,
-                params: urlSearchParameters
-            }
-        );
+        let response = await this.sendRequest(searchRecipeURL, urlSearchParameters);
 
-        let jsonArray: any[] = response.data.results;
+        let jsonArray: any[] = response.results;
         let recipeArray: IRecipe[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
@@ -329,14 +313,9 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
         let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
 
-        let response = await axios.get(
-            getRecipeURL,
-            {
-                headers: this.headers
-            }
-        );
+        let response = await this.sendRequest(getRecipeURL); 
 
-        let jsonObject: any = response.data;
+        let jsonObject: any = response;
         let parsedRecipe = this.parseRecipe(jsonObject);
 
         return parsedRecipe;
