@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js";
 // Import the functions you need from the SDKs you need
-// import { initializeApp } from "firebase/app";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -14,8 +13,6 @@ const firebaseConfig = {
   appId: "1:602483393246:web:785a926d8178a2739f784f",
   measurementId: "G-4GEJQZL0R3"
 };
-
-// import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 /**
  * This file is an example of how client side firebase API can be used in JavaScript.

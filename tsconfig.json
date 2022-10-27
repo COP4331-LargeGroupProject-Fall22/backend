@@ -27,14 +27,5 @@
     /* Completeness */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
-  // /* 
-  //   since we are using declaration merging for Express types we have to specifically let ts-node know that it 
-  //   has to compile additional files in src folder. 
-
-  //   P.S. ts-node compiler is used for nodemon
-  // */
-  // "ts-node": {
-  //   "files": true
-  // },
   "exclude": ["build", "server/tests", "jest-mongodb-config.js", "jest.config.js", "frontend"]
 }

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IBaseUser from "../model/user/IBaseUser";
 import IInternalUser from "../model/user/IInternalUser";
 import ISensitiveUser from "../model/user/ISensitiveUser";
 
@@ -60,7 +59,7 @@ export default class AuthenticationController {
         }
 
         if (user === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exists.`));
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
             return;
         }
 

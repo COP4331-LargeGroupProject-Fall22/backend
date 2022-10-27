@@ -79,7 +79,11 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * Retrieves general information about all user objects stored in the database. 
      * 
      * @param parameters query parameters used for searching.
+<<<<<<< HEAD
      * @returns Promise filled with IBaseUser or null if useres weren't found.
+=======
+     * @returns Promise filled with Partial<IUser> where each IUser object will contain only general information or null if users weren't found.
+>>>>>>> add-client-server-interface-for-recipeAPI
      */
     async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
         const users = this.collection.find();
@@ -288,6 +292,6 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             { "_id": objectID }
         );
 
-        return new Promise(resolve => resolve(deleteResult.deletedCount >= 1));
+        return new Promise(resolve => resolve(deleteResult.deletedCount === 1));
     }
 }
