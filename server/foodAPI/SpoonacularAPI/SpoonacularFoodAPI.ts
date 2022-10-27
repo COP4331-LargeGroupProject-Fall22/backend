@@ -1,33 +1,24 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, AxiosResponseHeaders } from "axios";
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
+import RequestLimitReached from "../../exceptions/RequestLimitReached";
 import FoodSchema from "../../serverAPI/model/food/FoodSchema";
 import IFood from "../../serverAPI/model/food/IFood";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
+import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
 import { Validator } from "../../utils/Validator";
 import IFoodAPI from "../IFoodAPI";
 
 /**
  * This class implements IFoodAPI interface using Spoonacular API.
  */
-export default class SpoonacularFoodAPI implements IFoodAPI {
-    private apiKey: string;
-    private host: string;
-
+export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodAPI {
     private foodSearchParameters: Set<string>;
     private foodInfoParameters: Set<string>;
 
-    private headers: any;
-
-    constructor() {
-        this.apiKey = process.env.SPOONACULAR_API_KEY;
-        this.host = process.env.SPOONACULAR_HOST;
-
-        this.headers = {
-            "X-RapidAPI-Key": this.apiKey,
-            "X-RapidAPI-Host": this.host
-        };
+    constructor(apiKey: string, apiHost: string) {
+        super(apiKey, apiHost);
 
         this.foodSearchParameters = new Set([
             'query',
@@ -78,6 +69,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
      * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
+     * @throws RequestLimitReached excpetion when request limit has been reached.
      * @returns Promise filled with an array of IFood objects.
      */
     async GetFoods(parameters: Map<string, any>): Promise<Partial<IFood>[]> {
@@ -87,20 +79,13 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
 
         searchParams.append("metaInformation", "true");
 
-        let response: AxiosResponse<any, any>;
-        try {
-            response = await axios.get(
-                foodSearchBaseURL,
-                {
-                    headers: this.headers,
-                    params: searchParams
-                }
-            );
-        } catch (error) {
+        let response = await this.sendRequest(foodSearchBaseURL, searchParams);
+
+        if (response === null) {
             return Promise.resolve([]);
         }
 
-        let jsonArray = response.data;
+        let jsonArray = response;
         let partialFoods: Partial<IFood>[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
@@ -227,20 +212,13 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
             searchParams.set("amount", "1");
         }
 
-        let response: AxiosResponse<any, any>;
-        try {
-            response = await axios.get(
-                foodGetInfoBaseURL,
-                {
-                    headers: this.headers,
-                    params: searchParams
-                }
-            );
-        } catch (error) {
+        let response = await this.sendRequest(foodGetInfoBaseURL, searchParams);
+
+        if (response == null) {
             return Promise.resolve(null);
         }
 
-        let jsonObject = response.data;
+        let jsonObject = response;
         let parsedFood = await this.parseFood(jsonObject);
         let foodSchema = this.convertToFoodSchema(parsedFood);
 
