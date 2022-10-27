@@ -1,5 +1,4 @@
 import IFood from "../food/IFood";
-import IBaseInstruction from "./IBaseInstruction";
 
 /**
  * Instruction interface.
