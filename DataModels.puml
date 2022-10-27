@@ -38,12 +38,15 @@ interface IBaseUser {
     + lastSeen: number
 }
 
-interface IUser extends IBaseUser {
-    + uid: string
+interface ISensitiveUser extends IBaseUser {
     + inventory: IFoodItem[]
 }
 
-class UserSchema implements IUser {}
+interface IInternalUser extends ISensitiveUser {
+    + uid: string
+}
+
+class InternalUserSchema implements IInternalUser {}
 
 interface IBaseRecipe {
     + id: number
@@ -69,7 +72,7 @@ interface IInstruction {
 
 IFood *-- IInstruction
 IInstruction *-- IRecipe
-IFoodItem *-- IUser
+IFoodItem *-- ISensitiveUser
 INutrient *-- IFood
 IUnit *-- INutrient
 
