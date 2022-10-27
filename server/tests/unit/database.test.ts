@@ -1,8 +1,10 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import IUser from "../../serverAPI/model/user/IUser";
+import ISensitiveUser from "../../serverAPI/model/user/ISensitiveUser";
 import UserDatabase from "../../database/UserDatabase";
+import IBaseUser from '../../serverAPI/model/user/IBaseUser';
+import IInternalUser from '../../serverAPI/model/user/IInternalUser';
 
 describe('User database functionality', () => {
     let userDB: UserDatabase
@@ -14,9 +16,9 @@ describe('User database functionality', () => {
     let uid: string | undefined;
     let _id: string | undefined;
 
-    let mockUser: IUser;
-    let mockUserSummary: Partial<IUser>;
-    let mockUserUpdated: IUser;
+    let mockUser: IInternalUser;
+    let mockUserSummary: IBaseUser;
+    let mockUserUpdated: IInternalUser;
 
     beforeAll(async () => {
         userDB = UserDatabase.connect(
@@ -84,7 +86,7 @@ describe('User database functionality', () => {
 
     describe('create', () => {
         it('create user ', async () => {
-            let actual = await userDB.CreateUser(mockUser);
+            let actual = await userDB.Create(mockUser);
             uid = actual?.uid;
             _id = (actual as any)?._id;
             
@@ -94,7 +96,7 @@ describe('User database functionality', () => {
 
     describe('get', () => {
         it ('get users summary', async () => {
-            let actual = await userDB.GetUsers();
+            let actual = await userDB.GetAll();
             
             expect(actual).toMatchObject([mockUserSummary]);
         });
@@ -102,7 +104,7 @@ describe('User database functionality', () => {
         it('get user by uid', async () => {
             expect(uid).not.toBeUndefined();
 
-            let actual = await userDB.GetUser(new Map<String, any>([
+            let actual = await userDB.Get(new Map<String, any>([
                 ["uid", uid]
             ]));
 
@@ -112,7 +114,7 @@ describe('User database functionality', () => {
         it ('get user by _id', async () => {
             expect(_id).not.toBeUndefined();
 
-            let actual = await userDB.GetUser(new Map<String, any>([
+            let actual = await userDB.Get(new Map<String, any>([
                 ["_id", _id]
             ]));
 
@@ -124,7 +126,7 @@ describe('User database functionality', () => {
         it ('update user info by _id', async () => {
            expect(_id).not.toBeUndefined();
            
-           let actual = await userDB.UpdateUser(_id!, mockUserUpdated);
+           let actual = await userDB.Update(_id!, mockUserUpdated);
 
            expect(actual).toMatchObject(mockUserUpdated);
         });
@@ -134,7 +136,7 @@ describe('User database functionality', () => {
         it ('delete user by _id', async () => {
             expect(_id).not.toBeUndefined();
 
-            let actual = await userDB.DeleteUser(_id!);
+            let actual = await userDB.Delete(_id!);
 
             expect(actual).toBeTruthy();
         });

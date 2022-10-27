@@ -3,16 +3,18 @@ import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IFoodItem from "../model/food/IFoodItem";
-import IUser from "../model/user/IUser";
+import IBaseUser from "../model/user/IBaseUser";
+import IInternalUser from "../model/user/IInternalUser";
+import ISensitiveUser from "../model/user/ISensitiveUser";
 
 /**
  * This class creates several properties responsible for inventory actions 
  * provided to the user.
  */
 export default class InventoryController {
-    private database: IDatabase<IUser>;
+    private database: IDatabase<IInternalUser>;
 
-    constructor(database: IDatabase<IUser>) {
+    constructor(database: IDatabase<IInternalUser>) {
         this.database = database;
     }
 
@@ -36,9 +38,9 @@ export default class InventoryController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: ISensitiveUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -64,9 +66,9 @@ export default class InventoryController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -102,7 +104,7 @@ export default class InventoryController {
 
         let updatedUser
         try {
-            updatedUser = await this.database.UpdateUser(req.params.userID, user);
+            updatedUser = await this.database.Update(req.params.userID, user);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -128,9 +130,9 @@ export default class InventoryController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: ISensitiveUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -163,9 +165,9 @@ export default class InventoryController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -213,9 +215,9 @@ export default class InventoryController {
 
         user.inventory = newInventory;
 
-        let updatedUser: IUser | null;
+        let updatedUser: ISensitiveUser | null;
         try {
-            updatedUser = await this.database.UpdateUser(req.params.userID, user);
+            updatedUser = await this.database.Update(req.params.userID, user);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -241,9 +243,9 @@ export default class InventoryController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
@@ -276,9 +278,9 @@ export default class InventoryController {
 
         user.inventory = newInventory;
 
-        let updatedUser: IUser | null;
+        let updatedUser: ISensitiveUser | null;
         try {
-            updatedUser = await this.database.UpdateUser(req.params.userID, user);
+            updatedUser = await this.database.Update(req.params.userID, user);
         } catch (error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;

@@ -6,9 +6,10 @@ import supertest from "supertest";
 import { app } from "../../App";
 import UserDatabase from "../../database/UserDatabase";
 import IFoodItem from "../../serverAPI/model/food/IFoodItem";
-import IUser from "../../serverAPI/model/user/IUser";
+import IInternalUser from '../../serverAPI/model/user/IInternalUser';
+import IUser from "../../serverAPI/model/user/ISensitiveUser";
 
-let mockUser: IUser;
+let mockUser: IInternalUser;
 
 let mockFood: IFoodItem;
 let mockFoodUpdated: IFoodItem;
@@ -118,7 +119,7 @@ describe(`User inventory endpoints`, () => {
         });
 
         it(`Create Food Item in user's inventory (food item is unique)`, async () => {
-            let expected = await UserDatabase.getInstance()?.CreateUser(mockUser);
+            let expected = await UserDatabase.getInstance()?.Create(mockUser);
             mockUser = expected!;
 
             let response = await supertest(app)
