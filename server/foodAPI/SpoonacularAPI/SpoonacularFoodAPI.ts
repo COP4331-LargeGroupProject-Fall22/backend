@@ -81,7 +81,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of IFood objects.
      */
-    async SearchFoods(parameters: Map<string, any>): Promise<IBaseFood[]> {
+    async SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
         let searchParams = this.convertFoodsParameters(parameters);
