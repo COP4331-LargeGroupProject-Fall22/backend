@@ -25,6 +25,19 @@ export default class AuthenticationController {
         return String(error);
     }
 
+    private convertToSensitiveUser(user: ISensitiveUser): ISensitiveUser {
+        return {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            inventory: user.inventory
+        };
+    }
+
+    private isAuthorized(req: Request, user: IInternalUser): boolean {
+        return req.uid === user.uid;
+    }
+
     /**
      * Lets client to login into the server using token from authorization header.
      * Upon successful login operation, this handler will redirect user to the /api/user route.
@@ -37,7 +50,7 @@ export default class AuthenticationController {
             ["uid", req.uid]
         ]);
 
-        let user: ISensitiveUser | null;
+        let user: IInternalUser | null;
         try {
             user = await this.database.Get(parameters);
         } catch (error) {
@@ -50,7 +63,14 @@ export default class AuthenticationController {
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+            return;
+        }
+
+        let sensitiveUser = this.convertToSensitiveUser(user);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
     }
 
     /**
@@ -100,6 +120,8 @@ export default class AuthenticationController {
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, createdUser));
+        let sensitiveUser = this.convertToSensitiveUser(createdUser);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
     }
 }
