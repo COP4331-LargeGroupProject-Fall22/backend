@@ -2,9 +2,6 @@ import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IFood from "../model/food/IFood";
-import IBaseInstruction from "../model/instruction/IBaseInstruction";
-import IInstruction from "../model/instruction/IInstruction";
 import IUser from "../model/user/IUser";
 
 /**

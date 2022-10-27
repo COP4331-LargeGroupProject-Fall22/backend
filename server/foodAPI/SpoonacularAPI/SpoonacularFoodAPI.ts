@@ -1,8 +1,6 @@
-import axios, { AxiosResponse, AxiosResponseHeaders } from "axios";
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
-import RequestLimitReached from "../../exceptions/RequestLimitReached";
 import FoodSchema from "../../serverAPI/model/food/FoodSchema";
 import IBaseFood from "../../serverAPI/model/food/IBaseFood";
 import IFood from "../../serverAPI/model/food/IFood";

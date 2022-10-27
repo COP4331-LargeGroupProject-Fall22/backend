@@ -1,5 +1,6 @@
-import axios from 'axios';
 import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { exit } from 'process';
 import { URLSearchParams } from 'url';
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
@@ -9,7 +10,6 @@ import IFoodAPI from '../../foodAPI/IFoodAPI';
 import IFood from '../../serverAPI/model/food/IFood';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
 import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
-dotenv.config();
 
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
 import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';

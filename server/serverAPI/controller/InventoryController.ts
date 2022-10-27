@@ -3,7 +3,6 @@ import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IFoodItem from "../model/food/IFoodItem";
-import INutrient from "../model/nutrients/INutrient";
 import IUser from "../model/user/IUser";
 
 /**
