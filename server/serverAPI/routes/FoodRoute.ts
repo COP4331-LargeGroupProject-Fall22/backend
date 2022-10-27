@@ -15,6 +15,6 @@ const foodController = new FoodController(
     new SpoonacularFoodAPI(apiKey, apiHost)
 );
 
-foodRoute.get('/', foodController.getFoods)
+foodRoute.get('/', foodController.searchFoods)
 foodRoute.get('/food/:foodID',foodController.getFood);
 foodRoute.get('/food/upc/:upc', foodController.getFoodByUPC);

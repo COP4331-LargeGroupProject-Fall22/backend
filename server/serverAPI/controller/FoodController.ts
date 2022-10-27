@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import IBaseFood from "../model/food/IBaseFood";
 import IFood from "../model/food/IFood";
 
 /**
@@ -68,7 +69,7 @@ export default class FoodController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getFoods = async (req: Request, res: Response) => {
+    searchFoods = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
         
         if (req.query?.query !== undefined) {
@@ -83,7 +84,7 @@ export default class FoodController {
             parameters.set("intolerence", req.query.intolerences);
         }
 
-        let foods: Partial<IFood>[];
+        let foods: IBaseFood[];
         try {
             foods = await this.foodAPI.SearchFood(parameters);
         } catch(error) {

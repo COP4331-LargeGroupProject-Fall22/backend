@@ -33,7 +33,7 @@ userRoute.route('/user/:userID')
     .delete(userController.deleteUser)
     .put(express.urlencoded({ extended: true }), userController.updateUser);
 
-userRoute.get('/user/:userID/foods', inventoryController.getFoods);
+userRoute.get('/user/:userID/foods', inventoryController.getInventory);
 userRoute.post('/user/:userID/foods/food', express.urlencoded({ extended: true }), inventoryController.addFood);
 userRoute.get('/user/:userID/foods/food/:foodID', inventoryController.getFood);
 userRoute.put('/user/:userID/foods/food/:foodID', express.urlencoded({ extended: true }), inventoryController.updateFood);

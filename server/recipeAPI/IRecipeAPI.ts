@@ -18,7 +18,7 @@ export default interface IRecipeAPI {
      * 
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    SearchRecipe(parameters: Map<string, any>): Promise<Partial<IBaseRecipe>[]>;
+    SearchRecipe(parameters: Map<string, any>): Promise<IBaseRecipe[]>;
 
     /**
      * Retrieves specific Recipe item that is defined by unique identifier.

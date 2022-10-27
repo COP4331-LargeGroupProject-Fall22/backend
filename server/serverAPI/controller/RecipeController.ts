@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import IBaseRecipe from "../model/recipe/IBaseRecipe";
 import IRecipe from "../model/recipe/IRecipe";
 
 /**
@@ -35,7 +36,7 @@ export default class RecipeController {
             ["query", req.query.query]
         ]);
 
-        let recipes: Partial<IRecipe>[];
+        let recipes: IBaseRecipe[];
         try {
             recipes = await this.recipeAPI.SearchRecipe(parameters);
         } catch(error) {
