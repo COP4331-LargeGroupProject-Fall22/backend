@@ -172,7 +172,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let instructionSteps: IInstruction[] = [];
 
-        let ingredientSet: Set<string> = new Set();
+        let ingredientMap: Map<string, IFood> = new Map();
 
         for (let i = 0; i < instructons.length; i++) {
             let ingredients: any[] = instructons[i].ingredients;
@@ -180,13 +180,14 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
             for (let j = 0; j < ingredients.length; j++) {
                 let hashIngredient = JSON.stringify(ingredients[j]);
+                let parsedIngredient: IFood;
 
-                if (!ingredientSet.has(hashIngredient)) {
-                    let parsedIngredient = await this.parseIngredient(ingredients[j]);
-                    parsedIngredients.push(parsedIngredient);
-
-                    ingredientSet.add(hashIngredient);
+                if (!ingredientMap.has(hashIngredient)) {
+                    parsedIngredient = await this.parseIngredient(ingredients[j]);
+                    ingredientMap.set(hashIngredient, parsedIngredient);
                 }
+
+                parsedIngredients.push(ingredientMap.get(hashIngredient)!);
             }
 
             instructionSteps.push({
@@ -313,7 +314,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
 
-        let response = await this.sendRequest(getRecipeURL); 
+        let response = await this.sendRequest(getRecipeURL);
 
         let jsonObject: any = response;
         let parsedRecipe = this.parseRecipe(jsonObject);
