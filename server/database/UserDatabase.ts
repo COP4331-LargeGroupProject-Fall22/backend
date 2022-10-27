@@ -10,7 +10,7 @@ import { IUserDatabase } from './IUserDatabase';
 
 /**
  * This class implements IUserDatabase interface using MongoDB database.
- * It uses Singelton design pattern to avoid establishing several connection to the same database inside of one
+ * It uses Singleton design pattern to avoid establishing several connection to the same database inside of one
  * application instance.
  */
 export class UserDatabase implements IUserDatabase {
