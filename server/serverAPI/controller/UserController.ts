@@ -42,6 +42,10 @@ export default class UserController {
         };
     }
 
+    private isAuthorized(req: Request, user: IInternalUser): boolean {
+        return req.uid === user.uid;
+    }
+
     /**
      * Lets client to get information about all users existed on the server.
      * Upon successful operation, this handler will return all users (including their non-sensitive information) existed on the server. 
@@ -89,6 +93,11 @@ export default class UserController {
 
         if (user === null) {
             res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
             return;
         }
 
@@ -145,6 +154,11 @@ export default class UserController {
             return;
         }
 
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+            return;
+        }
+
         let sensitiveUser = this.convertToSensitiveUser(updatedUser);
 
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
@@ -173,6 +187,11 @@ export default class UserController {
 
         if (user === null) {
             res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            return;
+        }
+
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
             return;
         }
 

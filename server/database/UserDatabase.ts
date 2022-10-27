@@ -8,8 +8,8 @@ import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
 import IncorrectSchema from '../exceptions/IncorrectSchema';
 import NoParameterFound from '../exceptions/NoParameterFound';
 import IInternalUser from '../serverAPI/model/user/IInternalUser';
-
 import InternalUserSchema from '../serverAPI/model/user/InternalUserSchema';
+
 import { Validator } from '../utils/Validator';
 import IDatabase from './IDatabase';
 
@@ -20,20 +20,20 @@ import IDatabase from './IDatabase';
  * It also uses Singleton design pattern. As such, there is only one database instance that will be created through out
  * execution lifetime.
  */
-export default class UserDatabase implements IDatabase<InternalUserSchema> {
+export default class UserDatabase implements IDatabase<IInternalUser> {
     private static instance?: UserDatabase;
 
     protected client!: MongoClient;
 
     protected database!: Db;
-    protected collection!: Collection<InternalUserSchema>;
+    protected collection!: Collection<IInternalUser>;
 
     private constructor(mongoURL: string, databaseName: string, collectionName: string) {
         try {
             this.client = new MongoClient(mongoURL);
 
             this.database = this.client.db(databaseName);
-            this.collection = this.database.collection<InternalUserSchema>(collectionName);
+            this.collection = this.database.collection<IInternalUser>(collectionName);
 
             return this;
         } catch (e) {
@@ -80,7 +80,7 @@ export default class UserDatabase implements IDatabase<InternalUserSchema> {
      * @param parameters query parameters used for searching.
      * @returns Promise filled with IBaseUser or null if useres weren't found.
      */
-    async GetAll(parameters?: Map<String, any>): Promise<InternalUserSchema[] | null> {
+    async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
         const users = this.collection.find()
 
         let userArr = users.toArray();
@@ -99,7 +99,7 @@ export default class UserDatabase implements IDatabase<InternalUserSchema> {
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @return UserSchema if conversion was successful.
      */
-    private async convertToUserSchema(user: IInternalUser): Promise<InternalUserSchema> {
+    private async convertToUserSchema(user: IInternalUser): Promise<IInternalUser> {
         let definedUser = new InternalUserSchema(
             user.firstName,
             user.lastName,

@@ -5,12 +5,17 @@ import UserDatabase from '../../database/UserDatabase';
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
 import ISensitiveUser from '../../serverAPI/model/user/ISensitiveUser';
-import IFoodItem from '../../serverAPI/model/food/IFoodItem';
+
+
+let mockInternalUserUID = "123op02osiao30kn1";
 
 jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
     return function () {
         return {
-            authenticate: (req: Request, res: Response, next: NextFunction) => { next(); }
+            authenticate: (req: Request, res: Response, next: NextFunction) => { 
+                (req as any).uid = mockInternalUserUID
+                next(); 
+            }            
         };
     }
 });
@@ -38,54 +43,15 @@ describe('User endpoints', () => {
 
     let mockSensitiveUserUpdated: ISensitiveUser;
 
-    let mockFood: IFoodItem;
-    let mockFoodUpdated: IFoodItem;
-
-    let mockFoodID: number;
     let mockID: string;
 
     beforeAll(() => {
-        mockFoodID = 123321;
         mockID = '634de9e4938f784f15998696';
-
-        mockFood = {
-            expirationDate: 99999,
-            id: mockFoodID,
-            name: "FoodItemA",
-            category: "CatA",
-            nutrients: [
-                {
-                    name: "nutrientC",
-                    unit: {
-                        unit: "g",
-                        value: 20
-                    },
-                    percentOfDaily: 10.4
-                }
-            ]
-        };
-
-        mockFoodUpdated = {
-            expirationDate: 77777,
-            id: mockFoodID,
-            name: "FoodItemB",
-            category: "CatB",
-            nutrients: [
-                {
-                    name: "nutrientA",
-                    unit: {
-                        unit: "grams",
-                        value: 123
-                    },
-                    percentOfDaily: 12.4
-                }
-            ]
-        }
 
         mockInternalUser = {
             firstName: "Mikhail",
             lastName: "Plekunov",
-            uid: "123op02osiao30kn1",
+            uid: mockInternalUserUID,
             lastSeen: 12345213567,
             inventory: []
         };
