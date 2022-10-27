@@ -80,11 +80,11 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let response = await this.sendRequest(searchRecipeURL, urlSearchParameters);
 
         let jsonArray: any[] = response.results;
-        let recipeArray: IRecipe[] = [];
+        let recipeArray: IBaseRecipe[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
             recipeArray.push(
-                await this.parseRecipe(jsonArray[i])
+                await this.parseBaseRecipe(jsonArray[i])
             );
         }
 
@@ -132,6 +132,13 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         searchParameters.append("addRecipeInformation", "true");
 
         return searchParameters;
+    }
+
+    protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
+        return {
+            id: recipeObject.id,
+            name: recipeObject.title
+        }
     }
 
     /**
