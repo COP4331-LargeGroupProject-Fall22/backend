@@ -30,7 +30,7 @@ export default class Authenticator implements IAuthenticator {
             let authHeaderItems = req.headers.authorization.split(' ');
             let accessToken: string = authHeaderItems.length === 2 ? authHeaderItems[1] : authHeaderItems[0];
 
-            admin.auth().verifyIdToken((accessToken))
+            admin.auth().verifyIdToken(accessToken)
                 .then(token => {
                     req.uid = token.uid;
 

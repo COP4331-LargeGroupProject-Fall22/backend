@@ -130,7 +130,7 @@ export default class InventoryController {
             ["_id", req.params.userID]
         ]);
 
-        let user: ISensitiveUser | null;
+        let user: IInternalUser | null;
         try {
             user = await this.database.Get(parameters);
         } catch (error) {

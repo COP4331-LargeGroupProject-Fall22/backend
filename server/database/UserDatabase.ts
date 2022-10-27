@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
+import { MongoClient, Collection, Db, ObjectId, Filter, WithId } from 'mongodb';
 import { exit } from 'process';
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
@@ -9,6 +9,7 @@ import IncorrectSchema from '../exceptions/IncorrectSchema';
 import NoParameterFound from '../exceptions/NoParameterFound';
 import IInternalUser from '../serverAPI/model/user/IInternalUser';
 import InternalUserSchema from '../serverAPI/model/user/InternalUserSchema';
+import ISensitiveUser from '../serverAPI/model/user/ISensitiveUser';
 
 import { Validator } from '../utils/Validator';
 import IDatabase from './IDatabase';
@@ -81,15 +82,29 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @returns Promise filled with IBaseUser or null if useres weren't found.
      */
     async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
-        const users = this.collection.find()
+        const users = this.collection.find();
 
-        let userArr = users.toArray();
+        let userArr = await users.toArray();
 
-        if ((await userArr).length == 0) {
+        if (userArr.length == 0) {
             return new Promise(resolve => resolve(null));
         }
 
+        let internalUsers: IInternalUser[] = [];
+        userArr.forEach(user => internalUsers.push(this.convertToIInternalUser(user)));
+
         return userArr;
+    }
+
+    private convertToIInternalUser(user: WithId<IInternalUser>): IInternalUser {
+        return {
+            id: user._id.toString(),
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            uid: user.uid,
+            inventory: user.inventory
+        };
     }
 
     /**
@@ -162,7 +177,13 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             filter._id = this.convertToObjectID(filter._id);
         }
 
-        return this.collection.findOne(filter);
+        let user = await this.collection.findOne(filter);
+
+        if (user === null) {
+            return Promise.resolve(null);
+        }
+
+        return this.convertToIInternalUser(user);
     }
 
     /**
@@ -173,11 +194,15 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
     private async GetUserByObjectId(id: ObjectId): Promise<IInternalUser | null> {
-        const user = this.collection.findOne(
+        const user = await this.collection.findOne(
             { "_id": id }
         );
 
-        return user;
+        if (user === null) {
+            return Promise.resolve(null);
+        }
+
+        return this.convertToIInternalUser(user);
     }
 
     /**
@@ -191,7 +216,13 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     async Create(user: IInternalUser): Promise<IInternalUser | null> {
         let userSchema = await this.convertToUserSchema(user)
 
-        let insertResult = await this.collection.insertOne(userSchema);
+        let insertResult = await this.collection.insertOne({
+            firstName: userSchema.firstName,
+            lastName: userSchema.lastName,
+            uid: userSchema.uid,
+            inventory: userSchema.inventory,
+            lastSeen: userSchema.lastSeen
+        });
 
         return this.GetUserByObjectId(insertResult.insertedId);
     }

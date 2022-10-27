@@ -88,7 +88,7 @@ describe('User database functionality', () => {
         it('create user ', async () => {
             let actual = await userDB.Create(mockUser);
             uid = actual?.uid;
-            _id = (actual as any)?._id;
+            _id = actual?.id;
             
             expect(actual).toMatchObject(mockUser);
         });

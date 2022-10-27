@@ -33,8 +33,9 @@ export default class UserController {
         };
     }
 
-    private convertToSensitiveUser(user: ISensitiveUser): ISensitiveUser {
+    private convertToSensitiveUser(user: IInternalUser): ISensitiveUser {
         return {
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             lastSeen: user.lastSeen,

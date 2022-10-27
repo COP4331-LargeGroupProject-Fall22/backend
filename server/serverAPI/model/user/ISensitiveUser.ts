@@ -6,6 +6,11 @@ import IBaseUser from "./IBaseUser";
  */
 export default interface ISensitiveUser extends IBaseUser {
     /**
+     * User identifier on the server.
+     */
+    id?: string;
+
+    /**
      * Collection of IFoodItem representing user's inventory.
      */
     inventory: IFoodItem[];

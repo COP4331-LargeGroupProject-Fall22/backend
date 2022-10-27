@@ -27,6 +27,7 @@ export default class AuthenticationController {
 
     private convertToSensitiveUser(user: ISensitiveUser): ISensitiveUser {
         return {
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             lastSeen: user.lastSeen,

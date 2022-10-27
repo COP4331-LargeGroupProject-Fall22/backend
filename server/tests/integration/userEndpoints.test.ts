@@ -101,7 +101,7 @@ describe('User endpoints', () => {
             let expected = await UserDatabase.getInstance()?.Create(mockInternalUser);
             mockInternalUser = expected!;
 
-            let response = await supertest(app).get(`/users/user/${(mockInternalUser as any)._id}`);
+            let response = await supertest(app).get(`/users/user/${mockInternalUser.id}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject(mockSensitiveUser);
@@ -138,7 +138,7 @@ describe('User endpoints', () => {
 
         it('Update User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .put(`/users/user/${(mockInternalUser as any)._id}`)
+                .put(`/users/user/${mockInternalUser.id}`)
                 .send(`firstName=${mockSensitiveUserUpdated.firstName}`)
                 .send(`lastName=${mockSensitiveUserUpdated.lastName}`);
 
@@ -174,7 +174,7 @@ describe('User endpoints', () => {
 
         it('Delete User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .delete(`/users/user/${(mockInternalUser as any)._id}`);
+                .delete(`/users/user/${mockInternalUser.id}`);
 
             expect(response.statusCode).toBe(200);
         });

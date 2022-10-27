@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { exit } from 'process';
 import { URLSearchParams } from 'url';
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
