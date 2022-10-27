@@ -1,3 +1,4 @@
+import IBaseFood from "../serverAPI/model/food/IBaseFood";
 import IFood from "../serverAPI/model/food/IFood";
 
 export default interface IFoodAPI {

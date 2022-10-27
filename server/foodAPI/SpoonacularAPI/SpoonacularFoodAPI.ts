@@ -4,6 +4,7 @@ import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import RequestLimitReached from "../../exceptions/RequestLimitReached";
 import FoodSchema from "../../serverAPI/model/food/FoodSchema";
+import IBaseFood from "../../serverAPI/model/food/IBaseFood";
 import IFood from "../../serverAPI/model/food/IFood";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
@@ -72,7 +73,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @throws RequestLimitReached excpetion when request limit has been reached.
      * @returns Promise filled with an array of IFood objects.
      */
-    async GetFoods(parameters: Map<string, any>): Promise<Partial<IFood>[]> {
+    async SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
         let searchParams = this.convertFoodsParameters(parameters);
@@ -85,8 +86,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             return Promise.resolve([]);
         }
 
-        let jsonArray = response;
-        let partialFoods: Partial<IFood>[] = [];
+        let jsonArray = response.data;
+        let partialFoods: IBaseFood[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
             let object = jsonArray[i];

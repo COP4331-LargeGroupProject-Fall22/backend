@@ -85,7 +85,7 @@ export default class FoodController {
 
         let foods: Partial<IFood>[];
         try {
-            foods = await this.foodAPI.GetFoods(parameters);
+            foods = await this.foodAPI.SearchFoods(parameters);
         } catch(error) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
