@@ -39,6 +39,7 @@ interface IBaseUser {
 }
 
 interface ISensitiveUser extends IBaseUser {
+    + id?: string
     + inventory: IFoodItem[]
 }
 
