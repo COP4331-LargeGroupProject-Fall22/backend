@@ -1,10 +1,9 @@
-import IFood from "../food/IFood";
-import IBaseInstruction from "./IBaseInstruction";
+import IBaseFood from "../food/IBaseFood";
 
 /**
  * Instruction interface.
  */
-export default interface IInstruction {
+ export default interface IBaseInstruction {
     /**
      * Instructions explain everything that needs to be done to cook the meal.
      */
@@ -13,5 +12,5 @@ export default interface IInstruction {
     /**
      * Ingredients store all required food items that are needed for instruction.
      */
-    readonly ingredients: IFood[];
+    readonly ingredients: IBaseFood[];
 }
