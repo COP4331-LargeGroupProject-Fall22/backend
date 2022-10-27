@@ -86,7 +86,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             return Promise.resolve([]);
         }
 
-        let jsonArray = response.data;
+        let jsonArray = response;
         let partialFoods: IBaseFood[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {

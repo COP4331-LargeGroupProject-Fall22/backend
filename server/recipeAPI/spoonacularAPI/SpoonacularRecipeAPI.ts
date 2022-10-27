@@ -8,6 +8,7 @@ import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
 import IFoodAPI from '../../foodAPI/IFoodAPI';
 import IFood from '../../serverAPI/model/food/IFood';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
+import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
 dotenv.config();
 
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
@@ -71,7 +72,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    async SearchRecipe(parameters: Map<string, any>): Promise<Partial<IRecipe>[]> {
+    async SearchRecipe(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
