@@ -44,7 +44,7 @@ export default class AuthenticationController {
         }
 
         if (user === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exists.`));
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
             return;
         }
 

@@ -3,6 +3,7 @@ import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import FoodSchema from "../../serverAPI/model/food/FoodSchema";
+import IBaseFood from "../../serverAPI/model/food/IBaseFood";
 import IFood from "../../serverAPI/model/food/IFood";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
 import { Validator } from "../../utils/Validator";
@@ -80,7 +81,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of IFood objects.
      */
-    async GetFoods(parameters: Map<string, any>): Promise<Partial<IFood>[]> {
+    async SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
         let searchParams = this.convertFoodsParameters(parameters);
@@ -101,7 +102,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         }
 
         let jsonArray = response.data;
-        let partialFoods: Partial<IFood>[] = [];
+        let partialFoods: IBaseFood[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
             let object = jsonArray[i];

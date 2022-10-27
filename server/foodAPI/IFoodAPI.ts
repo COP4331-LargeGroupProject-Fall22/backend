@@ -1,3 +1,4 @@
+import IBaseFood from "../serverAPI/model/food/IBaseFood";
 import IFood from "../serverAPI/model/food/IFood";
 
 export default interface IFoodAPI {
@@ -13,7 +14,11 @@ export default interface IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of IFood objects.
      */
+<<<<<<< HEAD
     GetFoods(parameters: Map<string, any>): Promise<Partial<IFood>[]>;
+=======
+    SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]>;
+>>>>>>> add-recipe-api-interface
 
     /**
      * Retrieves food item that is specified by searching parameters.
