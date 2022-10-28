@@ -34,7 +34,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
                 'query',
                 'number',
                 'language',
-                'intolerence'
+                'intolerance'
             ]);
 
         this.foodInfoParameters = new Set([
@@ -157,7 +157,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
      * 
      * @param food IFood object.
      * @throws IncorrectSchema exception when food doesn't have correct format.
-     * @returns Promise filled with FoodSchema on succss/
+     * @returns Promise filled with FoodSchema on success.
      */
     private async convertToFoodSchema(food: IFood): Promise<FoodSchema> {
         let foodSchema = new FoodSchema(

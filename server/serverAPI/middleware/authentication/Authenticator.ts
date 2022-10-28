@@ -18,7 +18,7 @@ admin.initializeApp({
 export default class Authenticator implements IAuthenticator {
     constructor() { }
     /**
-     * This method provides authnetication logic for user authentication using Firebase-Admin API and
+     * This method provides authentication logic for user authentication using Firebase-Admin API and
      * accessToken which is accessed through authorization header of the request.
      * 
      * @param req Request parameter that holds information about request
@@ -28,6 +28,9 @@ export default class Authenticator implements IAuthenticator {
     authenticate(req: Request, res: Response, next: NextFunction) {
         if (req.headers.authorization) {
             let authHeaderItems = req.headers.authorization.split(' ');
+
+            // According to specifications, accessToken is prefixed with Bearer
+            // This logic removes Bearer if it exists
             let accessToken: string = authHeaderItems.length === 2 ? authHeaderItems[1] : authHeaderItems[0];
 
             admin.auth().verifyIdToken((accessToken))
@@ -36,7 +39,12 @@ export default class Authenticator implements IAuthenticator {
 
                     next();
                 }).catch(() => {
-                    res.status(401).send(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User authorization failed."));
+                    res.status(401).send(
+                        ResponseFormatter.formatAsJSON(
+                            ResponseTypes.ERROR, "User authorization failed."
+                        )
+                    );
+                    
                     return;
                 });
         } else {

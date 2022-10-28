@@ -1,12 +1,11 @@
 import IFood from "../food/IFood";
-import IBaseInstruction from "./IBaseInstruction";
 
 /**
  * Instruction interface.
  */
 export default interface IInstruction {
     /**
-     * Instructions explain everything that needs to be done to cook the meal.
+     * Single instruction describing step in creating meal.
      */
     readonly instructions: string;
 

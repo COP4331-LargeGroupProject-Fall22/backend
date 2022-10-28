@@ -1,6 +1,7 @@
 /**
  * This file is responsible for construction of the routes for UserController.
  */
+
 import * as dotenv from 'dotenv';
 dotenv.config();
 

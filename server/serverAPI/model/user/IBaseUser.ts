@@ -10,7 +10,7 @@ export default interface IBaseUser {
     lastName: string;
 
     /**
-     * Last time user has been seen online in number format where number starts from 1970.
+     * Last time user has been seen in seconds since Unix epoch.
      */
     lastSeen: number;
 }

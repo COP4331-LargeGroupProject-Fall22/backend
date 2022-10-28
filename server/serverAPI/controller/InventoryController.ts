@@ -3,7 +3,6 @@ import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IFoodItem from "../model/food/IFoodItem";
-import INutrient from "../model/nutrients/INutrient";
 import IUser from "../model/user/IUser";
 
 /**
@@ -26,8 +25,7 @@ export default class InventoryController {
     }
 
     /**
-     * Lets client to get all foods in user's inventory where user is at specified userID.
-     * Upon successful operation, this handler will return all food items in user's inventory.
+     * Returns all food in user inventory for user specified by userID.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -54,7 +52,7 @@ export default class InventoryController {
     }
 
     /**
-    * Lets client to add food to user's inventory where user is at specified userID.
+    * Adds food to user's inventory where user is at specified userID.
     * Upon successful operation, this handler will return all food items from user's inventory.
     * 
     * @param req Request parameter that holds information about request
@@ -101,7 +99,7 @@ export default class InventoryController {
 
         user.inventory.push(newFood);
 
-        let updatedUser
+        let updatedUser: IUser | null;
         try {
             updatedUser = await this.database.UpdateUser(req.params.userID, user);
         } catch (error) {
@@ -118,12 +116,11 @@ export default class InventoryController {
     }
 
     /**
-     * Lets client to get complete informations of the food item from user's inventory where user is at specified userID.
-     * Upon successful operation, this handler will return food item from user's inventory.
-    * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
-    */
+     * Returns complete information for food item in user inventory specified by userID and foodID
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */
     getFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
             ["_id", req.params.userID]
@@ -153,12 +150,11 @@ export default class InventoryController {
     }
 
     /**
-     * Lets client to update information of the food item from user's inventory where user is at specified userID.
-     * Upon successful operation, this handler will return all food items in user's inventory.
-    * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
-    */
+     * Updates information about food item specified by userID and foodID
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */
     updateFood = async (req: Request, res: Response) => {
         let parameters = new Map([
             ["_id", req.params.userID]
@@ -177,16 +173,14 @@ export default class InventoryController {
             return;
         }
 
-        let inventory = user.inventory;
-
         let isFound: boolean = false;
 
         let newInventory: IFoodItem[] = [];
 
-        for (let i = 0; i < inventory.length; i++) {
-            let foodToAdd = inventory[i];
+        for (let i = 0; i < user.inventory.length; i++) {
+            let foodToAdd = user.inventory[i];
 
-            if (inventory[i].id === Number.parseInt(req.params.foodID)) {
+            if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;
 
                 let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;

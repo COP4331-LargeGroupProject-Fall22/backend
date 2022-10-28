@@ -68,7 +68,7 @@ export default class FoodController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getFoods = async (req: Request, res: Response) => {
+    searchFood = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
         
         if (req.query?.query !== undefined) {
