@@ -14,7 +14,9 @@ export default interface IDatabase<ReturnType> {
      * Retrieves complete information about specific user defined by T's _id.
      * 
      * @param parameters query parameters used for searching.
+     * One of the following is required.
      * - _id - required parameter that defines user's _id.
+     * - username - required parameter that defines user's username.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws EmptyID exception when id is empty.

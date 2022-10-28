@@ -5,13 +5,8 @@ import { MongoClient, Collection, Db, ObjectId, Filter, WithId } from 'mongodb';
 import { exit } from 'process';
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
-import IncorrectSchema from '../exceptions/IncorrectSchema';
-import NoParameterFound from '../exceptions/NoParameterFound';
 import IInternalUser from '../serverAPI/model/user/IInternalUser';
-import InternalUserSchema from '../serverAPI/model/user/InternalUserSchema';
-import ISensitiveUser from '../serverAPI/model/user/ISensitiveUser';
 
-import { Validator } from '../utils/Validator';
 import IDatabase from './IDatabase';
 
 /**
@@ -29,7 +24,11 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     protected database!: Db;
     protected collection!: Collection<IInternalUser>;
 
-    private constructor(mongoURL: string, databaseName: string, collectionName: string) {
+    private constructor(
+        mongoURL: string,
+        databaseName: string,
+        collectionName: string,
+    ) {
         try {
             this.client = new MongoClient(mongoURL);
 
@@ -57,7 +56,11 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * 
      * @returns UserDatabase object.
      */
-    static connect(mongoURL: string, name: string, collection: string): UserDatabase {
+    static connect(
+        mongoURL: string,
+        name: string,
+        collection: string,
+    ): UserDatabase {
         if (UserDatabase.instance === undefined) {
             UserDatabase.instance = new UserDatabase(mongoURL, name, collection);
         }
@@ -79,11 +82,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * Retrieves general information about all user objects stored in the database. 
      * 
      * @param parameters query parameters used for searching.
-<<<<<<< HEAD
      * @returns Promise filled with IBaseUser or null if useres weren't found.
-=======
-     * @returns Promise filled with Partial<IUser> where each IUser object will contain only general information or null if users weren't found.
->>>>>>> add-client-server-interface-for-recipeAPI
      */
     async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
         const users = this.collection.find();
@@ -94,47 +93,22 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             return new Promise(resolve => resolve(null));
         }
 
-        let internalUsers: IInternalUser[] = [];
-        userArr.forEach(user => internalUsers.push(this.convertToIInternalUser(user)));
+        let sensitiveUsers: IInternalUser[] = [];
+        userArr.forEach(user => sensitiveUsers.push(this.convertToSensitiveUser(user)));
 
         return userArr;
     }
 
-    private convertToIInternalUser(user: WithId<IInternalUser>): IInternalUser {
+    private convertToSensitiveUser(user: WithId<IInternalUser>): IInternalUser {
         return {
+            username: user.username,
+            password: user.password,
             id: user._id.toString(),
             firstName: user.firstName,
             lastName: user.lastName,
-            lastSeen: user.lastSeen,
-            uid: user.uid,
-            inventory: user.inventory
+            inventory: user.inventory,
+            lastSeen: user.lastSeen
         };
-    }
-
-    /**
-     * Attempts to convert ISensitiveUser to UserSchema.
-     * 
-     * @param user IUser object
-     * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
-     * @return UserSchema if conversion was successful.
-     */
-    private async convertToUserSchema(user: IInternalUser): Promise<IInternalUser> {
-        let definedUser = new InternalUserSchema(
-            user.firstName,
-            user.lastName,
-            user.uid
-        );
-
-        definedUser.inventory = user.inventory;
-        definedUser.lastSeen = user.lastSeen;
-
-        let logs = new Validator().validate(definedUser);
-
-        if ((await logs).length > 0) {
-            throw new IncorrectSchema(`User object doesn't have correct format.\n${logs}`);
-        }
-
-        return definedUser;
     }
 
     /**
@@ -173,10 +147,6 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     async Get(parameters: Map<String, any>): Promise<IInternalUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
 
-        if (filter._id === undefined && filter.uid === undefined) {
-            throw new NoParameterFound("Need to provide either _id or uid");
-        }
-
         if (filter._id !== undefined) {
             filter._id = this.convertToObjectID(filter._id);
         }
@@ -187,7 +157,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             return Promise.resolve(null);
         }
 
-        return this.convertToIInternalUser(user);
+        return this.convertToSensitiveUser(user);
     }
 
     /**
@@ -206,7 +176,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             return Promise.resolve(null);
         }
 
-        return this.convertToIInternalUser(user);
+        return this.convertToSensitiveUser(user);
     }
 
     /**
@@ -218,14 +188,15 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
      */
     async Create(user: IInternalUser): Promise<IInternalUser | null> {
-        let userSchema = await this.convertToUserSchema(user)
+        console.log(user);
 
         let insertResult = await this.collection.insertOne({
-            firstName: userSchema.firstName,
-            lastName: userSchema.lastName,
-            uid: userSchema.uid,
-            inventory: userSchema.inventory,
-            lastSeen: userSchema.lastSeen
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            password: user.password,
+            inventory: user.inventory,
+            lastSeen: user.lastSeen
         });
 
         return this.GetUserByObjectId(insertResult.insertedId);
@@ -243,8 +214,6 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
      */
     async Update(id: string, user: IInternalUser): Promise<IInternalUser | null> {
-        let userSchema = await this.convertToUserSchema(user);
-
         let objectID = this.convertToObjectID(id);
 
         let existingUser = await this.GetUserByObjectId(objectID);
@@ -258,11 +227,12 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             {
                 $set:
                 {
-                    "uid": userSchema.uid,
-                    "firstName": userSchema.firstName,
-                    "lastName": userSchema.lastName,
-                    "lastSeen": userSchema.lastSeen,
-                    "inventory": userSchema.inventory
+                    "username": user.username,
+                    "password": user.password,
+                    "firstName": user.firstName,
+                    "lastName": user.lastName,
+                    "lastSeen": user.lastSeen,
+                    "inventory": user.inventory
                 }
             }
         );

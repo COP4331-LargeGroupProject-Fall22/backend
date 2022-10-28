@@ -38,16 +38,34 @@ interface IBaseUser {
     + lastSeen: number
 }
 
-interface ISensitiveUser extends IBaseUser {
-    + id?: string
+interface IUser extends IBaseUser {
     + inventory: IFoodItem[]
+    + shoppingList?: IFood[]
+    + favouriteRecipes?: IBaseRecipe[]
 }
 
-interface IInternalUser extends ISensitiveUser {
-    + uid: string
+interface IUserIdentification {
+    + id?: string
+    + username: string
 }
 
-class InternalUserSchema implements IInternalUser {}
+interface IExternalUser extends IUserIdentification, IUser {
+
+}
+
+interface ISchema {
+    + validate(): any[]
+}
+
+interface IUserCredentials extends IUserIdentification {
+    + password: string
+}
+
+interface IInternalUser extends IUserCredentials, IUser {}
+
+class UserLoginSchema implements IUserCredentials, ISchema {}
+
+class UserRegistrationSchema implements IUserCredentials, IBaseUser, ISchema {}
 
 interface IBaseRecipe {
     + id: number
@@ -71,9 +89,12 @@ interface IInstruction {
     + ingredients: IFood[]
 }
 
+IFood *-- IUser
+IFoodItem *-- IUser
+IBaseRecipe *-- IUser
+
 IFood *-- IInstruction
 IInstruction *-- IRecipe
-IFoodItem *-- ISensitiveUser
 INutrient *-- IFood
 IUnit *-- INutrient
 

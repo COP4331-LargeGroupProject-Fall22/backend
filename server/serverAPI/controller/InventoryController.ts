@@ -3,9 +3,7 @@ import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IFoodItem from "../model/food/IFoodItem";
-import IBaseUser from "../model/user/IBaseUser";
 import IInternalUser from "../model/user/IInternalUser";
-import ISensitiveUser from "../model/user/ISensitiveUser";
 
 /**
  * This class creates several properties responsible for inventory actions 
@@ -35,10 +33,10 @@ export default class InventoryController {
      */
     getInventory = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.params.userID]
+            ["_id", req.userIdentification?.id]
         ]);
 
-        let user: ISensitiveUser | null;
+        let user: IInternalUser | null;
         try {
             user = await this.database.Get(parameters);
         } catch (error) {
@@ -63,7 +61,7 @@ export default class InventoryController {
     */
     addFood = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
-            ["_id", req.params.userID]
+            ["_id", req.userIdentification?.id]
         ]);
 
         let user: IInternalUser | null;
@@ -127,7 +125,7 @@ export default class InventoryController {
     */
     getFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.params.userID]
+            ["_id", req.userIdentification?.id]
         ]);
 
         let user: IInternalUser | null;
@@ -162,7 +160,7 @@ export default class InventoryController {
     */
     updateFood = async (req: Request, res: Response) => {
         let parameters = new Map([
-            ["_id", req.params.userID]
+            ["_id", req.userIdentification?.id]
         ]);
 
         let user: IInternalUser | null;
@@ -215,7 +213,7 @@ export default class InventoryController {
 
         user.inventory = newInventory;
 
-        let updatedUser: ISensitiveUser | null;
+        let updatedUser: IInternalUser | null;
         try {
             updatedUser = await this.database.Update(req.params.userID, user);
         } catch (error) {
@@ -240,7 +238,7 @@ export default class InventoryController {
     */
     deleteFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.params.userID]
+            ["_id", req.userIdentification?.id]
         ]);
 
         let user: IInternalUser | null;
@@ -278,7 +276,7 @@ export default class InventoryController {
 
         user.inventory = newInventory;
 
-        let updatedUser: ISensitiveUser | null;
+        let updatedUser: IInternalUser | null;
         try {
             updatedUser = await this.database.Update(req.params.userID, user);
         } catch (error) {

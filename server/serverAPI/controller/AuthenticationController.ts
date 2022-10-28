@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
+import Encryptor from "../../utils/Encryptor";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IInternalUser from "../model/user/IInternalUser";
-import ISensitiveUser from "../model/user/ISensitiveUser";
+import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
+import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
+import TokenCreator from "../../utils/TokenCreator";
+import IUserIdentification from "../model/user/IUserIdentification";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -11,9 +15,17 @@ import ISensitiveUser from "../model/user/ISensitiveUser";
  */
 export default class AuthenticationController {
     private database: IDatabase<IInternalUser>;
+    private encryptor: Encryptor;
+    private tokenCreator: TokenCreator<IUserIdentification>;
 
-    constructor(database: IDatabase<IInternalUser>) {
+    constructor(
+        database: IDatabase<IInternalUser>,
+        encryptor: Encryptor,
+        tokenCreator: TokenCreator<IUserIdentification>
+    ) {
         this.database = database;
+        this.encryptor = encryptor;
+        this.tokenCreator = tokenCreator;
     }
 
     private getException(error: unknown): string {
@@ -24,18 +36,15 @@ export default class AuthenticationController {
         return String(error);
     }
 
-    private convertToSensitiveUser(user: ISensitiveUser): ISensitiveUser {
+    convertToInternalUser(userCredentials: UserRegistrationSchema): IInternalUser {
         return {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            lastSeen: user.lastSeen,
-            inventory: user.inventory
-        };
-    }
-
-    private isAuthorized(req: Request, user: IInternalUser): boolean {
-        return req.uid === user.uid;
+            username: userCredentials.username,
+            password: userCredentials.password,
+            firstName: userCredentials.firstName,
+            lastName: userCredentials.lastName,
+            lastSeen: userCredentials.lastSeen,
+            inventory: []
+        }
     }
 
     /**
@@ -46,31 +55,45 @@ export default class AuthenticationController {
      * @param res Response parameter that holds information about response
      */
     login = async (req: Request, res: Response) => {
-        let parameters = new Map([
-            ["uid", req.uid]
-        ]);
+        let userCredentials = new UserLoginSchema(
+            req.body?.username,
+            req.body?.password
+        );
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        let logs = await userCredentials.validate();
+
+        if (logs.length > 0) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
             return;
         }
+
+        let parameters = new Map([
+            ["username", userCredentials.username]
+        ]);
+
+        let user: IInternalUser | null = await this.database.Get(parameters);
 
         if (user === null) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
             return;
         }
 
-        if (!this.isAuthorized(req, user)) {
-            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+        let comparisonResult = await this.encryptor.compare(userCredentials.password, user.password);
+
+        if (!comparisonResult) {
+            res.status(403).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User credentials are incorrect.`));
             return;
         }
 
-        let sensitiveUser = this.convertToSensitiveUser(user);
+        let token = this.tokenCreator.sign(
+            {
+                username: user.username,
+                id: user.id
+            },
+            30 * 60
+        );
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, token));
     }
 
     /**
@@ -82,46 +105,42 @@ export default class AuthenticationController {
      * @param res Response parameter that holds information about response
      */
     register = async (req: Request, res: Response) => {
+        let userCredentials = new UserRegistrationSchema(
+            req.body?.firstName,
+            req.body?.lastName,
+            req.body?.username,
+            req.body?.password,
+            Date.now()
+        );
+
+        let logs = await userCredentials.validate();
+
+        if (logs.length > 0) {
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return;
+        }
+
         let parameters = new Map([
-            ["uid", req.uid]
+            ["username", userCredentials.username]
         ]);
 
-        let user: ISensitiveUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        let user: IInternalUser | null = await this.database.Get(parameters);
 
         if (user !== null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such UID already exists.`));
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such username already exists.`));
             return;
         }
 
-        const newUser: IInternalUser = {
-            uid: String(req.uid),
-            firstName: req.body?.firstName,
-            lastName: req.body?.lastName,
-            lastSeen: Date.now(),
-            inventory: []
-        };
+        let internalUser = this.convertToInternalUser(userCredentials);
+        internalUser.password = await this.encryptor.encrypt(internalUser.password);
 
-        let createdUser: ISensitiveUser | null;
-        try {
-            createdUser = await this.database.Create(newUser);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        let createdUser: IInternalUser | null = await this.database.Create(internalUser);
 
         if (createdUser === null) {
             res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
             return;
         }
 
-        let sensitiveUser = this.convertToSensitiveUser(createdUser);
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
     }
 }

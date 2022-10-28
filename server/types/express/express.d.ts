@@ -3,6 +3,7 @@
  */
 
 import superagent from "superagent";
+import IUserIdentification from "../../serverAPI/model/user/IUserIdentification";
 
 declare module "supertest" {
     interface Test extends superagent.SuperAgentRequest {
@@ -13,6 +14,8 @@ declare module "supertest" {
 declare module "express-serve-static-core" {
     interface Request {
         uid?: string;
+
+        userIdentification?: IUserIdentification;
     }
 }
 
@@ -35,6 +38,8 @@ declare global {
             SPOONACULAR_RECIPE_BASE_URL: string;
 
             FIREBASE_ADMIN_SERVICE_ACCOUNT: string;
+            
+            PRIVATE_KEY_FOR_USER_TOKEN: string;
         }
 
     }
