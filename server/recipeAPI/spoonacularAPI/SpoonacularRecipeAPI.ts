@@ -148,7 +148,7 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
-            type: this.parseDishTypes(recipeObject.dishTypes),
+            mealType: this.parseDishTypes(recipeObject.dishTypes),
             instruction: await this.parseInstructions(recipeObject),
             instructionSteps: await this.parseInstructionSteps(recipeObject),
             servings: recipeObject.servings,
@@ -235,8 +235,8 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
             return food;
         }
 
-        food = await this.foodAPI.GetFoods(new Map([["query", parsedName]]))
-            .then(async (foods) => {
+        food = await this.foodAPI.SearchFood(new Map([["query", parsedName]]))
+            .then(async (foods: string | any[]) => {
                 if (foods.length !== 0) {
                     // Need better logic here...
                     return (await this.foodAPI.GetFood(new Map([["id", foods[0].id]])));

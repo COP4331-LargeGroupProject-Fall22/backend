@@ -1,6 +1,7 @@
 /**
  * This file is responsible for construction of the routes for AuthenticationController.
  */
+
 import express from 'express';
 import AuthenticationController from '../controller/AuthenticationController';
 import Authenticator from '../middleware/authentication/Authenticator';
