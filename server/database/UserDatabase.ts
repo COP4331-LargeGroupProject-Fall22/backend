@@ -84,16 +84,14 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @param parameters query parameters used for searching.
      * @returns Promise filled with IBaseUser or null if useres weren't found.
      */
-    async GetAll(parameters?: Map<String, any>): Promise<IUser[] | null> {
-        const users = this.collection.find();
+    async GetAll(parameters?: Map<String, any>): Promise<IUser[]> {
+        return this.collection.find().toArray().then(users => {
+            if (users.length === 0) {
+                return Promise.reject(null);
+            }
 
-        let userArr = await users.toArray();
-
-        if (userArr.length == 0) {
-            return Promise.resolve(null);
-        }
-
-        return userArr;
+            return Promise.resolve(users);
+        }, () => Promise.reject(null));
     }
 
     /**
@@ -121,26 +119,28 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Retrieves complete information about specific user defined by user's _id.
      * 
      * @param parameters query parameters used for searching.
+     *  One of two parameters required.
      * - _id - required parameter that defines user's _id.
+     * - username - required parameter that definies unique user's username.
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    async Get(parameters: Map<String, any>): Promise<IUser | null> {
+    async Get(parameters: Map<String, any>): Promise<IUser> {
         let filter: Filter<any> = Object.fromEntries(parameters);
 
         if (filter._id !== undefined) {
             filter._id = this.convertToObjectID(filter._id);
         }
 
-        let user = await this.collection.findOne(filter);
+        return this.collection.findOne(filter).then(user => {
+            if (user === null) {
+                return Promise.reject(null);
+            }
 
-        if (user === null) {
-            return Promise.resolve(null);
-        }
-
-        return user;
+            return Promise.resolve(user);
+        }, () => Promise.reject(null));
     }
 
     /**
@@ -150,28 +150,24 @@ export default class UserDatabase implements IDatabase<IUser> {
      * 
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
-        const user = await this.collection.findOne(
-            { "_id": id }
-        );
+    private async GetUserByObjectId(id: ObjectId): Promise<IUser> {
+        return this.collection.findOne({ "_id": id }).then(user => {
+            if (user === null) {
+                return Promise.reject(null);
+            }
 
-        if (user === null) {
-            return Promise.resolve(null);
-        }
-
-        return user;
+            return Promise.resolve(user);
+        }, () => Promise.reject(null));
     }
 
-    private async GetUserByUsername(username: string): Promise<IUser | null> {
-        const user = await this.collection.findOne(
-            { "username": username }
-        );
+    private async GetUserByUsername(username: string): Promise<IUser> {
+        return this.collection.findOne({ "username": username }).then(user => {
+            if (user === null) {
+                return Promise.reject(null);
+            }
 
-        if (user === null) {
-            return Promise.resolve(null);
-        }
-
-        return user;
+            return Promise.resolve(user);
+        }, () => Promise.reject(null));
     }
 
     /**
@@ -181,18 +177,19 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
      */
-    async Create(user: IUser): Promise<IUser | null> {
-        let insertResult = await this.collection
-            .insertOne({
-                firstName: user.firstName,
-                lastName: user.lastName,
-                username: user.username,
-                password: user.password,
-                inventory: user.inventory,
-                lastSeen: user.lastSeen
-            });
+    async Create(user: IUser): Promise<IUser> {
+        let newUser = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            password: user.password,
+            inventory: user.inventory,
+            lastSeen: user.lastSeen
+        };
 
-        return this.GetUserByObjectId(insertResult.insertedId);
+        return this.collection.insertOne(newUser).then(result => {
+            return this.GetUserByObjectId(result.insertedId);
+        }, () => Promise.reject(null));
     }
 
     /**
@@ -205,36 +202,29 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
      */
-    async Update(username: string, user: IUser): Promise<IUser | null> {
-        let existingUser = await this.GetUserByUsername(username);
-
-        if (existingUser === null) {
-            return Promise.resolve(null);
-        }
-
-        if (username !== user.username) {
-            let potentialUser = await this.GetUserByUsername(user.username);
-
-            if (potentialUser !== null) {
-                return Promise.resolve(null);
+    async Update(username: string, user: IUser): Promise<IUser> {
+        return this.GetUserByUsername(username).then(() => {
+            if (username !== user.username) {
+                return this.GetUserByUsername(user.username).then(() => {
+                    return this.collection.updateOne(
+                        { "username": username },
+                        {
+                            $set:
+                            {
+                                "username": user.username,
+                                "password": user.password,
+                                "firstName": user.firstName,
+                                "lastName": user.lastName,
+                                "lastSeen": user.lastSeen,
+                                "inventory": user.inventory
+                            }
+                        }
+                    ).then(updatedUser => this.GetUserByObjectId(updatedUser.upsertedId), () => Promise.reject(null));
+                }, () => Promise.reject(null));    
             }
-        }
-        await this.collection.updateOne(
-            { "username": username },
-            {
-                $set:
-                {
-                    "username": user.username,
-                    "password": user.password,
-                    "firstName": user.firstName,
-                    "lastName": user.lastName,
-                    "lastSeen": user.lastSeen,
-                    "inventory": user.inventory
-                }
-            }
-        );
 
-        return this.GetUserByUsername(user.username);
+            return Promise.reject(null);
+        }, () => Promise.reject(null));
     }
 
     /**
@@ -246,16 +236,10 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @returns Promise filled with boolean value indication status of the operation.
      */
     async Delete(username: string): Promise<boolean> {
-        let existingUser = await this.GetUserByUsername(username);
-
-        if (existingUser === null) {
-            return new Promise(resolve => resolve(false));
-        }
-
-        let deleteResult = await this.collection.deleteOne(
-            { "username": username }
-        );
-
-        return new Promise(resolve => resolve(deleteResult.deletedCount === 1));
+        return this.GetUserByUsername(username).then(() => {
+            return this.collection.deleteOne({ "username": username }).then(result => {
+                return Promise.resolve(result.deletedCount === 1);
+            });
+        }, () => Promise.reject(false));
     }
 }

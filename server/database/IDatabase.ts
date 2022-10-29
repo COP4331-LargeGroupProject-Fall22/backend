@@ -8,7 +8,7 @@ export default interface IDatabase<Type> {
      * @param parameters query parameters used for searching.
      * @returns Promise filled with T or null if T objects weren't found.
      */    
-    GetAll(parameters?: Map<String, any>): Promise<Type[] | null>;
+    GetAll(parameters?: Map<String, any>): Promise<Type[]>;
 
     /**
      * Retrieves complete information about specific user defined by T's _id.
@@ -23,7 +23,7 @@ export default interface IDatabase<Type> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with T object or null if T object wasn't found.
      */    
-    Get(parameters: Map<String, any>): Promise<Type | null>;
+    Get(parameters: Map<String, any>): Promise<Type>;
 
     /**
      * Creates T object in the database.
@@ -46,7 +46,7 @@ export default interface IDatabase<Type> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated T object or null if T object wasn't updated.
      */    
-    Update(id: string, object: Type): Promise<Type | null>;
+    Update(id: string, object: Type): Promise<Type>;
 
     /**
      * Deletes T object from database.
