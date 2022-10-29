@@ -19,7 +19,7 @@ export default interface IRecipeAPI {
      * Retrieves specific Recipe item that is defined by unique identifier.
      * 
      * @param parameters parameters used for searching.
-     * - id - required parameter that defines unique identifier of the Recipe item
+     * - id - required parameter that defines unique identifier of the Recipe item.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with a IRecipe object or null when Recipe item wasn't found.
