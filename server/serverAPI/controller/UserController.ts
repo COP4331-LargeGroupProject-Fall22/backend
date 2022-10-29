@@ -5,6 +5,7 @@ import { ResponseTypes } from "../../utils/ResponseTypes";
 import IBaseUser from "../model/user/IBaseUser";
 import IDatabaseUser from "../model/user/IDatabaseUser";
 import IUser from "../model/user/IUser";
+import UserUpdateSchema from "../model/user/requestSchema/UserUpdateSchema";
 
 /**
  * This class creates several properties responsible for user-actions 
@@ -31,6 +32,17 @@ export default class UserController {
             lastName: user.lastName,
             lastSeen: user.lastSeen
         };
+    }
+
+    private convertToUser(user: IDatabaseUser): IUser {
+        return {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            username: user.username,
+            password: user.password,
+            inventory: user.inventory
+        }
     }
 
     /**
@@ -76,10 +88,20 @@ export default class UserController {
             }
 
             return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUser(user)));
         }, (error) => {
             return res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
+    }
+
+    private async isUnique(username: string): Promise<boolean> {
+        return this.database.Get(new Map([["username", username]])).then(user => {
+            if (user === null) {
+                return true;
+            }
+
+            return false;
         });
     }
 
@@ -96,19 +118,43 @@ export default class UserController {
             ["_id", req.serverUser.id]
         ]);
 
-        return this.database.Get(parameters).then(user => {
+        return this.database.Get(parameters).then(async user => {
             if (user === null) {
                 return res.status(404)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             }
 
+            if (req.body.username !== undefined) {
+                let result = await this.isUnique(req.body.username);
+
+                if (!result) {
+                    return res.status(400)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User with such username already exists."));
+                }
+            }
+
+            let userSchema = new UserUpdateSchema(
+                req.body.firstName === undefined ? user.firstName : req.body.firstName,
+                req.body.lastName === undefined ? user.lastName : req.body.lastName,
+                req.body.username === undefined ? user.username : req.body.username,
+                req.body.password === undefined ? user.password : req.body.password,
+                user.lastSeen,
+            );
+
+            let logs = await userSchema.validate();
+
+            if (logs.length > 0) {
+                return res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            }
+
             let newUser: IUser = {
-                username: req.body.username === undefined ? user.username : req.body.username,
-                password: req.body.password === undefined ? user.password : req.body.password,
-                firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
-                lastName: req.body.lastName === undefined ? user.lastName : req.body.lastName,
+                inventory: user.inventory,
+                firstName: user.firstName,
+                lastName: user.lastName,
                 lastSeen: user.lastSeen,
-                inventory: user.inventory
+                password: user.password,
+                username: user.username
             };
 
             return this.database.Update(req.serverUser.id, newUser).then(updatedUser => {
@@ -118,7 +164,7 @@ export default class UserController {
                 }
 
                 return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUser(updatedUser)));
             }, (error) => {
                 return res.status(400)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));

@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
+import IngredientSchema from "../model/food/requestSchema/IngredientSchema";
 import IDatabaseUser from "../model/user/IDatabaseUser";
 import IUser from "../model/user/IUser";
 
@@ -25,6 +26,69 @@ export default class InventoryController {
         return String(error);
     }
 
+    private parseNutrients(req: Request): string {
+        let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
+
+        if (nutrients.at(0) !== '[') {
+            nutrients = "[" + nutrients + "]";
+        }
+
+        return nutrients;
+    }
+
+    private async getUser(req: Request, res: Response): Promise<IDatabaseUser> {
+        let parameters = new Map<string, any>([
+            ["_id", req.serverUser.id]
+        ]);
+
+        return this.database.Get(parameters).then(async user => {
+            if (user === null) {
+                return Promise.reject(res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found")));
+            }
+
+            return Promise.resolve(user);
+        }, (error) => {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
+        });
+    }
+
+    private async validateIngredient(req: Request, res: Response): Promise<IInventoryIngredient> {
+        let nutrients = this.parseNutrients(req);
+
+        let ingredientSchema = new IngredientSchema(
+            Number.parseInt(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            JSON.parse(nutrients),
+            Number.parseFloat(req.body?.expirationDate)
+        );
+
+        let logs = await ingredientSchema.validate();
+
+        if (logs.length > 0) {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs)));
+        }
+
+        return Promise.resolve(ingredientSchema);
+    }
+
+    private async updateUser(req: Request, res: Response, user: IUser): Promise<IDatabaseUser> {
+        return this.database.Update(req.serverUser.id, user).then(updatedUser => {
+            if (updatedUser === null) {
+                return Promise.reject(res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error.")));
+            }
+
+            return Promise.resolve(updatedUser);
+        }, (error) => {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
+        });
+    }
+
     /**
      * Lets client to get all foods in user's inventory where user is at specified userID.
      * Upon successful operation, this handler will return all food items in user's inventory.
@@ -33,21 +97,9 @@ export default class InventoryController {
      * @param res Response parameter that holds information about response
      */
     getInventory = async (req: Request, res: Response) => {
-        let parameters = new Map<String, any>([
-            ["_id", req.serverUser.id]
-        ]);
-
-        return this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+        this.getUser(req, res).then(user => {
             return res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+        }, (response) => response);
     }
 
     /**
@@ -58,57 +110,23 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     addFood = async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>([
-            ["_id", req.serverUser.id]
-        ]);
+        return this.getUser(req, res).then(user => {
+            return this.validateIngredient(req, res).then(ingredient => {
+                let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredient.id);
 
-        return this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found"));
-            }
-
-            let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
-
-            if (nutrients.at(0) !== '[') {
-                nutrients = "[" + nutrients + "]";
-            }
-
-            let newFood: IInventoryIngredient = {
-                id: Number.parseInt(req.body?.id),
-                name: req.body?.name,
-                category: req.body?.category,
-                nutrients: JSON.parse(nutrients),
-                expirationDate: Number.parseFloat(req.body?.expirationDate)
-            };
-
-            let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === newFood.id);
-
-            if (duplicateFood !== undefined) {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
-            }
-
-            user.inventory.push(newFood);
-
-            return this.database.Update(req.serverUser?.id!, user).then(updatedUser => {
-                if (updatedUser === null) {
+                if (duplicateFood !== undefined) {
                     return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error."));
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
                 }
 
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+                user.inventory.push(ingredient);
 
-            }, (error) => {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-
-            });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+                this.updateUser(req, res, user).then(updatedUser => {
+                    return res.status(200)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+                }, (response) => response);
+            }, (response) => response)
+        }, (response) => response);
     }
 
     /**
@@ -119,16 +137,7 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     getFood = async (req: Request, res: Response) => {
-        let parameters = new Map<String, any>([
-            ["_id", req.serverUser.id]
-        ]);
-
-        this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+        this.getUser(req, res).then(user => {
             let foodItem = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
@@ -139,10 +148,7 @@ export default class InventoryController {
 
             return res.status(200)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foodItem));
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+        }, (response) => response);
     }
 
     /**
@@ -153,16 +159,7 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     updateFood = async (req: Request, res: Response) => {
-        let parameters = new Map([
-            ["_id", req.serverUser.id]
-        ]);
-
-        return this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+        this.getUser(req, res).then(user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -173,11 +170,7 @@ export default class InventoryController {
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
 
-                    let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
-
-                    if (nutrients.at(0) !== '[') {
-                        nutrients = "[" + nutrients + "]";
-                    }
+                    let nutrients = this.parseNutrients(req);
 
                     foodToAdd = {
                         id: Number.parseInt(req.params.foodID),
@@ -198,21 +191,11 @@ export default class InventoryController {
 
             user.inventory = newInventory;
 
-            return this.database.Update(req.serverUser.id, user).then(updatedUser => {
-                if (updatedUser === null) {
-                    return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
-                }
-
+            return this.updateUser(req, res, user).then(updatedUser => {
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
-            }, (error) => {
-                return res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+            }, (response) => response);
+        }, (response) => response);
     }
 
     /**
@@ -223,16 +206,7 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     deleteFood = async (req: Request, res: Response) => {
-        let parameters = new Map<String, any>([
-            ["_id", req.serverUser.id]
-        ]);
-
-        this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+        this.getUser(req, res).then(user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -253,21 +227,10 @@ export default class InventoryController {
 
             user.inventory = newInventory;
 
-            this.database.Update(req.serverUser.id, user).then(updatedUser => {
-                if (updatedUser === null) {
-                    return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
-                }
-
+            this.updateUser(req, res, user).then(updatedUser => {
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
-            }, (error) => {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+            }, (response) => response);
+        }, (response) => response);
     }
 }

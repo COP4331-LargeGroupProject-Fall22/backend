@@ -1,7 +1,6 @@
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
-import IngredientSchema from "../../serverAPI/model/food/IngredientSchema";
 import IBaseIngredient from "../../serverAPI/model/food/IBaseIngredient";
 import IIngredient from "../../serverAPI/model/food/IIngredient";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
@@ -91,12 +90,11 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             let object = jsonArray[i];
 
             let parsedFood = await this.parseFood(object);
-            let foodSchema = await this.convertToFoodSchema(parsedFood);
 
             partialFoods.push({
-                id: foodSchema.id,
-                name: foodSchema.name,
-                category: foodSchema.category
+                id: parsedFood.id,
+                name: parsedFood.name,
+                category: parsedFood.category
             });
         }
 
@@ -133,30 +131,6 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             category: category,
             nutrients: nutrients
         };
-    }
-
-    /**
-     * Converts IFood object to FoodSchema object.
-     * 
-     * @param food IFood object.
-     * @throws IncorrectSchema exception when food doesn't have correct format.
-     * @returns Promise filled with FoodSchema on succss/
-     */
-    private async convertToFoodSchema(food: IIngredient): Promise<IngredientSchema> {
-        let foodSchema = new IngredientSchema(
-            food.id,
-            food.name,
-            food.category,
-            food.nutrients
-        );
-
-        let logs = new Validator().validate(foodSchema);
-
-        if ((await logs).length > 0) {
-            throw new IncorrectSchema(`Food object doesn't have correct format.\n ${JSON.stringify(await logs)}`);
-        }
-
-        return foodSchema;
     }
 
     /**
@@ -219,9 +193,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
 
         let jsonObject = response;
         let parsedFood = await this.parseFood(jsonObject);
-        let foodSchema = this.convertToFoodSchema(parsedFood);
 
-        return foodSchema;
+        return parsedFood;
     }
 
     GetFoodByUPC(parameters: Map<string, any>): Promise<IIngredient | null> {
