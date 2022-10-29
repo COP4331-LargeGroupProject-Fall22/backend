@@ -60,7 +60,7 @@ export default class FoodController {
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
-    //TODO(#57): add support for UPC
+    // TODO(#57): add support for UPC
     getFoodByUPC = async (req: Request, res: Response) => {
         throw new Error("Not implemented yet.");
     }

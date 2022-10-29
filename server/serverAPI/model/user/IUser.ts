@@ -15,6 +15,6 @@ export default interface IUser extends IBaseUser {
      */
     inventory: IFoodItem[];
 
-    //TODO(#53): Add shopping list
-    //TODO(#54): Add favorite recipes list
+    // TODO(#53): Add shopping list
+    // TODO(#54): Add favorite recipes list
 }

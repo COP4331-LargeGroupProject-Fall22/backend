@@ -198,7 +198,7 @@ export default class InventoryController {
             if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;
 
-                //TODO(#58): typesafety and optimization of operations on inventory items
+                // TODO(#58): typesafety and optimization of operations on inventory items
                 let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
 
                 if (nutrients.at(0) !== '[') {
@@ -277,7 +277,7 @@ export default class InventoryController {
 
         let newInventory: IFoodItem[] = [];
 
-        //TODO(#58): typesafety and optimization of operations on inventory items
+        // TODO(#58): typesafety and optimization of operations on inventory items
         for (let i = 0; i < inventory.length; i++) {
             if (inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;

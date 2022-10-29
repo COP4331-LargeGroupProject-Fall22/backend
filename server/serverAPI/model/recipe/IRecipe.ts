@@ -6,7 +6,7 @@ import IBaseRecipe from "./IBaseRecipe";
  * Recipe interface.
  */
 export default interface IRecipe extends IBaseRecipe {
-    //TODO(#56): add support for allergens
+    // TODO(#56): add support for allergens
     
     /**
      * Collection of cuisines to which recipe belongs.
