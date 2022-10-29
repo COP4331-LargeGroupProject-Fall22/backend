@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "lib": ["es2020"],    
+
+    "typeRoots": ["./server/types", "./node_modules/@types"],
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    "resolveJsonModule": true,                           /* Enable importing .json files. */
+    
+    /* JavaScript Support */
+    "allowJs": true,                                     /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    "outDir": "build",                                   /* Specify an output folder for all emitted files. */
+    "sourceMap": true,                                  /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+
+    /* Interop Constraints */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    "noImplicitAny": true,    
+    "experimentalDecorators": true,                           /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+
+    /* Completeness */
+    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  },
+  "exclude": ["build", "server/tests", "jest-mongodb-config.js", "jest.config.js", "frontend"]
+}

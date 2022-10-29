@@ -1,0 +1,45 @@
+{
+  "name": "smart-chef",
+  "version": "1.0.0",
+  "description": "This is a full stack web+mobile app with a custom backend that aims to help people use their leftovers by inventorying the food they have and suggesting recipes they can make with their ingredients.",
+  "main": "Server.js",
+  "engines": {
+    "node": ">=18.10.0"
+  },
+  "scripts": {
+    "test": "jest --verbose",
+    "start": "node build/Server.js",
+    "postinstall": "tsc",
+    "deploy": "git add . && git commit -m Heroku && git push heroku master"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.1.3",
+    "class-validator": "^0.13.2",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "firebase": "^9.11.0",
+    "firebase-admin": "^11.1.0",
+    "mongodb": "^4.10.0",
+    "nodejs": "^0.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  },
+  "devDependencies": {
+    "@shelf/jest-mongodb": "^4.1.1",
+    "@types/express": "^4.17.14",
+    "@types/jest": "^29.1.2",
+    "@types/node": "^18.11.4",
+    "@types/superagent": "^4.1.15",
+    "@types/supertest": "^2.0.12",
+    "axios-mock-adapter": "^1.21.2",
+    "jest": "^29.2.0",
+    "mongodb-memory-server": "^8.9.3",
+    "nodemon": "^2.0.20",
+    "superagent": "^8.0.0",
+    "supertest": "^6.3.0",
+    "ts-jest": "^29.0.3"
+  }
+}
