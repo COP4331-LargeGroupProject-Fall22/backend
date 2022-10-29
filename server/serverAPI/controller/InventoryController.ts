@@ -97,7 +97,7 @@ export default class InventoryController {
      * @param res Response parameter that holds information about response
      */
     getInventory = async (req: Request, res: Response) => {
-        this.getUser(req, res).then(user => {
+        return this.getUser(req, res).then(user => {
             return res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
         }, (response) => response);
     }
@@ -137,7 +137,7 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     getFood = async (req: Request, res: Response) => {
-        this.getUser(req, res).then(user => {
+        return this.getUser(req, res).then(user => {
             let foodItem = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
@@ -159,7 +159,7 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     updateFood = async (req: Request, res: Response) => {
-        this.getUser(req, res).then(user => {
+        return this.getUser(req, res).then(user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -206,7 +206,7 @@ export default class InventoryController {
     * @param res Response parameter that holds information about response
     */
     deleteFood = async (req: Request, res: Response) => {
-        this.getUser(req, res).then(user => {
+        return this.getUser(req, res).then(user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];

@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IBaseRecipe from "../model/recipe/IBaseRecipe";
-import IRecipe from "../model/recipe/IRecipe";
 
 /**
  * This class creates several properties responsible for authentication actions 

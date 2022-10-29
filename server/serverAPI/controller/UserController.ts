@@ -45,6 +45,67 @@ export default class UserController {
         }
     }
 
+    private async validateUser(req: Request, res: Response, user: IDatabaseUser): Promise<IUser> {
+        let userSchema = new UserUpdateSchema(
+            req.body.firstName === undefined ? user.firstName : req.body.firstName,
+            req.body.lastName === undefined ? user.lastName : req.body.lastName,
+            req.body.username === undefined ? user.username : req.body.username,
+            req.body.password === undefined ? user.password : req.body.password,
+            user.lastSeen,
+        );
+
+        let logs = await userSchema.validate();
+
+        if (logs.length > 0) {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs)));
+        }
+
+        let newUser: IUser = {
+            inventory: user.inventory,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            password: user.password,
+            username: user.username
+        };
+
+        return Promise.resolve(newUser);
+    }
+
+    private async updateUser(req: Request, res: Response, user: IUser): Promise<IDatabaseUser> {
+        return this.database.Update(req.serverUser.id, user).then(updatedUser => {
+            if (updatedUser === null) {
+                return Promise.reject(res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error.")));
+            }
+
+            return Promise.resolve(updatedUser);
+        }, (error) => {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
+        });
+    }
+
+    private async getUser(req: Request, res: Response): Promise<IDatabaseUser> {
+        let parameters = new Map<string, any>([
+            ["_id", req.serverUser.id]
+        ]);
+
+        return this.database.Get(parameters).then(async user => {
+            if (user === null) {
+                return Promise.reject(res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found")));
+            }
+
+            return Promise.resolve(user);
+        }, (error) => {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
+        });
+    }
+
+
     /**
      * Lets client to get information about all users existed on the server.
      * Upon successful operation, this handler will return all users (including their non-sensitive information) existed on the server. 
@@ -52,7 +113,7 @@ export default class UserController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getUsers = async (req: Request, res: Response) => {
+    getAll = async (req: Request, res: Response) => {
         this.database.GetAll().then(users => {
             let baseUsers: IBaseUser[] = [];
 
@@ -76,23 +137,11 @@ export default class UserController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getUser = async (req: Request, res: Response) => {
-        let parameters = new Map<String, any>([
-            ["_id", req.serverUser.id]
-        ]);
-
-        this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+    get = async (req: Request, res: Response) => {
+        return this.getUser(req, res).then(user => {
             return res.status(200)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUser(user)));
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+        }, (response) => response );
     }
 
     private async isUnique(username: string): Promise<boolean> {
@@ -113,17 +162,8 @@ export default class UserController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    updateUser = async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>([
-            ["_id", req.serverUser.id]
-        ]);
-
-        return this.database.Get(parameters).then(async user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+    update = async (req: Request, res: Response) => {
+        return this.getUser(req, res).then(async user => {
             if (req.body.username !== undefined) {
                 let result = await this.isUnique(req.body.username);
 
@@ -133,46 +173,12 @@ export default class UserController {
                 }
             }
 
-            let userSchema = new UserUpdateSchema(
-                req.body.firstName === undefined ? user.firstName : req.body.firstName,
-                req.body.lastName === undefined ? user.lastName : req.body.lastName,
-                req.body.username === undefined ? user.username : req.body.username,
-                req.body.password === undefined ? user.password : req.body.password,
-                user.lastSeen,
-            );
-
-            let logs = await userSchema.validate();
-
-            if (logs.length > 0) {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
-            }
-
-            let newUser: IUser = {
-                inventory: user.inventory,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                lastSeen: user.lastSeen,
-                password: user.password,
-                username: user.username
-            };
-
-            return this.database.Update(req.serverUser.id, newUser).then(updatedUser => {
-                if (updatedUser === null) {
-                    return res.status(404)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't been updated."));
-                }
-
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUser(updatedUser)));
-            }, (error) => {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+            this.validateUser(req, res, user).then(validatedUser => {
+                this.updateUser(req, res, validatedUser).then(updatedUser => {
+                    return updatedUser;
+                }, (response) => response);
+            }, (response) => response);
+        }, (response) => response);
     }
 
     /**
@@ -184,16 +190,7 @@ export default class UserController {
      * @param res Response parameter that holds information about response
      */
     deleteUser = async (req: Request, res: Response) => {
-        let parameters = new Map([
-            ["_id", req.serverUser.id]
-        ]);
-
-        return this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            }
-
+        return this.getUser(req, res).then(user => {
             return this.database.Delete(req.serverUser.id).then(result => {
                 if (!result) {
                     return res.status(404)
@@ -207,9 +204,6 @@ export default class UserController {
                 return res.status(400)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+        }, (response) => response);
     }
 }
