@@ -4,9 +4,8 @@ dotenv.config();
 import UserDatabase from '../../database/UserDatabase';
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
-import IUser from '../../serverAPI/model/user/IUser';
 
-let mockUser: Partial<IUser> = {
+let mockUser: Partial<IInternalUser> = {
     firstName: "Mikhail",
     lastName: "Plekunov",
     uid: "123op02osiao30kn1",
@@ -41,6 +40,8 @@ let collectionName = process.env.DB_USERS_COLLECTION!;
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
+import IInternalUser from '../../serverAPI/model/user/IInternalUser';
+import ISensitiveUser from '../../serverAPI/model/user/ISensitiveUser';
 
 describe('Authentication endpoints', () => {
     describe('Post Requests', () => {
@@ -61,14 +62,14 @@ describe('Authentication endpoints', () => {
                 .send(`firstName=${mockUser.firstName}`)
                 .send(`lastName=${mockUser.lastName}`);
 
-            let expected = await UserDatabase.getInstance()?.GetUser(new Map<string, any>([
+            let expected = await UserDatabase.getInstance()?.Get(new Map<string, any>([
                 ["uid", mockUser.uid]
             ]));
 
             expect(response.statusCode).toBe(200);
             expect(expected).toMatchObject(mockUser);
 
-            mockUser = expected as IUser;
+            mockUser = expected as ISensitiveUser;
         });
 
         it(`Register with already existing UID`, async () => {

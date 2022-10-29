@@ -46,6 +46,7 @@ export default abstract class SpoonacularAPI {
                 }
             );
         } catch (error) {
+            // console.log(error);
             return Promise.resolve(null);
         }
 

@@ -4,11 +4,11 @@ import IBaseUser from "./IBaseUser";
 /**
  * User interface.
  */
-export default interface IUser extends IBaseUser {
+export default interface ISensitiveUser extends IBaseUser {
     /**
-     * Unique user identifier.
+     * User identifier on the server.
      */
-    uid: string;
+    id?: string;
 
     /**
      * Collection of IFoodItem representing user's inventory.

@@ -4,13 +4,18 @@ dotenv.config();
 import UserDatabase from '../../database/UserDatabase';
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
-import IUser from '../../serverAPI/model/user/IUser';
-import IFoodItem from '../../serverAPI/model/food/IFoodItem';
+import ISensitiveUser from '../../serverAPI/model/user/ISensitiveUser';
+
+
+let mockInternalUserUID = "123op02osiao30kn1";
 
 jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
     return function () {
         return {
-            authenticate: (req: Request, res: Response, next: NextFunction) => { next(); }
+            authenticate: (req: Request, res: Response, next: NextFunction) => { 
+                (req as any).uid = mockInternalUserUID
+                next(); 
+            }            
         };
     }
 });
@@ -28,67 +33,47 @@ let collectionName = process.env.DB_USERS_COLLECTION!;
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
+import IInternalUser from '../../serverAPI/model/user/IInternalUser';
+import IBaseUser from '../../serverAPI/model/user/IBaseUser';
 
 describe('User endpoints', () => {
-    let mockUser: IUser;
-    let mockUserUpdated: Partial<IUser>;
+    let mockInternalUser: IInternalUser;
+    let mockSensitiveUser: ISensitiveUser;
+    let mockBaseUser: IBaseUser;
 
-    let mockFood: IFoodItem;
-    let mockFoodUpdated: IFoodItem;
+    let mockSensitiveUserUpdated: ISensitiveUser;
 
-    let mockFoodID: number;
     let mockID: string;
 
     beforeAll(() => {
-        mockFoodID = 123321;
         mockID = '634de9e4938f784f15998696';
 
-        mockFood = {
-            expirationDate: 99999,
-            id: mockFoodID,
-            name: "FoodItemA",
-            category: "CatA",
-            nutrients: [
-                {
-                    name: "nutrientC",
-                    unit: {
-                        unit: "g",
-                        value: 20
-                    },
-                    percentOfDaily: 10.4
-                }
-            ]
-        };
-
-        mockFoodUpdated = {
-            expirationDate: 77777,
-            id: mockFoodID,
-            name: "FoodItemB",
-            category: "CatB",
-            nutrients: [
-                {
-                    name: "nutrientA",
-                    unit: {
-                        unit: "grams",
-                        value: 123
-                    },
-                    percentOfDaily: 12.4
-                }
-            ]
-        }
-
-        mockUser = {
+        mockInternalUser = {
             firstName: "Mikhail",
             lastName: "Plekunov",
-            uid: "123op02osiao30kn1",
+            uid: mockInternalUserUID,
             lastSeen: 12345213567,
             inventory: []
         };
 
-        mockUserUpdated = {
+        mockSensitiveUser = {
+            firstName: "Mikhail",
+            lastName: "Plekunov",
+            lastSeen: 12345213567,
+            inventory: []
+        };
+        
+        mockBaseUser = {
+            firstName: "Mikhail",
+            lastName: "Plekunov",
+            lastSeen: 12345213567
+        };
+
+        mockSensitiveUserUpdated = {
             firstName: "Alex",
             lastName: "The Great",
-            uid: "123lk02psiao30412"
+            lastSeen: 12345213567,
+            inventory: []
         };
     });
 
@@ -113,13 +98,13 @@ describe('User endpoints', () => {
         });
 
         it(`Get User with supported id (user exist)`, async () => {
-            let expected = await UserDatabase.getInstance()?.CreateUser(mockUser);
-            mockUser = expected!;
+            let expected = await UserDatabase.getInstance()?.Create(mockInternalUser);
+            mockInternalUser = expected!;
 
-            let response = await supertest(app).get(`/users/user/${(mockUser as any)._id}`);
+            let response = await supertest(app).get(`/users/user/${mockInternalUser.id}`);
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject(mockUser);
+            expect(response.body.data).toMatchObject(mockSensitiveUser);
         });
 
         it(`Get User with supported id (user doesn't exist)`, async () => {
@@ -134,7 +119,7 @@ describe('User endpoints', () => {
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toHaveLength(1);
-            expect(mockUser).toMatchObject(response.body.data[0]);
+            expect(response.body.data[0]).toMatchObject(mockBaseUser);
         });
     });
 
@@ -153,21 +138,19 @@ describe('User endpoints', () => {
 
         it('Update User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .put(`/users/user/${(mockUser as any)._id}`)
-                .send(`firstName=${mockUserUpdated.firstName}`)
-                .send(`lastName=${mockUserUpdated.lastName}`)
-                .send(`uid=${mockUserUpdated.uid}`);
+                .put(`/users/user/${mockInternalUser.id}`)
+                .send(`firstName=${mockSensitiveUserUpdated.firstName}`)
+                .send(`lastName=${mockSensitiveUserUpdated.lastName}`);
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject<Partial<IUser>>(mockUserUpdated);
+            expect(response.body.data).toMatchObject(mockSensitiveUserUpdated);
         });
 
         it(`Update User with supported id (user doesn't exist)`, async () => {
             let response = await supertest(app)
                 .put(`/users/user/${mockID}`)
-                .send(`firstName=${mockUserUpdated.firstName}`)
-                .send(`lastName=${mockUserUpdated.lastName}`)
-                .send(`uid=${mockUserUpdated.uid}`);
+                .send(`firstName=${mockSensitiveUserUpdated.firstName}`)
+                .send(`lastName=${mockSensitiveUserUpdated.lastName}`)
 
             expect(response.statusCode).toBe(404);
             expect(response.body.data).toBe(undefined);
@@ -191,7 +174,7 @@ describe('User endpoints', () => {
 
         it('Delete User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .delete(`/users/user/${(mockUser as any)._id}`);
+                .delete(`/users/user/${mockInternalUser.id}`);
 
             expect(response.statusCode).toBe(200);
         });

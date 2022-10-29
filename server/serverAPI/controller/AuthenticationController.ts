@@ -2,16 +2,17 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IUser from "../model/user/IUser";
+import IInternalUser from "../model/user/IInternalUser";
+import ISensitiveUser from "../model/user/ISensitiveUser";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
 export default class AuthenticationController {
-    private database: IDatabase<IUser>;
+    private database: IDatabase<IInternalUser>;
 
-    constructor(database: IDatabase<IUser>) {
+    constructor(database: IDatabase<IInternalUser>) {
         this.database = database;
     }
 
@@ -21,6 +22,20 @@ export default class AuthenticationController {
         }
 
         return String(error);
+    }
+
+    private convertToSensitiveUser(user: ISensitiveUser): ISensitiveUser {
+        return {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            inventory: user.inventory
+        };
+    }
+
+    private isAuthorized(req: Request, user: IInternalUser): boolean {
+        return req.uid === user.uid;
     }
 
     /**
@@ -35,9 +50,9 @@ export default class AuthenticationController {
             ["uid", req.uid]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
@@ -50,8 +65,14 @@ export default class AuthenticationController {
             return;
         }
 
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+            return;
+        }
+
+        let sensitiveUser = this.convertToSensitiveUser(user);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
     }
 
     /**
@@ -67,9 +88,9 @@ export default class AuthenticationController {
             ["uid", req.uid]
         ]);
 
-        let user: IUser | null;
+        let user: ISensitiveUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
@@ -82,7 +103,7 @@ export default class AuthenticationController {
             return;
         }
 
-        const newUser: IUser = {
+        const newUser: IInternalUser = {
             uid: String(req.uid),
             firstName: req.body?.firstName,
             lastName: req.body?.lastName,
@@ -90,9 +111,9 @@ export default class AuthenticationController {
             inventory: []
         };
 
-        let createdUser: IUser | null;
+        let createdUser: ISensitiveUser | null;
         try {
-            createdUser = await this.database.CreateUser(newUser);
+            createdUser = await this.database.Create(newUser);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
@@ -105,7 +126,8 @@ export default class AuthenticationController {
             return;
         }
 
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, createdUser));
+        let sensitiveUser = this.convertToSensitiveUser(createdUser);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
     }
 }

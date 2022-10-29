@@ -2,16 +2,18 @@ import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IUser from "../model/user/IUser";
+import IBaseUser from "../model/user/IBaseUser";
+import IInternalUser from "../model/user/IInternalUser";
+import ISensitiveUser from "../model/user/ISensitiveUser";
 
 /**
  * This class creates several properties responsible for user-actions 
  * provided to the user.
  */
 export default class UserController {
-    private database: IDatabase<IUser>;
+    private database: IDatabase<IInternalUser>;
 
-    constructor(database: IDatabase<IUser>) {
+    constructor(database: IDatabase<IInternalUser>) {
         this.database = database;
     }
 
@@ -23,6 +25,28 @@ export default class UserController {
         return String(error);
     }
 
+    private convertToBaseUser(user: IInternalUser): IBaseUser {
+        return {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen
+        };
+    }
+
+    private convertToSensitiveUser(user: IInternalUser): ISensitiveUser {
+        return {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            inventory: user.inventory
+        };
+    }
+
+    private isAuthorized(req: Request, user: IInternalUser): boolean {
+        return req.uid === user.uid;
+    }
+
     /**
      * Gets information about all users existed on the server.
      * 
@@ -30,17 +54,21 @@ export default class UserController {
      * @param res Response parameter that holds information about response.
      */
     getUsers = async (req: Request, res: Response) => {
-        let users: Partial<IUser>[] | null;
+        let users: IInternalUser[] | null;
         try {
-            users = await this.database.GetUsers();
+            users = await this.database.GetAll();
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, users));
+        let baseUsers: IBaseUser[] = [];
+        users?.forEach(user => {
+            baseUsers.push(this.convertToBaseUser(user));
+        });
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, baseUsers.length === 0 ? null : baseUsers));
     }
 
     /**
@@ -54,9 +82,9 @@ export default class UserController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
@@ -69,8 +97,14 @@ export default class UserController {
             return;
         }
 
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+            return;
+        }
+
+        let sensitiveUser = this.convertToSensitiveUser(user);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
     }
 
     /**
@@ -84,9 +118,9 @@ export default class UserController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
@@ -99,12 +133,12 @@ export default class UserController {
             return;
         }
 
-        let updatedUser: IUser | null;
+        let updatedUser: IInternalUser | null;
         try {
-            updatedUser = await this.database.UpdateUser(
+            updatedUser = await this.database.Update(
                 req.params.userID,
                 {
-                    uid: req.body.uid === undefined ? user.uid : req.body.uid,
+                    uid: user.uid,
                     firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
                     lastName: req.body.lastName === undefined ? user.lastName : req.body.lastName,
                     lastSeen: user.lastSeen,
@@ -123,8 +157,14 @@ export default class UserController {
             return;
         }
 
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+            return;
+        }
+
+        let sensitiveUser = this.convertToSensitiveUser(updatedUser);
+
+        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
     }
 
     /**
@@ -138,9 +178,9 @@ export default class UserController {
             ["_id", req.params.userID]
         ]);
 
-        let user: IUser | null;
+        let user: IInternalUser | null;
         try {
-            user = await this.database.GetUser(parameters);
+            user = await this.database.Get(parameters);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
@@ -153,9 +193,14 @@ export default class UserController {
             return;
         }
 
-        let result: boolean;
+        if (!this.isAuthorized(req, user)) {
+            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
+            return;
+        }
+
+        let result: boolean
         try {
-            result = await this.database.DeleteUser(req.params.userID);
+            result = await this.database.Delete(req.params.userID);
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));

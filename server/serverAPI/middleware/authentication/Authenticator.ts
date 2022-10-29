@@ -33,7 +33,7 @@ export default class Authenticator implements IAuthenticator {
             // This logic removes Bearer if it exists.
             let accessToken: string = authHeaderItems.length === 2 ? authHeaderItems[1] : authHeaderItems[0];
 
-            admin.auth().verifyIdToken((accessToken))
+            admin.auth().verifyIdToken(accessToken)
                 .then(token => {
                     req.uid = token.uid;
 
