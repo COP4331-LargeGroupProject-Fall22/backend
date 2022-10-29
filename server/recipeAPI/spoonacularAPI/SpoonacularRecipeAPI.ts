@@ -17,7 +17,6 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     protected foodAPI: IFoodAPI;
 
     protected recipeSearchParameters: Map<string, string>;
-    protected recipeGetParameters: Set<string>;
 
     protected mealTypes: Set<string>;
 
@@ -171,8 +170,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let ingredientMap: Map<string, IIngredient> = new Map();
 
-        for (let i = 0; i < instructons.length; i++) {
-            let ingredients: any[] = instructons[i].ingredients;
+        for (let i = 0; i < instructions.length; i++) {
+            let ingredients: any[] = instructions[i].ingredients;
             let parsedIngredients: IIngredient[] = [];
 
             for (let j = 0; j < ingredients.length; j++) {
