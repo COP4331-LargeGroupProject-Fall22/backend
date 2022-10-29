@@ -110,7 +110,7 @@ export default class UserController {
         }
 
         if (updatedUser === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't been updated."));
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't be updated."));
             return;
         }
 
