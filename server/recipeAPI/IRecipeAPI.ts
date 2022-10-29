@@ -2,7 +2,8 @@ import IBaseRecipe from "../serverAPI/model/recipe/IBaseRecipe";
 import IRecipe from "../serverAPI/model/recipe/IRecipe";
 
 export default interface IRecipeAPI {
-     /**
+    // TODO(#50): Rename query parameters for Get endpoints. 
+    /**
      * Retrieves collection of partially filled Recipe items that satisfy searching parameters.
      * 
      * @param parameters parameters used for searching.
@@ -14,8 +15,6 @@ export default interface IRecipeAPI {
      * - mealType - optional parameter that limits search results to specific meal types.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
-     * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
-     * 
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
     GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[]>;
@@ -24,10 +23,9 @@ export default interface IRecipeAPI {
      * Retrieves specific Recipe item that is defined by unique identifier.
      * 
      * @param parameters parameters used for searching.
-     * - id - required parameter that defines unique identifier of the Recipe item
+     * - id - required parameter that defines unique identifier of the Recipe item.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
-     *
      * @returns Promise filled with a IRecipe object or null when Recipe item wasn't found.
      */
     Get(parameters: Map<string, any>): Promise<IRecipe | null>;

@@ -9,7 +9,6 @@ import IFoodAPI from '../../foodAPI/IFoodAPI';
 import IIngredient from '../../serverAPI/model/food/IIngredient';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
 import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
-
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
 import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 import IRecipeAPI from "../IRecipeAPI";
@@ -50,10 +49,6 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             ['resultsPerPage', 'number'],
             ['page', 'offset']
         ]);
-
-        this.recipeGetParameters = new Set([
-
-        ]);
     }
 
     /**
@@ -67,9 +62,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * - cuisines - optional parameter that limits search results to specific cuisines.
      * - mealTypes - optional parameter that limits search results to specific meal types.
      * 
-     * @throws NoParameterFound exception when required parameters weren't found.
+     * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
-     * 
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
     async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
@@ -103,7 +97,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * - cuisine - optional parameter that limits search results to specific cuisines.
      * - mealType - optional parameter that limits search results to specific meal types.
      * 
-     * @throws NoParameterFound exception when required parameters weren't found.
+     * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns 
      */
@@ -171,7 +165,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @returns Promise filled with collection of Instruction object.
      */
     protected async parseInstructionSteps(recipeObject: any): Promise<IInstruction[]> {
-        let instructons: any[] = recipeObject.analyzedInstructions[0].steps;
+        let instructions: any[] = recipeObject.analyzedInstructions[0].steps;
 
         let instructionSteps: IInstruction[] = [];
 
@@ -194,7 +188,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             }
 
             instructionSteps.push({
-                instructions: instructons[i].step,
+                instructions: instructions[i].step,
                 ingredients: parsedIngredients
             });
         }

@@ -16,11 +16,10 @@ export default class UserController extends BaseUserController {
     }
 
     /**
-     * Lets client to get information about all users existed on the server.
-     * Upon successful operation, this handler will return all users (including their non-sensitive information) existed on the server. 
+     * Gets information about all users existed on the server.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getAll = async (req: Request, res: Response) => {
         this.database.GetAll().then(users => {
@@ -39,12 +38,10 @@ export default class UserController extends BaseUserController {
     }
 
     /**
-     * Lets client to get information about user at specified userID.
-     * Upon successful operation, this handler will return complete information about specific user only if uid of the user with accessToken and uid of the 
-     * user at userID are the same.
+     * Gets information about user at specified userID.
      *  
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     get = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
@@ -64,12 +61,10 @@ export default class UserController extends BaseUserController {
     }
 
     /**
-     * Lets client to update information of the user at specified userID.
-     * Upon successful operation, this handler will return updated user object only if uid of the user with accessToken and uid of the 
-     * user at userID are the same.
+     * Updates information of the user at specified userID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     update = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(async user => {
@@ -92,12 +87,10 @@ export default class UserController extends BaseUserController {
     }
 
     /**
-     * Lets client to delete user object at specified userID.
-     * Upon successful operation, this handler will delete user object only if uid of the user with accessToken and uid of the 
-     * user at userID are the same.
+     * Deletes user object at specified userID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     delete = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {

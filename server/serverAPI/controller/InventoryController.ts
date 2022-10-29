@@ -48,11 +48,10 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-     * Lets client to get all foods in user's inventory where user is at specified userID.
-     * Upon successful operation, this handler will return all food items in user's inventory.
+     * Returns all food in user inventory for user specified by userID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getAll = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
@@ -61,11 +60,11 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-    * Lets client to add food to user's inventory where user is at specified userID.
+    * Adds food to user's inventory where user is at specified userID.
     * Upon successful operation, this handler will return all food items from user's inventory.
     * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
+    * @param req Request parameter that holds information about request.
+    * @param res Response parameter that holds information about response.
     */
     add = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
@@ -157,11 +156,10 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-    * Lets client to delete food item from user's inventory where user is at specified userID.
-    * Upon successful operation, this handler will return all food items in user's inventory.
+    * Deletes food item from item from user's inventory where user is at specified userID.
     * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
+    * @param req Request parameter that holds information about request.
+    * @param res Response parameter that holds information about response.
     */
     delete = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {

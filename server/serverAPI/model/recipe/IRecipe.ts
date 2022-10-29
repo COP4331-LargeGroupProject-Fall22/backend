@@ -5,13 +5,15 @@ import IBaseRecipe from "./IBaseRecipe";
  * Recipe interface.
  */
 export default interface IRecipe extends IBaseRecipe {
+    // TODO(#56): add support for allergens
+    
     /**
      * Collection of cuisines to which recipe belongs.
      */ 
     readonly cuisines: string[];
 
     /**
-     * Collection of diets to which recipe belons.
+     * Collection of diets to which recipe belongs.
      */
     readonly diets: string[];
 

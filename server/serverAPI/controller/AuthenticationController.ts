@@ -42,11 +42,11 @@ export default class AuthenticationController extends BaseUserController {
     }
 
     /**
-     * Lets client to login into the server using token from authorization header.
+     * Logs client into the server using token from authorization header.
      * Upon successful login operation, this handler will redirect user to the /api/user route.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     login = async (req: Request, res: Response) => {
         let userCredentials = new UserLoginSchema(
@@ -96,12 +96,12 @@ export default class AuthenticationController extends BaseUserController {
     }
 
     /**
-     * Let's client to register their account on the server.
+     * Registers client account on the server.
      * Client is expected to provide all required information and token in authorization header.
      * Upon successful register operation, this handler will return full information about registered user. 
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     register = async (req: Request, res: Response) => {
         let userCredentials = new UserRegistrationSchema(

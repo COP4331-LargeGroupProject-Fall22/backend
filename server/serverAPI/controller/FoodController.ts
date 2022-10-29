@@ -20,8 +20,8 @@ export default class FoodController extends BaseController {
      * Lets client to get information about specific food defined by UPC parameter provided in the URL.
      * Upon successful operation, this handler will return full information about food. 
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getByUPC = async (req: Request, res: Response) => {
         throw new Error("Not implemented yet.");
@@ -31,8 +31,8 @@ export default class FoodController extends BaseController {
      * Lets client to search for foods using query.
      * Upon successful operation, this handler will return all foods that satisfy search query. 
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
