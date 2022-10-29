@@ -3,7 +3,7 @@ import ISchema from "../../ISchema";
 import INutrient from "../../nutrients/INutrient";
 import IInventoryIngredient from "../IInventoryIngredient";
 
-export default class IngredientSchema implements IInventoryIngredient, ISchema {
+export default class InventoryIngredientSchema implements IInventoryIngredient, ISchema {
     @IsNumber()
     @IsPositive()
     expirationDate: number;

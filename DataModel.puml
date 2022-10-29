@@ -31,11 +31,6 @@ interface IInstruction {
 
 IIngredient o-- IInstruction
 
-
-interface IServerUser extends IIdentification {
-    id: string
-}
-
 interface IBaseUser {
     + firstName: string
     + lastName: string
@@ -44,7 +39,10 @@ interface IBaseUser {
 
 interface IIdentification {
     + username: string
-    + email: string
+}
+
+interface IContactInformation {
+    email?: string
 }
 
 interface ICredentials extends IIdentification {
@@ -76,13 +74,18 @@ interface IUnit {
     + value: number
 }
 
-interface IUser extends IBaseUser, ICredentials{
+interface IUser extends IBaseUser, ICredentials, IContactInformation {
     + inventory: IInventoryIngredient[]
 }
 
-interface IUserDatabase extends IUser {
-    + id: string
+interface ISchema {
+    + validate: any[]
 }
+
+class UserLoginSchema implements ICredentials, ISchema {}
+class UserRegistrationSchema extends UserSchema {}
+class UserSchema implements ICredentials, IBaseUser, ISchema {}
+class InventoryIngredientSchema implements IInventoryIngredient {}
 
 IInventoryIngredient o-- IUser
 INutrient o-- IIngredient

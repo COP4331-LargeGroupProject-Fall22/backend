@@ -3,7 +3,7 @@ import ISchema from "../../ISchema";
 import IBaseUser from "../IBaseUser";
 import ICredentials from "../ICredentials";
 
-export default class UserUpdateSchema implements IBaseUser, ICredentials, ISchema {
+export default class UserSchema implements IBaseUser, ICredentials, ISchema {
     @IsString()
     @IsNotEmpty()
     firstName: string;

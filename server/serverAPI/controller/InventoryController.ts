@@ -1,28 +1,19 @@
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
-import IngredientSchema from "../model/food/requestSchema/IngredientSchema";
+import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
 import IUser from "../model/user/IUser";
+import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for inventory actions 
  * provided to the user.
  */
-export default class InventoryController {
-    private database: IDatabase<IUser>;
-
+export default class InventoryController extends BaseUserController {
     constructor(database: IDatabase<IUser>) {
-        this.database = database;
-    }
-
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
-        }
-
-        return String(error);
+        super(database);
     }
 
     private parseNutrients(req: Request): string {
@@ -35,28 +26,10 @@ export default class InventoryController {
         return nutrients;
     }
 
-    private async getUser(req: Request, res: Response): Promise<IUser> {
-        let parameters = new Map<string, any>([
-            ["username", req.serverUser.username]
-        ]);
-
-        return this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return Promise.reject(res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found")));
-            }
-
-            return Promise.resolve(user);
-        }, (error) => {
-            return Promise.reject(res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
-        });
-    }
-
     private async validateIngredient(req: Request, res: Response): Promise<IInventoryIngredient> {
         let nutrients = this.parseNutrients(req);
 
-        let ingredientSchema = new IngredientSchema(
+        let ingredientSchema = new InventoryIngredientSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
             req.body?.category,
@@ -72,20 +45,6 @@ export default class InventoryController {
         }
 
         return Promise.resolve(ingredientSchema);
-    }
-
-    private async updateUser(req: Request, res: Response, user: IUser): Promise<IUser> {
-        return this.database.Update(req.serverUser.username, user).then(updatedUser => {
-            if (updatedUser === null) {
-                return Promise.reject(res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error.")));
-            }
-
-            return Promise.resolve(updatedUser);
-        }, (error) => {
-            return Promise.reject(res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
-        });
     }
 
     /**

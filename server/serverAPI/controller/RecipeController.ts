@@ -2,24 +2,18 @@ import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import BaseController from "./BaseController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class RecipeController {
+export default class RecipeController extends BaseController {
     private recipeAPI: IRecipeAPI;
 
     constructor(recipeAPI: IRecipeAPI) {
+        super();
         this.recipeAPI = recipeAPI;
-    }
-
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
-        }
-
-        return String(error);
     }
 
     /**

@@ -2,24 +2,18 @@ import { Request, Response } from "express";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import BaseController from "./BaseController";
 
 /**
  * This class creates several properties responsible for food actions 
  * provided to the user.
  */
-export default class FoodController {
+export default class FoodController extends BaseController {
     private foodAPI: IFoodAPI;
 
     constructor(foodAPI: IFoodAPI) {
+        super();
         this.foodAPI = foodAPI;
-    }
-
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
-        }
-
-        return String(error);
     }
 
     /**

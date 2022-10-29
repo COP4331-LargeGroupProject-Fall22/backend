@@ -1,4 +1,3 @@
-import IBaseIngredient from "../food/IBaseIngredient";
 import IIngredient from "../food/IIngredient";
 
 /**

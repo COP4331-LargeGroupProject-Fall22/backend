@@ -1,42 +1,14 @@
-import { IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
-import ISchema from "../../ISchema";
-import IBaseUser from "../IBaseUser";
-import ICredentials from "../ICredentials";
+import { validate } from "class-validator";
+import UserSchema from "./UserSchema";
 
-export default class UserRegistrationSchema implements ICredentials, IBaseUser, ISchema {
-    @IsString()
-    @IsNotEmpty()
-    firstName: string;
-
-    @IsString()
-    @IsNotEmpty()
-    lastName: string;
-
-    @IsString()
-    @IsNotEmpty()
-    username: string;
-
-    @IsString()
-    @IsNotEmpty()
-    password: string;
-
-    @IsNumber()
-    @IsPositive()
-    @IsInt()
-    lastSeen: number;
-
+export default class UserRegistrationSchema extends UserSchema {
     constructor(
         firstName: string,
         lastName: string,
         username: string,
         password: string,
-        lastSeen: number
     ) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.username = username;
-        this.password = password;
-        this.lastSeen = lastSeen;
+        super(firstName, lastName, username, password, Date.now())
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

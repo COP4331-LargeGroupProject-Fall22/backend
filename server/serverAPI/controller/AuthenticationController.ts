@@ -8,14 +8,13 @@ import UserRegistrationSchema from "../model/user/requestSchema/UserRegistration
 import TokenCreator from "../../utils/TokenCreator";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
-import ICredentials from "../model/user/ICredentials";
+import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class AuthenticationController {
-    private database: IDatabase<IUser>;
+export default class AuthenticationController extends BaseUserController {
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IIdentification>;
 
@@ -24,20 +23,14 @@ export default class AuthenticationController {
         encryptor: Encryptor,
         tokenCreator: TokenCreator<IIdentification>
     ) {
+        super(database);
+
         this.database = database;
         this.encryptor = encryptor;
         this.tokenCreator = tokenCreator;
     }
 
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
-        }
-
-        return String(error);
-    }
-
-    convertToInternalUser(userCredentials: UserRegistrationSchema): IUser {
+    convertToUser(userCredentials: UserRegistrationSchema): IUser {
         return {
             username: userCredentials.username,
             password: userCredentials.password,
@@ -115,8 +108,7 @@ export default class AuthenticationController {
             req.body?.firstName,
             req.body?.lastName,
             req.body?.username,
-            req.body?.password,
-            Date.now()
+            req.body?.password
         );
 
         let logs = await userCredentials.validate();
@@ -136,7 +128,7 @@ export default class AuthenticationController {
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such username already exists.`));
             }
 
-            let internalUser = this.convertToInternalUser(userCredentials);
+            let internalUser = this.convertToUser(userCredentials);
             internalUser.password = await this.encryptor.encrypt(internalUser.password);
 
             return this.database.Create(internalUser).then(createdUser => {
