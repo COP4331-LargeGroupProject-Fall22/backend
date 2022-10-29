@@ -1,3 +1,6 @@
+/**
+ * Entry point of the Server.
+ */
 import * as dotenv from 'dotenv';
 dotenv.config();
 

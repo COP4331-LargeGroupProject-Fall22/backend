@@ -52,7 +52,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     }
 
     /**
-     * Connects to the database if database instance doesn't exist
+     * Connects to the database if database instance doesn't exist.
      * 
      * @returns UserDatabase object.
      */
@@ -96,7 +96,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     /**
      * Attempts to convert IUser to UserSchema.
      * 
-     * @param user IUser object
+     * @param user IUser object.
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @return UserScema if conversion was successful.
      */
@@ -123,7 +123,6 @@ export default class UserDatabase implements IDatabase<IUser> {
     * Attempts to convert id to ObjectID.
     * 
     * @param id unique identifier of the user that is used internally in the MongoDB.
-    * 
     * @throws EmptyID exception when id is empty.
     * @throws IncorrectIDFormat exception when id has incorrect format.
     * @return ObjectID if conversion was successful.
@@ -135,9 +134,9 @@ export default class UserDatabase implements IDatabase<IUser> {
 
         try {
             return new ObjectId(id);
-        }
-        catch (e) {
-            throw new IncorrectIDFormat("_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
+        } catch (e) {
+            throw new IncorrectIDFormat(
+                "_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
         }
     }
 
@@ -146,7 +145,6 @@ export default class UserDatabase implements IDatabase<IUser> {
      * 
      * @param parameters query parameters used for searching.
      * - _id - required parameter that defines user's _id.
-     * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
@@ -170,7 +168,6 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Retrieves complete information about specific user defined by only user's _id.
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
-     * 
      * @returns Promise filled with IUser object or null if user wasn't found.
      */
     private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
@@ -185,7 +182,6 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Creates user object in the database.
      * 
      * @param user IUser object filled with information about user.
-     * 
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
@@ -198,11 +194,10 @@ export default class UserDatabase implements IDatabase<IUser> {
     }
 
     /**
-     * Updates user object in the database
+     * Updates user object in the database.
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
      * @param user IUser object filled with information about user.
-     * 
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
@@ -240,7 +235,6 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Deletes user object from database.
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
-     * 
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with boolean value indication status of the operation.
