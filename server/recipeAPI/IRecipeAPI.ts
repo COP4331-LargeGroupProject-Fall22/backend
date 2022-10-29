@@ -1,11 +1,12 @@
 import IRecipe from "../serverAPI/model/recipe/IRecipe";
 
 export default interface IRecipeAPI {
-     /**
+    // TODO(#50): Rename query parameters for Get endpoints. 
+    /**
      * Retrieves collection of partially filled Recipe items that satisfy searching parameters.
      * 
      * @param parameters parameters used for searching.
-     * - recipeName - required parameter that defines the name of the Recipe item (partial names are accepted).
+     * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
      * - number - optional parameter that defines max number of the results to be returned.
      * - page - optional parameter that defines page number for pagination.
      * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching.
