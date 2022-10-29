@@ -99,12 +99,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     /**
     * Attempts to convert id to ObjectID.
     * 
-<<<<<<< HEAD
     * @param id unique identifier of the user that is used internally in the database.
-    * 
-=======
-    * @param id unique identifier of the user that is used internally in the MongoDB.
->>>>>>> add-client-server-interface-for-recipeAPI
     * @throws EmptyID exception when id is empty.
     * @throws IncorrectIDFormat exception when id has incorrect format.
     * @return ObjectID if conversion was successful.
@@ -151,14 +146,9 @@ export default class UserDatabase implements IDatabase<IUser> {
     /**
      * Retrieves complete information about specific user defined by only user's _id.
      * 
-<<<<<<< HEAD
      * @param id unique identifier of the user that is used internally in the database.
      * 
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
-=======
-     * @param id unique identifier of the user that is used internally in the MongoDB.
-     * @returns Promise filled with IUser object or null if user wasn't found.
->>>>>>> add-client-server-interface-for-recipeAPI
      */
     private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
         const user = await this.collection.findOne(
@@ -188,14 +178,8 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Creates user object in the database.
      * 
      * @param user IUser object filled with information about user.
-<<<<<<< HEAD
-     * 
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
-=======
-     * @throws IncorrectSchema exception when IUser doesn't have correct format.
-     * @returns Promise filled with IUser object or null if user wasn't created.
->>>>>>> add-client-server-interface-for-recipeAPI
      */
     async Create(user: IUser): Promise<IUser | null> {
         let insertResult = await this.collection
@@ -216,12 +200,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * 
      * @param id unique identifier of the user that is used internally in the database.
      * @param user IUser object filled with information about user.
-<<<<<<< HEAD
-     * 
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
-=======
-     * @throws IncorrectSchema exception when IUser doesn't have correct format.
->>>>>>> add-client-server-interface-for-recipeAPI
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
@@ -261,12 +240,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     /**
      * Deletes user object from database.
      * 
-<<<<<<< HEAD
      * @param id unique identifier of the user that is used internally in the database.
-     * 
-=======
-     * @param id unique identifier of the user that is used internally in the MongoDB.
->>>>>>> add-client-server-interface-for-recipeAPI
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with boolean value indication status of the operation.
