@@ -3,27 +3,26 @@ import IDatabase from "../../database/IDatabase";
 import Encryptor from "../../utils/Encryptor";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IDatabaseUser from "../model/user/IDatabaseUser";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
 import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
 import TokenCreator from "../../utils/TokenCreator";
-import IUserIdentification from "../model/user/IIdentification";
+import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
-import IServerUser from "../model/user/IServerUser";
+import ICredentials from "../model/user/ICredentials";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
 export default class AuthenticationController {
-    private database: IDatabase<IUser, IDatabaseUser>;
+    private database: IDatabase<IUser>;
     private encryptor: Encryptor;
-    private tokenCreator: TokenCreator<IUserIdentification>;
+    private tokenCreator: TokenCreator<IIdentification>;
 
     constructor(
-        database: IDatabase<IUser, IDatabaseUser>,
+        database: IDatabase<IUser>,
         encryptor: Encryptor,
-        tokenCreator: TokenCreator<IUserIdentification>
+        tokenCreator: TokenCreator<IIdentification>
     ) {
         this.database = database;
         this.encryptor = encryptor;
@@ -75,7 +74,7 @@ export default class AuthenticationController {
 
         return this.database.Get(parameters).then(user => {
             if (user === null) {
-                return res.status(400)
+                return res.status(403)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
             }
 
@@ -85,12 +84,11 @@ export default class AuthenticationController {
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User credentials are incorrect.`));
                 }
 
-                let serverUser: IServerUser = {
-                    id: user.id,
+                let identification: IIdentification = {
                     username: user.username
                 };
 
-                let token = this.tokenCreator.sign(serverUser, 30 * 60);
+                let token = this.tokenCreator.sign(identification, 30 * 60);
 
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, token));

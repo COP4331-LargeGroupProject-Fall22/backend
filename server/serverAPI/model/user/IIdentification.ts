@@ -1,4 +1,4 @@
-export default interface IUserIdentification {
+export default interface IIdentification {
     username: string;
     email?: string;
 }

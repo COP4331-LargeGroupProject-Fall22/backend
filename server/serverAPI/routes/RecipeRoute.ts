@@ -21,5 +21,5 @@ const recipeController = new RecipeController(
     )
 );
 
-recipeRoute.get('/', recipeController.searchRecipe)
-recipeRoute.get('/recipe/:recipeID',recipeController.getRecipe);
+recipeRoute.get('/', recipeController.getAll)
+recipeRoute.get('/recipe/:recipeID',recipeController.get);

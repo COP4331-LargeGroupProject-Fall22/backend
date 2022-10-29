@@ -3,7 +3,9 @@ export const recipeGetAPIResponse = {
     "name": "Pasta Bake",
     "cuisines": [],
     "diets": [],
-    "type": "side dish",
+    "mealType": [
+        "side dish"
+    ],
     "instruction": {
         "instructions": "If you are going to use include meat in this dish, brown it in a skillet.While the meat is browning, place uncooked pasta noodles in a 13x9 baking dish.In a large bowl combine the spaghetti sauce, water, and cooked meat. Pour spaghetti sauce mixture over noodles, mix enough to ensure the noodles are coated.Cover with foil and bake at 425 for 30 minutes or until the noodles are al dente. Spread cheese over the top and bake for 5 - 10 minutes more uncovered or until the cheese is completely melted. Let rest for several minutes before serving.",
         "ingredients": [
@@ -117,5 +119,6 @@ export const recipeGetAPIResponse = {
     "servings": 8,
     "preparationInMinutes": 5,
     "cookingTimeInMinutes": 45,
-    "totalCost": 507.04
+    "totalCost": 507.04,
+    "costPerServing": 63.38
 };

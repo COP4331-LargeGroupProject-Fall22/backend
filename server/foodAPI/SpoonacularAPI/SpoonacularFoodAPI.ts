@@ -1,33 +1,32 @@
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
-import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
+import ParameterIsNotAllowed from "../../exceptions/ParameterIsNotAllowed";
 import IBaseIngredient from "../../serverAPI/model/food/IBaseIngredient";
 import IIngredient from "../../serverAPI/model/food/IIngredient";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
-import { Validator } from "../../utils/Validator";
 import IFoodAPI from "../IFoodAPI";
 
 /**
  * This class implements IFoodAPI interface using Spoonacular API.
  */
 export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodAPI {
-    private foodSearchParameters: Set<string>;
-    private foodInfoParameters: Set<string>;
+    private foodSearchParameters: Map<string, string>;
+    private foodInfoParameters: Map<string, string>;
 
     constructor(apiKey: string, apiHost: string) {
         super(apiKey, apiHost);
 
-        this.foodSearchParameters = new Set([
-            'query',
-            'number',
-            'language',
-            'intolerence'
+        this.foodSearchParameters = new Map([
+            ['query', 'query'],
+            ['resultsPerPage', 'number'],
+            ['language', 'language'],
+            ['intolerance', 'intolerance']
         ]);
 
-        this.foodInfoParameters = new Set([
-            'amount',
-            'unit'
+        this.foodInfoParameters = new Map([
+            ['quantity', 'amount'],
+            ['unit', 'unit']
         ]);
     }
 
@@ -37,9 +36,10 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @param parameters defined for the summary search.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
+     * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns URLSearchParams filled with parameters.
      */
-    private convertFoodsParameters = (parameters: Map<String, any>): URLSearchParams => {
+    private convertFoodsParameters = (parameters: Map<string, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
@@ -49,44 +49,33 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         }
 
         keys.forEach(key => {
-            if (this.foodSearchParameters.has(String(key))) {
-                searchParams.append(String(key), String(parameters.get(key)));
+            if (this.foodSearchParameters.has(key)) {
+                searchParams.append(String(this.foodSearchParameters.get(key)), parameters.get(key));
+            } else {
+                throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
             }
         });
 
         return searchParams;
     }
 
-    /**
-     * Retrieves array of food items that satisfy searching parameters.
-     * 
-     * @param parameters query parameters used for searching.
-     * - query - required parameter that defines the name of the Food Item (partial names are accepted).
-     * - number - optional parameter that defines max numbe of the results to be returned.
-     * - intolerence - optional parameter that defines the type of intolerences to be taken in consideration during searching.
-     * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
-     * 
-     * @throws NoParameterFound exception when required parameters weren't found.
-     * @throws RequestLimitReached excpetion when request limit has been reached.
-     * @returns Promise filled with an array of IFood objects.
-     */
-    async SearchFood(parameters: Map<string, any>): Promise<IBaseIngredient[]> {
-        let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
+    private isIngteger(number: string): boolean {
+        return Number.isInteger(Number.parseInt(number));
+    }
 
-        let searchParams = this.convertFoodsParameters(parameters);
-
-        searchParams.append("metaInformation", "true");
-
-        let response = await this.sendRequest(foodSearchBaseURL, searchParams);
-
-        if (response === null) {
-            return Promise.resolve([]);
-        }
-
-        let jsonArray = response;
+    private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<IBaseIngredient[]> {
         let partialFoods: IBaseIngredient[] = [];
 
-        for (let i = 0; i < jsonArray.length; i++) {
+        let offset: number = Number.MAX_SAFE_INTEGER;
+        
+        if (resultsPerPage !== undefined && page !== undefined &&
+            this.isIngteger(resultsPerPage) && this.isIngteger(page)) {
+            offset = Number.parseInt(resultsPerPage) * Number.parseInt(page);
+        }
+
+        let length = Math.min(offset, jsonArray.length);
+
+        for (let i = 0; i < length; i++) {
             let object = jsonArray[i];
 
             let parsedFood = await this.parseFood(object);
@@ -99,6 +88,37 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         }
 
         return partialFoods;
+    }
+
+    /**
+     * Retrieves array of food items that satisfy searching parameters.
+     * 
+     * @param parameters query parameters used for searching.
+     * - query - required parameter that defines the name of the Food Item (partial names are accepted).
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned.
+     * - page - optional parameter that definds page number.
+     * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching.
+     * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
+     * 
+     * @throws NoParameterFound exception when required parameters weren't found.
+     * @throws RequestLimitReached excpetion when request limit has been reached.
+     * @returns Promise filled with an array of IFood objects.
+     */
+    async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[]> {
+        let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
+
+        let searchParams = this.convertFoodsParameters(parameters);
+
+        searchParams.append("metaInformation", "true");
+
+        let response = await this.sendRequest(foodSearchBaseURL, searchParams);
+
+        if (response === null) {
+            return Promise.resolve([]);
+        }
+
+
+        return this.searchPagination(response, parameters.get("resultsPerPage"), parameters.get("page"));
     }
 
     /**
@@ -134,21 +154,34 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
     }
 
     /**
-    * Converts parameters of getFood method to URLSearchParams object.
-    * 
-    * @param parameters defined for the summary search.
-    * @returns URLSearchParams filled with parameters.
+     * Converts parameters of getFood method to URLSearchParams object.
+     * 
+     * @param parameters defined for the summary search.
+     * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
+     * 
+     * @returns URLSearchParams filled with parameters.
     */
-    private convertFoodParameters = (parameters: Map<String, any>): URLSearchParams => {
+    private convertFoodParameters = (parameters: Map<string, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
 
         keys.forEach(key => {
-            if (this.foodInfoParameters.has(String(key))) {
-                searchParams.append(String(key), String(parameters.get(key)));
+            if (this.foodInfoParameters.has(key)) {
+                searchParams.append(String(this.foodInfoParameters.get(key)), parameters.get(key));
+            } else {
+                throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
             }
         });
+
+        // (A && !B) || (!A && B)
+        let isAmount = searchParams.has("amount");
+        let isUnit = searchParams.has("unit");
+
+        if ((isAmount && !isUnit) || (!isAmount && isUnit)) {
+            searchParams.delete("amount");
+            searchParams.delete("unit");
+        }
 
         return searchParams;
     }
@@ -158,32 +191,30 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * 
      * @param parameters query parameters used for searching.
      * - id - required parameter that defines unique identifier of the Food Item.
-     * - amount - optional parameter that defines max number of the food items. (default = 1)
+     * - quantity - optional parameter that defines the amount of that food items.
+     * - unit - optional parameter that defines the unit for given amount.
      * 
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
-    async GetFood(parameters: Map<string, any>): Promise<IIngredient | null> {
+    async Get(parameters: Map<string, any>): Promise<IIngredient | null> {
         if (!parameters.has("id")) {
             throw new NoParameterFound("id parameter is missing");
+        }
+
+        if (!this.isIngteger(String(parameters.get("id"))) || 
+            Number.parseInt(String(parameters.get("id"))) <= 0) {
+            throw new IncorrectIDFormat("FoodID has incorrect format.");
         }
 
         let foodID = Number.parseInt(parameters.get("id"));
         // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
 
-        if (Number.isNaN(foodID) || foodID <= 0) {
-            throw new IncorrectIDFormat("FoodID has incorrect format.");
-        }
-
         let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${foodID}/information`;
 
         let searchParams = this.convertFoodParameters(parameters);
-
-        if (!searchParams.has("amount")) {
-            searchParams.set("amount", "1");
-        }
 
         let response = await this.sendRequest(foodGetInfoBaseURL, searchParams);
 
@@ -197,7 +228,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return parsedFood;
     }
 
-    GetFoodByUPC(parameters: Map<string, any>): Promise<IIngredient | null> {
+    GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null> {
         throw new Error('not implemented yet');
     }
 }

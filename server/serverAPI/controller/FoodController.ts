@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IBaseIngredient from "../model/food/IBaseIngredient";
-import IIngredient from "../model/food/IIngredient";
 
 /**
  * This class creates several properties responsible for food actions 
@@ -31,7 +29,7 @@ export default class FoodController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getFoodByUPC = async (req: Request, res: Response) => {
+    getByUPC = async (req: Request, res: Response) => {
         throw new Error("Not implemented yet.");
     }
 
@@ -42,22 +40,26 @@ export default class FoodController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    searchFood = async (req: Request, res: Response) => {
+    getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
 
         if (req.query?.query !== undefined) {
             parameters.set("query", req.query.query);
         }
 
-        if (req.query?.size !== undefined) {
-            parameters.set("number", req.query.size);
+        if (req.query?.page !== undefined) {
+            parameters.set("page", req.query.page);
+        }
+
+        if (req.query?.resultsPerPage !== undefined) {
+            parameters.set("resultsPerPage", req.query.resultsPerPage);
         }
 
         if (req.query?.intolerence !== undefined) {
             parameters.set("intolerance", req.query.intolerance);
         }
 
-        return this.foodAPI.SearchFood(parameters).then(foods => {
+        return this.foodAPI.GetAll(parameters).then(foods => {
             return res.status(200)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
         }, (error) => {
@@ -73,12 +75,12 @@ export default class FoodController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-     getFood = async (req: Request, res: Response) => {
+     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
             ["id", req.params.foodID]
         ]);
 
-        return this.foodAPI.GetFood(parameters).then(food => {
+        return this.foodAPI.Get(parameters).then(food => {
             if (food === null) {
                 return res.status(404)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));

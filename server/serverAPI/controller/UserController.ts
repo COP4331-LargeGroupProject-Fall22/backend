@@ -3,7 +3,6 @@ import IDatabase from '../../database/IDatabase';
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IBaseUser from "../model/user/IBaseUser";
-import IDatabaseUser from "../model/user/IDatabaseUser";
 import IUser from "../model/user/IUser";
 import UserUpdateSchema from "../model/user/requestSchema/UserUpdateSchema";
 
@@ -12,9 +11,9 @@ import UserUpdateSchema from "../model/user/requestSchema/UserUpdateSchema";
  * provided to the user.
  */
 export default class UserController {
-    private database: IDatabase<IUser, IDatabaseUser>;
+    private database: IDatabase<IUser>;
 
-    constructor(database: IDatabase<IUser, IDatabaseUser>) {
+    constructor(database: IDatabase<IUser>) {
         this.database = database;
     }
 
@@ -26,7 +25,7 @@ export default class UserController {
         return String(error);
     }
 
-    private convertToBaseUser(user: IDatabaseUser): IBaseUser {
+    private convertToBaseUser(user: IUser): IBaseUser {
         return {
             firstName: user.firstName,
             lastName: user.lastName,
@@ -34,18 +33,7 @@ export default class UserController {
         };
     }
 
-    private convertToUser(user: IDatabaseUser): IUser {
-        return {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            lastSeen: user.lastSeen,
-            username: user.username,
-            password: user.password,
-            inventory: user.inventory
-        }
-    }
-
-    private async validateUser(req: Request, res: Response, user: IDatabaseUser): Promise<IUser> {
+    private async validateUser(req: Request, res: Response, user: IUser): Promise<IUser> {
         let userSchema = new UserUpdateSchema(
             req.body.firstName === undefined ? user.firstName : req.body.firstName,
             req.body.lastName === undefined ? user.lastName : req.body.lastName,
@@ -73,11 +61,11 @@ export default class UserController {
         return Promise.resolve(newUser);
     }
 
-    private async updateUser(req: Request, res: Response, user: IUser): Promise<IDatabaseUser> {
-        return this.database.Update(req.serverUser.id, user).then(updatedUser => {
+    private async updateUser(req: Request, res: Response, user: IUser): Promise<IUser> {
+        return this.database.Update(req.serverUser.username, user).then(updatedUser => {
             if (updatedUser === null) {
                 return Promise.reject(res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error.")));
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User update error.")));
             }
 
             return Promise.resolve(updatedUser);
@@ -87,9 +75,9 @@ export default class UserController {
         });
     }
 
-    private async getUser(req: Request, res: Response): Promise<IDatabaseUser> {
+    private async getUser(req: Request, res: Response): Promise<IUser> {
         let parameters = new Map<string, any>([
-            ["_id", req.serverUser.id]
+            ["username", req.serverUser.username]
         ]);
 
         return this.database.Get(parameters).then(async user => {
@@ -140,8 +128,8 @@ export default class UserController {
     get = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
             return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUser(user)));
-        }, (response) => response );
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        }, (response) => response);
     }
 
     private async isUnique(username: string): Promise<boolean> {
@@ -173,9 +161,10 @@ export default class UserController {
                 }
             }
 
-            this.validateUser(req, res, user).then(validatedUser => {
-                this.updateUser(req, res, validatedUser).then(updatedUser => {
-                    return updatedUser;
+            return this.validateUser(req, res, user).then(validatedUser => {
+                return this.updateUser(req, res, validatedUser).then(updatedUser => {
+                    return res.status(200)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
                 }, (response) => response);
             }, (response) => response);
         }, (response) => response);
@@ -189,9 +178,9 @@ export default class UserController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    deleteUser = async (req: Request, res: Response) => {
+    delete = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
-            return this.database.Delete(req.serverUser.id).then(result => {
+            return this.database.Delete(req.serverUser.username).then(result => {
                 if (!result) {
                     return res.status(404)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));

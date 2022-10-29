@@ -4,7 +4,6 @@ import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
 import IngredientSchema from "../model/food/requestSchema/IngredientSchema";
-import IDatabaseUser from "../model/user/IDatabaseUser";
 import IUser from "../model/user/IUser";
 
 /**
@@ -12,9 +11,9 @@ import IUser from "../model/user/IUser";
  * provided to the user.
  */
 export default class InventoryController {
-    private database: IDatabase<IUser, IDatabaseUser>;
+    private database: IDatabase<IUser>;
 
-    constructor(database: IDatabase<IUser, IDatabaseUser>) {
+    constructor(database: IDatabase<IUser>) {
         this.database = database;
     }
 
@@ -36,12 +35,12 @@ export default class InventoryController {
         return nutrients;
     }
 
-    private async getUser(req: Request, res: Response): Promise<IDatabaseUser> {
+    private async getUser(req: Request, res: Response): Promise<IUser> {
         let parameters = new Map<string, any>([
-            ["_id", req.serverUser.id]
+            ["username", req.serverUser.username]
         ]);
 
-        return this.database.Get(parameters).then(async user => {
+        return this.database.Get(parameters).then(user => {
             if (user === null) {
                 return Promise.reject(res.status(404)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found")));
@@ -75,8 +74,8 @@ export default class InventoryController {
         return Promise.resolve(ingredientSchema);
     }
 
-    private async updateUser(req: Request, res: Response, user: IUser): Promise<IDatabaseUser> {
-        return this.database.Update(req.serverUser.id, user).then(updatedUser => {
+    private async updateUser(req: Request, res: Response, user: IUser): Promise<IUser> {
+        return this.database.Update(req.serverUser.username, user).then(updatedUser => {
             if (updatedUser === null) {
                 return Promise.reject(res.status(400)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error.")));
@@ -96,7 +95,7 @@ export default class InventoryController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getInventory = async (req: Request, res: Response) => {
+    getAll = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
             return res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
         }, (response) => response);
@@ -109,7 +108,7 @@ export default class InventoryController {
     * @param req Request parameter that holds information about request
     * @param res Response parameter that holds information about response
     */
-    addFood = async (req: Request, res: Response) => {
+    add = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
             return this.validateIngredient(req, res).then(ingredient => {
                 let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredient.id);
@@ -121,7 +120,7 @@ export default class InventoryController {
 
                 user.inventory.push(ingredient);
 
-                this.updateUser(req, res, user).then(updatedUser => {
+                return this.updateUser(req, res, user).then(updatedUser => {
                     return res.status(200)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
                 }, (response) => response);
@@ -136,7 +135,7 @@ export default class InventoryController {
     * @param req Request parameter that holds information about request
     * @param res Response parameter that holds information about response
     */
-    getFood = async (req: Request, res: Response) => {
+    get = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
             let foodItem = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
@@ -158,7 +157,7 @@ export default class InventoryController {
     * @param req Request parameter that holds information about request
     * @param res Response parameter that holds information about response
     */
-    updateFood = async (req: Request, res: Response) => {
+    update = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
             let isFound: boolean = false;
 
@@ -205,7 +204,7 @@ export default class InventoryController {
     * @param req Request parameter that holds information about request
     * @param res Response parameter that holds information about response
     */
-    deleteFood = async (req: Request, res: Response) => {
+    delete = async (req: Request, res: Response) => {
         return this.getUser(req, res).then(user => {
             let isFound: boolean = false;
 
@@ -227,7 +226,7 @@ export default class InventoryController {
 
             user.inventory = newInventory;
 
-            this.updateUser(req, res, user).then(updatedUser => {
+            return this.updateUser(req, res, user).then(updatedUser => {
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
             }, (response) => response);

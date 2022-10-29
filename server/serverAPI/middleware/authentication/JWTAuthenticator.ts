@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import ResponseFormatter from '../../../utils/ResponseFormatter';
 import { ResponseTypes } from '../../../utils/ResponseTypes';
 import TokenCreator from '../../../utils/TokenCreator';
-import IServerUser from '../../model/user/IServerUser';
+import IIdentification from '../../model/user/IIdentification';
 
 export default class JWTAuthenticator {
 
@@ -14,14 +14,14 @@ export default class JWTAuthenticator {
         return String(error);
     }
 
-    authenticate = (tokenCreator: TokenCreator<IServerUser>) =>
+    authenticate = (tokenCreator: TokenCreator<IIdentification>) =>
         (req: Request, res: Response, next: NextFunction) => {
             if (!req.headers.authorization) {
                 return res.status(401)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is invalid"));
             }
 
-            let userIdentification: IServerUser;
+            let userIdentification: IIdentification;
             try {
                 userIdentification = tokenCreator.verify(req.headers.authorization.trim());
             } catch (error) {

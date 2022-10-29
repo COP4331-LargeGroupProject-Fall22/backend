@@ -17,17 +17,17 @@ import IRecipeAPI from "../IRecipeAPI";
 export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected foodAPI: IFoodAPI;
 
-    protected recipeSearchParameters: Set<string>;
+    protected recipeSearchParameters: Map<string, string>;
     protected recipeGetParameters: Set<string>;
 
-    protected dishTypes: Set<string>;
+    protected mealTypes: Set<string>;
 
     constructor(apiKey: string, apiHost: string, foodAPI: IFoodAPI) {
         super(apiKey, apiHost);
 
         this.foodAPI = foodAPI;
 
-        this.dishTypes = new Set([
+        this.mealTypes = new Set([
             "main course",
             "side dish",
             "dessert",
@@ -41,13 +41,14 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             "drink"
         ]);
 
-        this.recipeSearchParameters = new Set([
-            'query',
-            'cuisine',
-            'diet',
-            'intolerences',
-            'includeIngredients',
-            'type'
+        this.recipeSearchParameters = new Map([
+            ['query', 'query'],
+            ['cuisines', 'cuisine'],
+            ['diets', 'diet'],
+            ['intolerances', 'intolerances'],
+            ['mealTypes', 'type'],
+            ['resultsPerPage', 'number'],
+            ['page', 'offset']
         ]);
 
         this.recipeGetParameters = new Set([
@@ -60,18 +61,18 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @param parameters parameters used for searching.
      * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
-     * - number - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that defines page number for pagination.
-     * - intolerence - optional parameter that defines the type of intolerences to be taken in consideration during searching.
-     * - cuisine - optional parameter that limits search results to specific cuisines.
-     * - type - optional parameter that limits search results to specific dish types.
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned.
+     * - page - optional parameter that definds page number.     
+     * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
+     * - cuisines - optional parameter that limits search results to specific cuisines.
+     * - mealTypes - optional parameter that limits search results to specific meal types.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * 
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    async SearchRecipe(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
+    async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
@@ -79,6 +80,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let response = await this.sendRequest(searchRecipeURL, urlSearchParameters);
 
         let jsonArray: any[] = response.results;
+
         let recipeArray: IBaseRecipe[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
@@ -95,11 +97,11 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @param parameters parameters used for searching.
      * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
-     * - number - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that defines page number for pagination.
-     * - intolerence - optional parameter that defines the type of intolerences to be taken in consideration during searching.
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned.
+     * - page - optional parameter that definds page number.     
+     * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
      * - cuisine - optional parameter that limits search results to specific cuisines.
-     * - type - optional parameter that limits search results to specific dish types.
+     * - mealType - optional parameter that limits search results to specific meal types.
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
@@ -115,14 +117,9 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         }
 
         keys.forEach(key => {
-            if (this.recipeSearchParameters.has(String(key))) {
-                if (key === "page") {
-                    searchParameters.append("offset", String(parameters.get(key)));
-                } else {
-                    searchParameters.append(key, String(parameters.get(key)));
-                }
-            }
-            else {
+            if (this.recipeSearchParameters.has(key)) {
+                searchParameters.append(String(this.recipeSearchParameters.get(key)), parameters.get(key));
+            } else {
                 throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
             }
         });
@@ -134,10 +131,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     }
 
     protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
-        return {
+        return Promise.resolve({
             id: recipeObject.id,
             name: recipeObject.title
-        }
+        });
     }
 
     /**
@@ -261,7 +258,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         // 1 request call to API
         let food: IIngredient | null;
         try {
-            food = await this.foodAPI.GetFood(new Map([["id", parsedID]]));
+            food = await this.foodAPI.Get(new Map([["id", parsedID]]));
 
             if (food !== null) {
                 return food;
@@ -276,6 +273,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         }
     }
 
+    private isIngteger(number: string): boolean {
+        return Number.isInteger(Number.parseInt(number));
+    }
+
     /**
      * Retrieves specific Recipe item that is defined by unique identifier.
      * 
@@ -287,16 +288,17 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @returns Promise filled with a IRecipe object or null when Recipe item wasn't found.
      */
-    async GetRecipe(parameters: Map<string, any>): Promise<IRecipe | null> {
+    async Get(parameters: Map<string, any>): Promise<IRecipe | null> {
         if (!parameters.has("id")) {
             throw new NoParameterFound("Required parameter is missing.");
         }
 
-        let recipeID = Number.parseInt(parameters.get("id"));
-
-        if (Number.isNaN(recipeID) || recipeID < 0) {
-            throw new IncorrectIDFormat("ID should be a positive integer.");
+        if (!this.isIngteger(String(parameters.get("id"))) || 
+            Number.parseInt(String(parameters.get("id"))) <= 0) {
+            throw new IncorrectIDFormat("ID has incorrect format.");
         }
+
+        let recipeID = Number.parseInt(parameters.get("id"));
 
         let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
 

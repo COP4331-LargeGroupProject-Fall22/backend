@@ -29,12 +29,12 @@ export default class RecipeController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    searchRecipe = async (req: Request, res: Response) => {
+    getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
             ["query", req.query.query]
         ]);
 
-        return this.recipeAPI.SearchRecipe(parameters).then(recipes => {
+        return this.recipeAPI.GetAll(parameters).then(recipes => {
             return res.status(200)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipes));
         }, (error) => {
@@ -50,12 +50,12 @@ export default class RecipeController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    getRecipe = async (req: Request, res: Response) => {
+    get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
             ["id", req.params.recipeID]
         ]);
 
-        return this.recipeAPI.GetRecipe(parameters).then(recipe => {
+        return this.recipeAPI.Get(parameters).then(recipe => {
             if (recipe === null) {
                 return res.status(404)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't find recipe."));

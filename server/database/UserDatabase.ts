@@ -2,10 +2,10 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { MongoClient, Collection, Db, ObjectId, Filter, WithId } from 'mongodb';
+import { resolve } from 'path';
 import { exit } from 'process';
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
-import IDatabaseUser from '../serverAPI/model/user/IDatabaseUser';
 import IUser from '../serverAPI/model/user/IUser';
 
 import IDatabase from './IDatabase';
@@ -17,7 +17,7 @@ import IDatabase from './IDatabase';
  * It also uses Singleton design pattern. As such, there is only one database instance that will be created through out
  * execution lifetime.
  */
-export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
+export default class UserDatabase implements IDatabase<IUser> {
     private static instance?: UserDatabase;
 
     protected client!: MongoClient;
@@ -85,31 +85,16 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
      * @param parameters query parameters used for searching.
      * @returns Promise filled with IBaseUser or null if useres weren't found.
      */
-    async GetAll(parameters?: Map<String, any>): Promise<IDatabaseUser[] | null> {
+    async GetAll(parameters?: Map<String, any>): Promise<IUser[] | null> {
         const users = this.collection.find();
 
         let userArr = await users.toArray();
 
         if (userArr.length == 0) {
-            return new Promise(resolve => resolve(null));
+            return Promise.resolve(null);
         }
 
-        let databaseUsers: IDatabaseUser[] = [];
-        userArr.forEach(user => databaseUsers.push(this.convertToDatabaseUser(user)));
-
-        return databaseUsers;
-    }
-
-    private convertToDatabaseUser(user: WithId<IUser>): IDatabaseUser {
-        return {
-            username: user.username,
-            password: user.password,
-            id: user._id.toString(),
-            firstName: user.firstName,
-            lastName: user.lastName,
-            inventory: user.inventory,
-            lastSeen: user.lastSeen
-        };
+        return userArr;
     }
 
     /**
@@ -145,7 +130,7 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    async Get(parameters: Map<String, any>): Promise<IDatabaseUser | null> {
+    async Get(parameters: Map<String, any>): Promise<IUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
 
         if (filter._id !== undefined) {
@@ -158,7 +143,7 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
             return Promise.resolve(null);
         }
 
-        return this.convertToDatabaseUser(user);
+        return user;
     }
 
     /**
@@ -168,7 +153,7 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
      * 
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    private async GetUserByObjectId(id: ObjectId): Promise<IDatabaseUser | null> {
+    private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
         const user = await this.collection.findOne(
             { "_id": id }
         );
@@ -177,7 +162,19 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
             return Promise.resolve(null);
         }
 
-        return this.convertToDatabaseUser(user);
+        return user;
+    }
+
+    private async GetUserByUsername(username: string): Promise<IUser | null> {
+        const user = await this.collection.findOne(
+            { "username": username }
+        );
+
+        if (user === null) {
+            return Promise.resolve(null);
+        }
+
+        return user;
     }
 
     /**
@@ -188,9 +185,7 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
      */
-    async Create(user: IUser): Promise<IDatabaseUser | null> {
-        console.log(user);
-
+    async Create(user: IUser): Promise<IUser | null> {
         let insertResult = await this.collection
             .insertOne({
                 firstName: user.firstName,
@@ -215,17 +210,22 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
      */
-    async Update(id: string, user: IUser): Promise<IDatabaseUser | null> {
-        let objectID = this.convertToObjectID(id);
-
-        let existingUser = await this.GetUserByObjectId(objectID);
+    async Update(username: string, user: IUser): Promise<IUser | null> {
+        let existingUser = await this.GetUserByUsername(username);
 
         if (existingUser === null) {
-            return new Promise(resolve => resolve(null));
+            return Promise.resolve(null);
         }
 
+        if (username !== user.username) {
+            let potentialUser = await this.GetUserByUsername(user.username);
+
+            if (potentialUser !== null) {
+                return Promise.resolve(null);
+            }
+        }
         await this.collection.updateOne(
-            { "_id": objectID },
+            { "username": username },
             {
                 $set:
                 {
@@ -239,7 +239,7 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
             }
         );
 
-        return this.GetUserByObjectId(objectID);
+        return this.GetUserByUsername(user.username);
     }
 
     /**
@@ -251,17 +251,15 @@ export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with boolean value indication status of the operation.
      */
-    async Delete(id: string): Promise<boolean> {
-        let objectID = this.convertToObjectID(id);
-
-        let existingUser = await this.GetUserByObjectId(objectID);
+    async Delete(username: string): Promise<boolean> {
+        let existingUser = await this.GetUserByUsername(username);
 
         if (existingUser === null) {
             return new Promise(resolve => resolve(false));
         }
 
         let deleteResult = await this.collection.deleteOne(
-            { "_id": objectID }
+            { "username": username }
         );
 
         return new Promise(resolve => resolve(deleteResult.deletedCount === 1));

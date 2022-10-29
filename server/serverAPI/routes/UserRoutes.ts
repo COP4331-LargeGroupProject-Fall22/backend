@@ -10,8 +10,7 @@ import UserDatabase from '../../database/UserDatabase';
 import InventoryController from '../controller/InventoryController';
 import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 import TokenCreator from '../../utils/TokenCreator';
-import IUserIdentification from '../model/user/IIdentification';
-import IServerUser from '../model/user/IServerUser';
+import IIdentification from '../model/user/IIdentification';
 
 export const userRoute = express.Router();
 
@@ -29,16 +28,16 @@ const userController = new UserController(database);
 const inventoryController = new InventoryController(database);
 let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
-userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IServerUser>(privateKey)));
+userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
 userRoute.get('/', userController.getAll);
-userRoute.get('/user', userController.getUser);
+userRoute.get('/user', userController.get);
 userRoute.route('/user')
-    .delete(userController.deleteUser)
-    .put(express.urlencoded({ extended: true }), userController.updateUser);
+    .delete(userController.delete)
+    .put(express.urlencoded({ extended: true }), userController.update);
 
-userRoute.get('/user/foods', inventoryController.getInventory);
-userRoute.post('/user/foods/food', express.urlencoded({ extended: true }), inventoryController.addFood);
-userRoute.get('/user/foods/food/:foodID', inventoryController.getFood);
-userRoute.put('/user/foods/food/:foodID', express.urlencoded({ extended: true }), inventoryController.updateFood);
-userRoute.delete('/user/foods/food/:foodID', inventoryController.deleteFood);
+userRoute.get('/user/foods', inventoryController.getAll);
+userRoute.post('/user/foods/food', express.urlencoded({ extended: true }), inventoryController.add);
+userRoute.get('/user/foods/food/:foodID', inventoryController.get);
+userRoute.put('/user/foods/food/:foodID', express.urlencoded({ extended: true }), inventoryController.update);
+userRoute.delete('/user/foods/food/:foodID', inventoryController.delete);
