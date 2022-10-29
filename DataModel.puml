@@ -57,7 +57,10 @@ interface IBaseIngredient {
 
 interface IIngredient extends IBaseIngredient {
     + nutrients: INutrient[]
+    + quantity: IUnit
 }
+
+IUnit o-- IIngredient
 
 interface IInventoryIngredient extends IIngredient {
     + expirationDate: number
