@@ -49,7 +49,10 @@ describe('Recipe API ', () => {
         mockAxios.onGet(searchURL).reply(200, searchResponse);
         mockAxios.onGet(process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete").reply(200, []);
 
-        let recipeAPI = new SpoonacularRecipeAPI(new SpoonacularFoodAPI());
+        let recipeAPI = new SpoonacularRecipeAPI(
+            "test",
+            "test",
+            new SpoonacularFoodAPI("test", "test"));
 
         let response = await recipeAPI.SearchRecipe(new Map([
             ["query", "pasta"]
@@ -62,7 +65,10 @@ describe('Recipe API ', () => {
         mockAxios.onGet(getURL).reply(200, getResponse);
         mockAxios.onGet(process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete").reply(200, []);
 
-        let recipeAPI = new SpoonacularRecipeAPI(new SpoonacularFoodAPI());
+        let recipeAPI = new SpoonacularRecipeAPI(
+            "test",
+            "test",
+            new SpoonacularFoodAPI("test", "test"));
 
         let response = await recipeAPI.GetRecipe(new Map([
             ["id", mockRecipeID]

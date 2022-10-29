@@ -8,8 +8,11 @@ import FoodController from "../controller/FoodController";
 
 export const foodRoute = express.Router();
 
+let apiKey = process.env.SPOONACULAR_API_KEY;
+let apiHost = process.env.SPOONACULAR_HOST;
+
 const foodController = new FoodController(
-    new SpoonacularFoodAPI()
+    new SpoonacularFoodAPI(apiKey, apiHost)
 );
 
 // TODO(#55): change routes

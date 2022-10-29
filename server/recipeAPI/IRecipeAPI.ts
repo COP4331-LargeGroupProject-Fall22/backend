@@ -1,3 +1,4 @@
+import IBaseRecipe from "../serverAPI/model/recipe/IBaseRecipe";
 import IRecipe from "../serverAPI/model/recipe/IRecipe";
 
 export default interface IRecipeAPI {
@@ -14,7 +15,7 @@ export default interface IRecipeAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    SearchRecipe(parameters: Map<string, any>): Promise<Partial<IRecipe>[]>;
+    SearchRecipe(parameters: Map<string, any>): Promise<IBaseRecipe[]>;
 
     /**
      * Retrieves specific Recipe item that is defined by unique identifier.

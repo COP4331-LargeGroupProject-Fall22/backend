@@ -12,8 +12,6 @@ export default class FoodSchema implements IFood {
     @IsString()
     readonly name: string;
 
-    @IsString()
-    @IsNotEmpty()
     readonly category: string;
 
     @IsArray()

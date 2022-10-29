@@ -30,7 +30,7 @@ export default class InventoryController {
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
-    getFoods = async (req: Request, res: Response) => {
+    getInventory = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
             ["_id", req.params.userID]
         ]);

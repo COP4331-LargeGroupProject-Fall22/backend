@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import axios from 'axios';
 import { URLSearchParams } from 'url';
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
@@ -9,14 +8,13 @@ import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
 import IFoodAPI from '../../foodAPI/IFoodAPI';
 import IFood from '../../serverAPI/model/food/IFood';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
+import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
+import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 import IRecipeAPI from "../IRecipeAPI";
 
-export default class SpoonacularRecipeAPI implements IRecipeAPI {
+export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected foodAPI: IFoodAPI;
-
-    protected apiKey: string;
-    protected host: string;
 
     // https://spoonacular.com/food-api/docs#Search-Recipes-Complex
     protected recipeSearchParameters: Set<string>;
@@ -24,13 +22,10 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
     // https://spoonacular.com/food-api/docs#Diets
     protected dishTypes: Set<string>;
 
-    protected headers: any;
+    constructor(apiKey: string, apiHost: string, foodAPI: IFoodAPI) {
+        super(apiKey, apiHost);
 
-    constructor(foodAPI: IFoodAPI) {
         this.foodAPI = foodAPI;
-
-        this.apiKey = process.env.SPOONACULAR_API_KEY;
-        this.host = process.env.SPOONACULAR_HOST;
 
         this.dishTypes = new Set([
             "main course",
@@ -71,25 +66,19 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    async SearchRecipe(parameters: Map<string, any>): Promise<Partial<IRecipe>[]> {
+    async SearchRecipe(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
 
-        let response = await axios(
-            searchRecipeURL,
-            {
-                headers: this.headers,
-                params: urlSearchParameters
-            }
-        );
+        let response = await this.sendRequest(searchRecipeURL, urlSearchParameters);
 
-        let jsonArray: any[] = response.data.results;
-        let recipeArray: IRecipe[] = [];
+        let jsonArray: any[] = response.results;
+        let recipeArray: IBaseRecipe[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
             recipeArray.push(
-                await this.parseRecipe(jsonArray[i])
+                await this.parseBaseRecipe(jsonArray[i])
             );
         }
 
@@ -134,19 +123,39 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         });
 
         searchParameters.append("instructionRequired", "true");
+        searchParameters.append("addRecipeInformation", "true");
 
         return searchParameters;
     }
 
+    protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
+        return {
+            id: recipeObject.id,
+            name: recipeObject.title
+        }
+    }
+
+    /**
+     * Parses recipe object.
+     * 
+     * @param recipeObject json object that represents recipe in the API.
+     * @returns Promise filled with IRecipe object.
+     */
     protected async parseRecipe(recipeObject: any): Promise<IRecipe> {
+        let types: string = this.parseDishTypes(recipeObject.dishTypes);
+
+        let instructionSteps: IInstruction[] = await this.parseInstructionSteps(recipeObject);
+
+        let instruction: IInstruction = await this.combineInstructionSteps(instructionSteps);
+
         return {
             id: recipeObject.id,
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
-            mealType: this.parseDishTypes(recipeObject.dishTypes),
-            instruction: await this.parseInstructions(recipeObject),
-            instructionSteps: await this.parseInstructionSteps(recipeObject),
+            mealType: types,
+            instruction: instruction,
+            instructionSteps: instructionSteps,
             servings: recipeObject.servings,
             preparationInMinutes: recipeObject.preparationMinutes,
             cookingTimeInMinutes: recipeObject.readyInMinutes,
@@ -154,18 +163,33 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         }
     }
 
+    /**
+     * Parses recipe object for instructions.
+     * 
+     * @param recipeObject json object that represents recipe in the API.
+     * @returns Promise filled with collection of Instruction object.
+     */
     protected async parseInstructionSteps(recipeObject: any): Promise<IInstruction[]> {
         let instructions: any[] = recipeObject.analyzedInstructions[0].steps;
 
         let instructionSteps: IInstruction[] = [];
+
+        let ingredientMap: Map<string, IFood> = new Map();
 
         for (let i = 0; i < instructions.length; i++) {
             let ingredients: any[] = instructions[i].ingredients;
             let parsedIngredients: IFood[] = [];
 
             for (let j = 0; j < ingredients.length; j++) {
-                let parsedIngredient = await this.parseIngredient(ingredients[j]);
-                parsedIngredients.push(parsedIngredient);
+                let hashIngredient = JSON.stringify(ingredients[j]);
+                let parsedIngredient: IFood;
+
+                if (!ingredientMap.has(hashIngredient)) {
+                    parsedIngredient = await this.parseIngredient(ingredients[j]);
+                    ingredientMap.set(hashIngredient, parsedIngredient);
+                }
+
+                parsedIngredients.push(ingredientMap.get(hashIngredient)!);
             }
 
             instructionSteps.push({
@@ -177,73 +201,68 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         return instructionSteps;
     }
 
+    /**
+     * Hashing an object.
+     * 
+     * @param food Ifood object.
+     * @returns pseudo hash of he food object.
+     */
     private calculateFoodHash(food: IFood): string {
         return "#" + String(food.id) + "#" + food.name + "#" + food.category + "#" + String(food.nutrients);
     }
 
-    protected async parseInstructions(recipeObject: any): Promise<IInstruction> {
-        let instructons: any[] = recipeObject.analyzedInstructions[0].steps;
-
+    /**
+     * Combines collection of instructions into one global Instruction object.
+     * 
+     * @param instructionSteps collection of Instruction objects.
+     * @returns Promise filled with Instruction object.
+     */
+    protected async combineInstructionSteps(instructionSteps: IInstruction[]): Promise<IInstruction> {
         let ingredientsMap: Map<string, IFood> = new Map();
+        let instrucions: string = "";
 
-        let parsedInstructions: string = "";
+        for (let i = 0; i < instructionSteps.length; i++) {
+            let ingredients = instructionSteps[i].ingredients;
+            instrucions += instructionSteps[i].instructions + " ";
 
-        for (let i = 0; i < instructons.length; i++) {
-            parsedInstructions += instructons[i].step + " ";
-
-            let ingredients: any[] = instructons[i].ingredients;
-            
             for (let j = 0; j < ingredients.length; j++) {
-                let parseIngredient = await this.parseIngredient(ingredients[j]);
-                let hash = this.calculateFoodHash(parseIngredient);
+                let foodHash = this.calculateFoodHash(ingredients[j]);
 
-                if (!ingredientsMap.has(hash)) {
-                    ingredientsMap.set(hash, parseIngredient);
+                if (!ingredientsMap.has(foodHash)) {
+                    ingredientsMap.set(foodHash, ingredients[j]);
                 }
             }
         }
 
-        let parsedIngredients = Array.from(ingredientsMap.values());
-
-        parsedInstructions = parsedInstructions.slice(0, parsedInstructions.length - 1);
+        instrucions = instrucions.slice(0, instrucions.length - 1);
 
         return {
-            instructions: parsedInstructions,
-            ingredients: parsedIngredients
-        }
+            instructions: instrucions,
+            ingredients: Array.from(ingredientsMap.values())
+        };
     }
 
+    /**
+     * Looks for an ingredient through foodAPI.
+     * 
+     * @param ingredientObject json object that represents ingredient in the API.
+     * @returns Promise filled with IFood object.
+     */
     protected async parseIngredient(ingredientObject: any): Promise<IFood> {
         let parsedName = ingredientObject.name !== undefined ? ingredientObject.name : "undefined";
         let parsedID = ingredientObject.id !== undefined ? ingredientObject.id : -1;
         let parsedCategory = ingredientObject.aisle !== undefined ? ingredientObject.aisle : "";
 
-        let food = await this.foodAPI.GetFood(new Map([["id", parsedID]]))
-            .then((food) => {
-                if (food !== null && food.name === parsedName) {
-                    return food;
-                }
+        // Is there any other way to avoid "exception eating"
+        // 1 request call to API
+        let food: IFood | null;
+        try {
+            food = await this.foodAPI.GetFood(new Map([["id", parsedID]]));
 
-                return null;
-            }, () => null);
-
-        if (food !== null) {
-            return food;
-        }
-
-        food = await this.foodAPI.SearchFood(new Map([["query", parsedName]]))
-            .then(async (foods: string | any[]) => {
-                if (foods.length !== 0) {
-                    // Need better logic here...
-                    return (await this.foodAPI.GetFood(new Map([["id", foods[0].id]])));
-                }
-
-                return null;
-            }, () => null);
-
-        if (food !== null) {
-            return food;
-        }
+            if (food !== null) {
+                return food;
+            }
+        } catch (error) { }
 
         return {
             id: parsedID,
@@ -253,9 +272,14 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
         }
     }
 
+    /**
+     * Parses dishes to specified format.
+     * 
+     * @param recipeDishTypes types of dishes as collection of string
+     * @returns parsed dishes as string
+     */
     protected parseDishTypes(recipeDishTypes: string[]): string {
         let types = "";
-
         recipeDishTypes.forEach((type: string) => {
             if (this.dishTypes.has(type)) {
                 types += type + ", ";
@@ -292,17 +316,11 @@ export default class SpoonacularRecipeAPI implements IRecipeAPI {
 
         let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
 
-        let response = await axios.get(
-            getRecipeURL,
-            {
-                headers: this.headers
-            }
-        );
-        
-        let jsonObject: any = response.data;
-        let parsedRecipe = this.parseRecipe(jsonObject); 
+        let response = await this.sendRequest(getRecipeURL);
+
+        let jsonObject: any = response;
+        let parsedRecipe = this.parseRecipe(jsonObject);
 
         return parsedRecipe;
     }
-
 }

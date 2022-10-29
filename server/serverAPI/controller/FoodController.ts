@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import IBaseFood from "../model/food/IBaseFood";
 import IFood from "../model/food/IFood";
 
 /**
- * This class creates several properties responsible for authentication actions 
+ * This class creates several properties responsible for food actions 
  * provided to the user.
  */
 export default class FoodController {
@@ -87,7 +88,7 @@ export default class FoodController {
             parameters.set("intolerence", req.query.intolerences);
         }
 
-        let foods: Partial<IFood>[];
+        let foods: IBaseFood[];
         try {
             foods = await this.foodAPI.SearchFood(parameters);
         } catch (error) {

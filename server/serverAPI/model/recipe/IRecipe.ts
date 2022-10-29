@@ -1,4 +1,3 @@
-import IFood from "../food/IFood";
 import IInstruction from "../instruction/IInstruction";
 import IBaseRecipe from "./IBaseRecipe";
 
