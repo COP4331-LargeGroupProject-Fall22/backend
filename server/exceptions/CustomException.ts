@@ -1,9 +1,4 @@
 export default class CustomException extends Error {
-    name!: string;
-    message!: string;
-    stack?: string | undefined;
-    cause?: unknown;
-
     constructor(
         message: string,
         name?: string
