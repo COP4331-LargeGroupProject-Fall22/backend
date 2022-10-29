@@ -73,11 +73,7 @@ export default class FoodController {
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
-<<<<<<< HEAD
-    searchFoods = async (req: Request, res: Response) => {
-=======
     searchFood = async (req: Request, res: Response) => {
->>>>>>> add-spoonacular-recipe-api-integration
         let parameters = new Map<string, any>();
 
         if (req.query?.query !== undefined) {
@@ -95,14 +91,9 @@ export default class FoodController {
         let foods: IBaseFood[];
         try {
             foods = await this.foodAPI.SearchFood(parameters);
-<<<<<<< HEAD
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-=======
         } catch (error) {
             res.status(400)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
->>>>>>> add-spoonacular-recipe-api-integration
             return;
         }
 

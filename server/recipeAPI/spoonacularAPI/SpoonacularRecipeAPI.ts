@@ -265,33 +265,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         try {
             food = await this.foodAPI.GetFood(new Map([["id", parsedID]]));
 
-<<<<<<< HEAD
             if (food !== null) {
                 return food;
             }
         } catch (error) { }
-=======
-                return null;
-            }, () => null);
-
-        if (food !== null) {
-            return food;
-        }
-
-        food = await this.foodAPI.SearchFood(new Map([["query", parsedName]]))
-            .then(async (foods: string | any[]) => {
-                if (foods.length !== 0) {
-                    // Need better logic here...
-                    return (await this.foodAPI.GetFood(new Map([["id", foods[0].id]])));
-                }
-
-                return null;
-            }, () => null);
-
-        if (food !== null) {
-            return food;
-        }
->>>>>>> add-spoonacular-recipe-api-integration
 
         return {
             id: parsedID,
@@ -352,8 +329,4 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         return parsedRecipe;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> add-spoonacular-recipe-api-integration
 }
