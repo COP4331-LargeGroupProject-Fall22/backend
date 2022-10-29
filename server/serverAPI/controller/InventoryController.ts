@@ -39,16 +39,19 @@ export default class InventoryController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
     }
 
     /**
@@ -67,12 +70,14 @@ export default class InventoryController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found"));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found"));
             return;
         }
 
@@ -93,7 +98,8 @@ export default class InventoryController {
         let duplicateFood = user.inventory.find((foodItem: IFoodItem) => foodItem.id === newFood.id);
 
         if (duplicateFood !== undefined) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
             return;
         }
 
@@ -103,12 +109,15 @@ export default class InventoryController {
         try {
             updatedUser = await this.database.UpdateUser(req.params.userID, user);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (updatedUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error."));
+            res.status(400).
+                json(ResponseFormatter
+                    .formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error."));
             return;
         }
 
@@ -130,23 +139,27 @@ export default class InventoryController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
 
         let foodItem = user.inventory.find((foodItem: IFoodItem) => foodItem.id === Number.parseInt(req.params.foodID));
 
         if (foodItem === undefined) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory."));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foodItem));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foodItem));
     }
 
     /**
@@ -164,12 +177,14 @@ export default class InventoryController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
 
@@ -215,16 +230,19 @@ export default class InventoryController {
         try {
             updatedUser = await this.database.UpdateUser(req.params.userID, user);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (updatedUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "There was an error updating the user inventory."));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "There was an error updating the user inventory."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
     }
 
     /**
@@ -242,12 +260,14 @@ export default class InventoryController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
 
@@ -268,7 +288,8 @@ export default class InventoryController {
         }
 
         if (!isFound) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory"));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory"));
             return;
         }
 
@@ -278,15 +299,18 @@ export default class InventoryController {
         try {
             updatedUser = await this.database.UpdateUser(req.params.userID, user);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (updatedUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "There was an error updating the user inventory."));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "There was an error updating the user inventory."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
     }
 }

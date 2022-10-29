@@ -39,16 +39,19 @@ export default class AuthenticationController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
     }
 
     /**
@@ -68,12 +71,14 @@ export default class AuthenticationController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user !== null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such UID already exists.`));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such UID already exists.`));
             return;
         }
 
@@ -89,15 +94,18 @@ export default class AuthenticationController {
         try {
             createdUser = await this.database.CreateUser(newUser);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (createdUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, createdUser));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, createdUser));
     }
 }

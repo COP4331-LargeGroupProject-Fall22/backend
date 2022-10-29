@@ -39,16 +39,19 @@ export default class FoodController {
         try {
             food = await this.foodAPI.GetFood(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (food === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
     }
     /**
      * Lets client to get information about specific food defined by UPC parameter provided in the URL.
@@ -71,7 +74,7 @@ export default class FoodController {
      */
     searchFood = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
-        
+
         if (req.query?.query !== undefined) {
             parameters.set("query", req.query.query);
         }
@@ -87,11 +90,13 @@ export default class FoodController {
         let foods: Partial<IFood>[];
         try {
             foods = await this.foodAPI.SearchFood(parameters);
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        } catch (error) {
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
-        
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
+
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
     }
 }

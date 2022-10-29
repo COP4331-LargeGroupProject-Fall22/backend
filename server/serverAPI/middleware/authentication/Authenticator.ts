@@ -44,11 +44,12 @@ export default class Authenticator implements IAuthenticator {
                             ResponseTypes.ERROR, "User authorization failed."
                         )
                     );
-                    
+
                     return;
                 });
         } else {
-            res.status(401).send(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is empty or invalid."));
+            res.status(401)
+                .send(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is empty or invalid."));
         }
     }
 }

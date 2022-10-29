@@ -34,11 +34,13 @@ export default class UserController {
         try {
             users = await this.database.GetUsers();
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, users));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, users));
     }
 
     /**
@@ -56,16 +58,19 @@ export default class UserController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
     }
 
     /**
@@ -83,12 +88,14 @@ export default class UserController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User doesn't exist"));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User doesn't exist"));
             return;
         }
 
@@ -105,16 +112,19 @@ export default class UserController {
                 }
             );
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (updatedUser === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't be updated."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't be updated."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
     }
 
     /**
@@ -132,12 +142,14 @@ export default class UserController {
         try {
             user = await this.database.GetUser(parameters);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             return;
         }
 
@@ -145,15 +157,18 @@ export default class UserController {
         try {
             result = await this.database.DeleteUser(req.params.userID);
         } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
             return;
         }
 
         if (!result) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
             return;
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
+        res.status(200)
+            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
     }
 }

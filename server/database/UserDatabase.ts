@@ -135,7 +135,8 @@ export default class UserDatabase implements IDatabase<IUser> {
         try {
             return new ObjectId(id);
         } catch (e) {
-            throw new IncorrectIDFormat("_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
+            throw new IncorrectIDFormat(
+                "_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
         }
     }
 
