@@ -158,7 +158,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
-            type: types,
+            mealType: types,
             instruction: instruction,
             instructionSteps: instructionSteps,
             servings: recipeObject.servings,

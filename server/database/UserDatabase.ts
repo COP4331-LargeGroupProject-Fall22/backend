@@ -53,7 +53,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     }
 
     /**
-     * Connects to the database if database instance doesn't exist
+     * Connects to the database if database instance doesn't exist.
      * 
      * @returns UserDatabase object.
      */
@@ -79,11 +79,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * Retrieves general information about all user objects stored in the database. 
      * 
      * @param parameters query parameters used for searching.
-<<<<<<< HEAD
      * @returns Promise filled with IBaseUser or null if useres weren't found.
-=======
-     * @returns Promise filled with Partial<IUser> where each IUser object will contain only general information or null if users weren't found.
->>>>>>> add-client-server-interface-for-recipeAPI
      */
     async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
         const users = this.collection.find();
@@ -114,9 +110,15 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     /**
      * Attempts to convert ISensitiveUser to UserSchema.
      * 
+<<<<<<< HEAD
      * @param user IUser object
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @return UserSchema if conversion was successful.
+=======
+     * @param user IUser object.
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
+     * @return UserScema if conversion was successful.
+>>>>>>> add-client-server-interface-for-recipeAPI
      */
     private async convertToUserSchema(user: IInternalUser): Promise<IInternalUser> {
         let definedUser = new InternalUserSchema(
@@ -140,8 +142,12 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     /**
     * Attempts to convert id to ObjectID.
     * 
+<<<<<<< HEAD
     * @param id unique identifier of the user that is used internally in the database.
     * 
+=======
+    * @param id unique identifier of the user that is used internally in the MongoDB.
+>>>>>>> add-client-server-interface-for-recipeAPI
     * @throws EmptyID exception when id is empty.
     * @throws IncorrectIDFormat exception when id has incorrect format.
     * @return ObjectID if conversion was successful.
@@ -153,9 +159,9 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
 
         try {
             return new ObjectId(id);
-        }
-        catch (e) {
-            throw new IncorrectIDFormat("_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
+        } catch (e) {
+            throw new IncorrectIDFormat(
+                "_id should have a correct format. It can be a 24 character hex string, 12 byte binary Buffer, or a number.");
         }
     }
 
@@ -164,7 +170,6 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * 
      * @param parameters query parameters used for searching.
      * - _id - required parameter that defines user's _id.
-     * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
@@ -193,9 +198,14 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     /**
      * Retrieves complete information about specific user defined by only user's _id.
      * 
+<<<<<<< HEAD
      * @param id unique identifier of the user that is used internally in the database.
      * 
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
+=======
+     * @param id unique identifier of the user that is used internally in the MongoDB.
+     * @returns Promise filled with IUser object or null if user wasn't found.
+>>>>>>> add-client-server-interface-for-recipeAPI
      */
     private async GetUserByObjectId(id: ObjectId): Promise<IInternalUser | null> {
         const user = await this.collection.findOne(
@@ -213,9 +223,14 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * Creates user object in the database.
      * 
      * @param user IUser object filled with information about user.
+<<<<<<< HEAD
      * 
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
+=======
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
+     * @returns Promise filled with IUser object or null if user wasn't created.
+>>>>>>> add-client-server-interface-for-recipeAPI
      */
     async Create(user: IInternalUser): Promise<IInternalUser | null> {
         let userSchema = await this.convertToUserSchema(user)
@@ -232,12 +247,16 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     }
 
     /**
-     * Updates user object in the database
+     * Updates user object in the database.
      * 
      * @param id unique identifier of the user that is used internally in the database.
      * @param user IUser object filled with information about user.
+<<<<<<< HEAD
      * 
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
+=======
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
+>>>>>>> add-client-server-interface-for-recipeAPI
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
@@ -273,8 +292,12 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
     /**
      * Deletes user object from database.
      * 
+<<<<<<< HEAD
      * @param id unique identifier of the user that is used internally in the database.
      * 
+=======
+     * @param id unique identifier of the user that is used internally in the MongoDB.
+>>>>>>> add-client-server-interface-for-recipeAPI
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with boolean value indication status of the operation.

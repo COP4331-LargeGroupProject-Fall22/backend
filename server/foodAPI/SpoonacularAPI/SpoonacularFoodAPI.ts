@@ -140,7 +140,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * 
      * @param food IFood object.
      * @throws IncorrectSchema exception when food doesn't have correct format.
-     * @returns Promise filled with FoodSchema on succss/
+     * @returns Promise filled with FoodSchema on success.
      */
     private async convertToFoodSchema(food: IFood): Promise<FoodSchema> {
         let foodSchema = new FoodSchema(
@@ -224,6 +224,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return foodSchema;
     }
 
+    // TODO(#57): add support for upc
     GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null> {
         throw new Error('not implemented yet');
     }

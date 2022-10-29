@@ -16,11 +16,6 @@ export default class ResponseFormatter {
                     status: true,
                     data: data
                 };
-
-            default:
-                return {
-                    status: true
-                };
         }
     }
 }
