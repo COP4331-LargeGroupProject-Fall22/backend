@@ -27,8 +27,8 @@ export default class InventoryController {
     /**
      * Returns all food in user inventory for user specified by userID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getFoods = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
@@ -55,8 +55,8 @@ export default class InventoryController {
     * Adds food to user's inventory where user is at specified userID.
     * Upon successful operation, this handler will return all food items from user's inventory.
     * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
+    * @param req Request parameter that holds information about request.
+    * @param res Response parameter that holds information about response.
     */
     addFood = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
@@ -116,10 +116,10 @@ export default class InventoryController {
     }
 
     /**
-     * Returns complete information for food item in user inventory specified by userID and foodID
+     * Returns complete information for food item in user inventory specified by userID and foodID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
@@ -150,10 +150,10 @@ export default class InventoryController {
     }
 
     /**
-     * Updates information about food item specified by userID and foodID
+     * Updates information about food item specified by userID and foodID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     updateFood = async (req: Request, res: Response) => {
         let parameters = new Map([
@@ -183,6 +183,7 @@ export default class InventoryController {
             if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;
 
+                //TODO(#58): typesafety and optimization of operations on inventory items
                 let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
 
                 if (nutrients.at(0) !== '[') {
@@ -202,7 +203,9 @@ export default class InventoryController {
         }
 
         if (!isFound) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food Item hasn't been found."));
+            res.status(404)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR,
+                    "Can't update food item that isn't in inventory. Please use AddFood endpoint instead."));
             return;
         }
 
@@ -217,7 +220,7 @@ export default class InventoryController {
         }
 
         if (updatedUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "There was an error updating the user inventory."));
             return;
         }
 
@@ -225,11 +228,10 @@ export default class InventoryController {
     }
 
     /**
-    * Lets client to delete food item from user's inventory where user is at specified userID.
-    * Upon successful operation, this handler will return all food items in user's inventory.
+    * Deletes food item from item from user's inventory where user is at specified userID.
     * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
+    * @param req Request parameter that holds information about request.
+    * @param res Response parameter that holds information about response.
     */
     deleteFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
@@ -255,6 +257,7 @@ export default class InventoryController {
 
         let newInventory: IFoodItem[] = [];
 
+        //TODO(#58): typesafety and optimization of operations on inventory items
         for (let i = 0; i < inventory.length; i++) {
             if (inventory[i].id === Number.parseInt(req.params.foodID)) {
                 isFound = true;
@@ -280,7 +283,7 @@ export default class InventoryController {
         }
 
         if (updatedUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
+            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "There was an error updating the user inventory."));
             return;
         }
 

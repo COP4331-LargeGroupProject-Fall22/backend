@@ -24,11 +24,10 @@ export default class UserController {
     }
 
     /**
-     * Lets client to get information about all users existed on the server.
-     * Upon successful operation, this handler will return all users (including their non-sensitive information) existed on the server. 
+     * Gets information about all users existed on the server.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getUsers = async (req: Request, res: Response) => {
         let users: Partial<IUser>[] | null;
@@ -43,12 +42,10 @@ export default class UserController {
     }
 
     /**
-     * Lets client to get information about user at specified userID.
-     * Upon successful operation, this handler will return complete information about specific user only if uid of the user with accessToken and uid of the 
-     * user at userID are the same.
+     * Gets information about user at specified userID.
      *  
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     getUser = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
@@ -72,12 +69,10 @@ export default class UserController {
     }
 
     /**
-     * Lets client to update information of the user at specified userID.
-     * Upon successful operation, this handler will return updated user object only if uid of the user with accessToken and uid of the 
-     * user at userID are the same.
+     * Updates information of the user at specified userID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     updateUser = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
@@ -93,7 +88,7 @@ export default class UserController {
         }
 
         if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User doesn't exist"));
             return;
         }
 
@@ -123,12 +118,10 @@ export default class UserController {
     }
 
     /**
-     * Lets client to delete user object at specified userID.
-     * Upon successful operation, this handler will delete user object only if uid of the user with accessToken and uid of the 
-     * user at userID are the same.
+     * Deletes user object at specified userID.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     deleteUser = async (req: Request, res: Response) => {
         let parameters = new Map([
@@ -148,7 +141,7 @@ export default class UserController {
             return;
         }
 
-        let result: boolean
+        let result: boolean;
         try {
             result = await this.database.DeleteUser(req.params.userID);
         } catch (error) {

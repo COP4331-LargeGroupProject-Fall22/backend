@@ -39,5 +39,6 @@ export default interface IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
+    //TODO(#57): add support for UPC
     GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null>;
 }

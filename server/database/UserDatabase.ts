@@ -52,7 +52,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     }
 
     /**
-     * Connects to the database if database instance doesn't exist
+     * Connects to the database if database instance doesn't exist.
      * 
      * @returns UserDatabase object.
      */
@@ -96,7 +96,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     /**
      * Attempts to convert IUser to UserSchema.
      * 
-     * @param user IUser object
+     * @param user IUser object.
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @return UserScema if conversion was successful.
      */
@@ -193,7 +193,7 @@ export default class UserDatabase implements IDatabase<IUser> {
     }
 
     /**
-     * Updates user object in the database
+     * Updates user object in the database.
      * 
      * @param id unique identifier of the user that is used internally in the MongoDB.
      * @param user IUser object filled with information about user.

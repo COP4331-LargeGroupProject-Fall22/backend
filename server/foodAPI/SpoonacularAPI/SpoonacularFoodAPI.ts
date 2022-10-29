@@ -98,7 +98,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
                 }
             );
         } catch(error) {
-            return Promise.resolve([]);
+            return Promise.reject(error);
         }
 
         let jsonArray = response.data;
@@ -248,6 +248,7 @@ export default class SpoonacularFoodAPI implements IFoodAPI {
         return foodSchema;
     }
 
+    //TODO(#57): add support for upc
     GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null> {
         throw new Error('not implemented yet');
     }

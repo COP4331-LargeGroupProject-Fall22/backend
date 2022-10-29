@@ -27,8 +27,8 @@ export default class AuthenticationController {
      * Logs client into the server using token from authorization header.
      * Upon successful login operation, this handler will redirect user to the /api/user route.
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     login = async (req: Request, res: Response) => {
         let parameters = new Map([
@@ -56,8 +56,8 @@ export default class AuthenticationController {
      * Client is expected to provide all required information and token in authorization header.
      * Upon successful register operation, this handler will return full information about registered user. 
      * 
-     * @param req Request parameter that holds information about request
-     * @param res Response parameter that holds information about response
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
      */
     register = async (req: Request, res: Response) => {
         let parameters = new Map([

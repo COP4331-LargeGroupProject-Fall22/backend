@@ -27,6 +27,7 @@ const userController = new UserController(database);
 const inventoryController = new InventoryController(database);
 
 userRoute.use(new Authenticator().authenticate);
+//TODO(#55): change routes
 
 userRoute.get('/', userController.getUsers);
 userRoute.get('/user/:userID', userController.getUser);
