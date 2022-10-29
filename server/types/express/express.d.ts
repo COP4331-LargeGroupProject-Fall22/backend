@@ -3,7 +3,8 @@
  */
 
 import superagent from "superagent";
-import IUserIdentification from "../../serverAPI/model/user/IUserIdentification";
+import IUserIdentification from "../../serverAPI/model/user/IIdentification";
+import IServerUser from "../../serverAPI/model/user/IServerUser";
 
 declare module "supertest" {
     interface Test extends superagent.SuperAgentRequest {
@@ -13,9 +14,7 @@ declare module "supertest" {
 
 declare module "express-serve-static-core" {
     interface Request {
-        uid?: string;
-
-        userIdentification?: IUserIdentification;
+        serverUser: IServerUser;
     }
 }
 

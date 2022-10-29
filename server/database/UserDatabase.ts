@@ -5,7 +5,8 @@ import { MongoClient, Collection, Db, ObjectId, Filter, WithId } from 'mongodb';
 import { exit } from 'process';
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
-import IInternalUser from '../serverAPI/model/user/IInternalUser';
+import IDatabaseUser from '../serverAPI/model/user/IDatabaseUser';
+import IUser from '../serverAPI/model/user/IUser';
 
 import IDatabase from './IDatabase';
 
@@ -16,13 +17,13 @@ import IDatabase from './IDatabase';
  * It also uses Singleton design pattern. As such, there is only one database instance that will be created through out
  * execution lifetime.
  */
-export default class UserDatabase implements IDatabase<IInternalUser> {
+export default class UserDatabase implements IDatabase<IUser, IDatabaseUser> {
     private static instance?: UserDatabase;
 
     protected client!: MongoClient;
 
     protected database!: Db;
-    protected collection!: Collection<IInternalUser>;
+    protected collection!: Collection<IUser>;
 
     private constructor(
         mongoURL: string,
@@ -33,7 +34,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             this.client = new MongoClient(mongoURL);
 
             this.database = this.client.db(databaseName);
-            this.collection = this.database.collection<IInternalUser>(collectionName);
+            this.collection = this.database.collection<IUser>(collectionName);
 
             return this;
         } catch (e) {
@@ -84,7 +85,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @param parameters query parameters used for searching.
      * @returns Promise filled with IBaseUser or null if useres weren't found.
      */
-    async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
+    async GetAll(parameters?: Map<String, any>): Promise<IDatabaseUser[] | null> {
         const users = this.collection.find();
 
         let userArr = await users.toArray();
@@ -93,13 +94,13 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             return new Promise(resolve => resolve(null));
         }
 
-        let sensitiveUsers: IInternalUser[] = [];
-        userArr.forEach(user => sensitiveUsers.push(this.convertToSensitiveUser(user)));
+        let databaseUsers: IDatabaseUser[] = [];
+        userArr.forEach(user => databaseUsers.push(this.convertToDatabaseUser(user)));
 
-        return userArr;
+        return databaseUsers;
     }
 
-    private convertToSensitiveUser(user: WithId<IInternalUser>): IInternalUser {
+    private convertToDatabaseUser(user: WithId<IUser>): IDatabaseUser {
         return {
             username: user.username,
             password: user.password,
@@ -144,7 +145,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    async Get(parameters: Map<String, any>): Promise<IInternalUser | null> {
+    async Get(parameters: Map<String, any>): Promise<IDatabaseUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
 
         if (filter._id !== undefined) {
@@ -157,7 +158,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             return Promise.resolve(null);
         }
 
-        return this.convertToSensitiveUser(user);
+        return this.convertToDatabaseUser(user);
     }
 
     /**
@@ -167,7 +168,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * 
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    private async GetUserByObjectId(id: ObjectId): Promise<IInternalUser | null> {
+    private async GetUserByObjectId(id: ObjectId): Promise<IDatabaseUser | null> {
         const user = await this.collection.findOne(
             { "_id": id }
         );
@@ -176,7 +177,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
             return Promise.resolve(null);
         }
 
-        return this.convertToSensitiveUser(user);
+        return this.convertToDatabaseUser(user);
     }
 
     /**
@@ -187,17 +188,18 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
      */
-    async Create(user: IInternalUser): Promise<IInternalUser | null> {
+    async Create(user: IUser): Promise<IDatabaseUser | null> {
         console.log(user);
 
-        let insertResult = await this.collection.insertOne({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
-            password: user.password,
-            inventory: user.inventory,
-            lastSeen: user.lastSeen
-        });
+        let insertResult = await this.collection
+            .insertOne({
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                password: user.password,
+                inventory: user.inventory,
+                lastSeen: user.lastSeen
+            });
 
         return this.GetUserByObjectId(insertResult.insertedId);
     }
@@ -213,7 +215,7 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
      */
-    async Update(id: string, user: IInternalUser): Promise<IInternalUser | null> {
+    async Update(id: string, user: IUser): Promise<IDatabaseUser | null> {
         let objectID = this.convertToObjectID(id);
 
         let existingUser = await this.GetUserByObjectId(objectID);

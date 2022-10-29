@@ -3,23 +3,25 @@ import IDatabase from "../../database/IDatabase";
 import Encryptor from "../../utils/Encryptor";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IInternalUser from "../model/user/IInternalUser";
+import IDatabaseUser from "../model/user/IDatabaseUser";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
 import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
 import TokenCreator from "../../utils/TokenCreator";
-import IUserIdentification from "../model/user/IUserIdentification";
+import IUserIdentification from "../model/user/IIdentification";
+import IUser from "../model/user/IUser";
+import IServerUser from "../model/user/IServerUser";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
 export default class AuthenticationController {
-    private database: IDatabase<IInternalUser>;
+    private database: IDatabase<IUser, IDatabaseUser>;
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IUserIdentification>;
 
     constructor(
-        database: IDatabase<IInternalUser>,
+        database: IDatabase<IUser, IDatabaseUser>,
         encryptor: Encryptor,
         tokenCreator: TokenCreator<IUserIdentification>
     ) {
@@ -36,7 +38,7 @@ export default class AuthenticationController {
         return String(error);
     }
 
-    convertToInternalUser(userCredentials: UserRegistrationSchema): IInternalUser {
+    convertToInternalUser(userCredentials: UserRegistrationSchema): IUser {
         return {
             username: userCredentials.username,
             password: userCredentials.password,
@@ -83,12 +85,12 @@ export default class AuthenticationController {
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User credentials are incorrect.`));
                 }
 
-                let userIdentification: IUserIdentification = {
-                    username: user.username,
-                    id: user.id
+                let serverUser: IServerUser = {
+                    id: user.id,
+                    username: user.username
                 };
 
-                let token = this.tokenCreator.sign(userIdentification, 30 * 60);
+                let token = this.tokenCreator.sign(serverUser, 30 * 60);
 
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, token));

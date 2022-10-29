@@ -1,7 +1,7 @@
 /**
  * Database interface describing full CRUD operations of the object with generic type T.
  */
-export default interface IDatabase<ReturnType> {
+export default interface IDatabase<RequestType, ReturnType> {
    /**
      * Retrieves general information about all T objects stored in the database. 
      * 
@@ -33,7 +33,7 @@ export default interface IDatabase<ReturnType> {
      * @throws IncorrectSchema exception when T object doesn't have correct format.
      * @returns Promise filled with T object or null if T object wasn't created.
      */    
-    Create(object: ReturnType): Promise<ReturnType | null>;
+    Create(object: RequestType): Promise<ReturnType | null>;
 
     /**
      * Updates T object in the database
@@ -46,7 +46,7 @@ export default interface IDatabase<ReturnType> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated T object or null if T object wasn't updated.
      */    
-    Update(id: string, object: ReturnType): Promise<ReturnType | null>;
+    Update(id: string, object: RequestType): Promise<ReturnType | null>;
 
     /**
      * Deletes T object from database.

@@ -3,16 +3,17 @@ import IDatabase from '../../database/IDatabase';
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IBaseUser from "../model/user/IBaseUser";
-import IInternalUser from "../model/user/IInternalUser";
+import IDatabaseUser from "../model/user/IDatabaseUser";
+import IUser from "../model/user/IUser";
 
 /**
  * This class creates several properties responsible for user-actions 
  * provided to the user.
  */
 export default class UserController {
-    private database: IDatabase<IInternalUser>;
+    private database: IDatabase<IUser, IDatabaseUser>;
 
-    constructor(database: IDatabase<IInternalUser>) {
+    constructor(database: IDatabase<IUser, IDatabaseUser>) {
         this.database = database;
     }
 
@@ -24,7 +25,7 @@ export default class UserController {
         return String(error);
     }
 
-    private convertToBaseUser(user: IInternalUser): IBaseUser {
+    private convertToBaseUser(user: IDatabaseUser): IBaseUser {
         return {
             firstName: user.firstName,
             lastName: user.lastName,
@@ -65,7 +66,7 @@ export default class UserController {
      */
     getUser = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         this.database.Get(parameters).then(user => {
@@ -92,7 +93,7 @@ export default class UserController {
      */
     updateUser = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         return this.database.Get(parameters).then(user => {
@@ -101,7 +102,7 @@ export default class UserController {
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             }
 
-            let newUser: IInternalUser = {
+            let newUser: IUser = {
                 username: req.body.username === undefined ? user.username : req.body.username,
                 password: req.body.password === undefined ? user.password : req.body.password,
                 firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
@@ -110,7 +111,7 @@ export default class UserController {
                 inventory: user.inventory
             };
 
-            return this.database.Update(req.userIdentification!.id!, newUser).then(updatedUser => {
+            return this.database.Update(req.serverUser.id, newUser).then(updatedUser => {
                 if (updatedUser === null) {
                     return res.status(404)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't been updated."));
@@ -138,7 +139,7 @@ export default class UserController {
      */
     deleteUser = async (req: Request, res: Response) => {
         let parameters = new Map([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         return this.database.Get(parameters).then(user => {
@@ -147,7 +148,7 @@ export default class UserController {
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
             }
 
-            return this.database.Delete(req.userIdentification!.id!).then(result => {
+            return this.database.Delete(req.serverUser.id).then(result => {
                 if (!result) {
                     return res.status(404)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));

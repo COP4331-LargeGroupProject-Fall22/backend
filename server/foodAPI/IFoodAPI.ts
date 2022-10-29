@@ -1,5 +1,5 @@
-import IBaseFood from "../serverAPI/model/food/IBaseFood";
-import IFood from "../serverAPI/model/food/IFood";
+import IBaseIngredient from "../serverAPI/model/food/IBaseIngredient";
+import IIngredient from "../serverAPI/model/food/IIngredient";
 
 export default interface IFoodAPI {
     /**
@@ -14,7 +14,7 @@ export default interface IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of IFood objects.
      */
-    SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]>;
+    SearchFood(parameters: Map<string, any>): Promise<IBaseIngredient[]>;
 
     /**
      * Retrieves food item that is specified by searching parameters.
@@ -27,6 +27,6 @@ export default interface IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
-    GetFood(parameters: Map<string, any>): Promise<IFood | null>;
-    GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null>;
+    GetFood(parameters: Map<string, any>): Promise<IIngredient | null>;
+    GetFoodByUPC(parameters: Map<string, any>): Promise<IIngredient | null>;
 }

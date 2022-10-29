@@ -2,17 +2,18 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IFoodItem from "../model/food/IFoodItem";
-import IInternalUser from "../model/user/IInternalUser";
+import IInventoryIngredient from "../model/food/IInventoryIngredient";
+import IDatabaseUser from "../model/user/IDatabaseUser";
+import IUser from "../model/user/IUser";
 
 /**
  * This class creates several properties responsible for inventory actions 
  * provided to the user.
  */
 export default class InventoryController {
-    private database: IDatabase<IInternalUser>;
+    private database: IDatabase<IUser, IDatabaseUser>;
 
-    constructor(database: IDatabase<IInternalUser>) {
+    constructor(database: IDatabase<IUser, IDatabaseUser>) {
         this.database = database;
     }
 
@@ -33,7 +34,7 @@ export default class InventoryController {
      */
     getInventory = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         return this.database.Get(parameters).then(user => {
@@ -58,7 +59,7 @@ export default class InventoryController {
     */
     addFood = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         return this.database.Get(parameters).then(user => {
@@ -73,7 +74,7 @@ export default class InventoryController {
                 nutrients = "[" + nutrients + "]";
             }
 
-            let newFood: IFoodItem = {
+            let newFood: IInventoryIngredient = {
                 id: Number.parseInt(req.body?.id),
                 name: req.body?.name,
                 category: req.body?.category,
@@ -81,7 +82,7 @@ export default class InventoryController {
                 expirationDate: Number.parseFloat(req.body?.expirationDate)
             };
 
-            let duplicateFood = user.inventory.find((foodItem: IFoodItem) => foodItem.id === newFood.id);
+            let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === newFood.id);
 
             if (duplicateFood !== undefined) {
                 return res.status(400)
@@ -90,7 +91,7 @@ export default class InventoryController {
 
             user.inventory.push(newFood);
 
-            return this.database.Update(req.userIdentification!.id!, user).then(updatedUser => {
+            return this.database.Update(req.serverUser?.id!, user).then(updatedUser => {
                 if (updatedUser === null) {
                     return res.status(400)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be added. User update error."));
@@ -119,7 +120,7 @@ export default class InventoryController {
     */
     getFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         this.database.Get(parameters).then(user => {
@@ -129,7 +130,7 @@ export default class InventoryController {
             }
 
             let foodItem = user.inventory
-                .find((foodItem: IFoodItem) => foodItem.id === Number.parseInt(req.params.foodID));
+                .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
             if (foodItem === undefined) {
                 return res.status(400)
@@ -153,7 +154,7 @@ export default class InventoryController {
     */
     updateFood = async (req: Request, res: Response) => {
         let parameters = new Map([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         return this.database.Get(parameters).then(user => {
@@ -164,7 +165,7 @@ export default class InventoryController {
 
             let isFound: boolean = false;
 
-            let newInventory: IFoodItem[] = [];
+            let newInventory: IInventoryIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
                 let foodToAdd = user.inventory[i];
@@ -197,7 +198,7 @@ export default class InventoryController {
 
             user.inventory = newInventory;
 
-            return this.database.Update(req.userIdentification!.id!, user).then(updatedUser => {
+            return this.database.Update(req.serverUser.id, user).then(updatedUser => {
                 if (updatedUser === null) {
                     return res.status(400)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));
@@ -223,7 +224,7 @@ export default class InventoryController {
     */
     deleteFood = async (req: Request, res: Response) => {
         let parameters = new Map<String, any>([
-            ["_id", req.userIdentification?.id]
+            ["_id", req.serverUser.id]
         ]);
 
         this.database.Get(parameters).then(user => {
@@ -234,7 +235,7 @@ export default class InventoryController {
 
             let isFound: boolean = false;
 
-            let newInventory: IFoodItem[] = [];
+            let newInventory: IInventoryIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
@@ -252,7 +253,7 @@ export default class InventoryController {
 
             user.inventory = newInventory;
 
-            this.database.Update(req.userIdentification!.id!, user).then(updatedUser => {
+            this.database.Update(req.serverUser.id, user).then(updatedUser => {
                 if (updatedUser === null) {
                     return res.status(400)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item could not be updated. User update error."));

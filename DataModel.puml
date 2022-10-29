@@ -1,0 +1,91 @@
+@startuml
+
+interface IBaseRecipe {
+    + id: number
+    + name: string
+}
+
+interface IRecipe extends IBaseRecipe {
+    + cuisines: string[]
+    + diets: string[] 
+    + mealType: string[]
+
+    + instruction: IInstruction
+    + instructionSteps: IInstruction[]
+    
+    + servings: number
+    
+    + cookingTimeInMinutes: number
+    + preparationInMinutes: number
+    
+    + totalCost: number
+    + costPerServing: number
+}
+
+IInstruction o-- IRecipe
+
+interface IInstruction {
+    + instruction: string
+    + ingredients: IIngredient[]
+}
+
+IIngredient o-- IInstruction
+
+
+interface IServerUser extends IIdentification {
+    id: string
+}
+
+interface IBaseUser {
+    + firstName: string
+    + lastName: string
+    + lastSeen: number
+}
+
+interface IIdentification {
+    + username: string
+    + email: string
+}
+
+interface ICredentials extends IIdentification {
+    + password: string
+}
+
+interface IBaseIngredient {
+    + id: string
+    + name: string
+    + category: string
+}
+
+interface IIngredient extends IBaseIngredient {
+    + nutrients: INutrient[]
+}
+
+interface IInventoryIngredient extends IIngredient {
+    + expirationDate: number
+}
+
+interface INutrient {
+    + name: string
+    + unit: IUnit
+    + percentOfDaily: number
+}
+
+interface IUnit {
+    + unit: string
+    + value: number
+}
+
+interface IUser extends IBaseUser, ICredentials{
+    + inventory: IInventoryIngredient[]
+}
+
+interface IUserDatabase extends IUser {
+    + id: string
+}
+
+IInventoryIngredient o-- IUser
+INutrient o-- IIngredient
+IUnit o-- INutrient
+
+@enduml

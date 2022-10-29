@@ -1,9 +1,9 @@
 import { IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
 import ISchema from "../ISchema";
 import IBaseUser from "../IBaseUser";
-import IUserCredentials from "../IUserCredentials";
+import ICredentials from "../ICredentials";
 
-export default class UserRegistrationSchema implements IUserCredentials, IBaseUser, ISchema {
+export default class UserRegistrationSchema implements ICredentials, IBaseUser, ISchema {
     @IsString()
     @IsNotEmpty()
     firstName: string;

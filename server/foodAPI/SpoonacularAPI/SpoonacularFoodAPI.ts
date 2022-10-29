@@ -1,9 +1,9 @@
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import IncorrectSchema from "../../exceptions/IncorrectSchema";
 import NoParameterFound from "../../exceptions/NoParameterFound";
-import FoodSchema from "../../serverAPI/model/food/FoodSchema";
-import IBaseFood from "../../serverAPI/model/food/IBaseFood";
-import IFood from "../../serverAPI/model/food/IFood";
+import IngredientSchema from "../../serverAPI/model/food/IngredientSchema";
+import IBaseIngredient from "../../serverAPI/model/food/IBaseIngredient";
+import IIngredient from "../../serverAPI/model/food/IIngredient";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
 import { Validator } from "../../utils/Validator";
@@ -71,7 +71,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @throws RequestLimitReached excpetion when request limit has been reached.
      * @returns Promise filled with an array of IFood objects.
      */
-    async SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]> {
+    async SearchFood(parameters: Map<string, any>): Promise<IBaseIngredient[]> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
         let searchParams = this.convertFoodsParameters(parameters);
@@ -85,7 +85,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         }
 
         let jsonArray = response;
-        let partialFoods: IBaseFood[] = [];
+        let partialFoods: IBaseIngredient[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
             let object = jsonArray[i];
@@ -109,7 +109,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @param data representing food as plain javascript object.
      * @returns Promise filled with IFood object.
      */
-    private parseFood = async (data: any): Promise<IFood> => {
+    private parseFood = async (data: any): Promise<IIngredient> => {
         let id = data.id;
         let name = data.name;
         let category = data.aisle;
@@ -142,8 +142,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @throws IncorrectSchema exception when food doesn't have correct format.
      * @returns Promise filled with FoodSchema on succss/
      */
-    private async convertToFoodSchema(food: IFood): Promise<FoodSchema> {
-        let foodSchema = new FoodSchema(
+    private async convertToFoodSchema(food: IIngredient): Promise<IngredientSchema> {
+        let foodSchema = new IngredientSchema(
             food.id,
             food.name,
             food.category,
@@ -190,7 +190,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
-    async GetFood(parameters: Map<string, any>): Promise<IFood | null> {
+    async GetFood(parameters: Map<string, any>): Promise<IIngredient | null> {
         if (!parameters.has("id")) {
             throw new NoParameterFound("id parameter is missing");
         }
@@ -224,7 +224,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return foodSchema;
     }
 
-    GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null> {
+    GetFoodByUPC(parameters: Map<string, any>): Promise<IIngredient | null> {
         throw new Error('not implemented yet');
     }
 }

@@ -10,7 +10,8 @@ import UserDatabase from '../../database/UserDatabase';
 import InventoryController from '../controller/InventoryController';
 import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 import TokenCreator from '../../utils/TokenCreator';
-import IUserIdentification from '../model/user/IUserIdentification';
+import IUserIdentification from '../model/user/IIdentification';
+import IServerUser from '../model/user/IServerUser';
 
 export const userRoute = express.Router();
 
@@ -28,7 +29,7 @@ const userController = new UserController(database);
 const inventoryController = new InventoryController(database);
 let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
-userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IUserIdentification>(privateKey)));
+userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IServerUser>(privateKey)));
 
 userRoute.get('/', userController.getUsers);
 userRoute.get('/user', userController.getUser);

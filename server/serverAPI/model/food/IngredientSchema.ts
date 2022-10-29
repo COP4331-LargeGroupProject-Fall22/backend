@@ -1,11 +1,11 @@
 import { IsArray, IsNotEmpty,IsString } from "class-validator";
 import INutrient from "../nutrients/INutrient";
-import IFood from "./IFood";
+import IIngredient from "./IIngredient";
 
 /**
  * This class implements IFood interface and provides several built-in validations of its own properties.
  */
-export default class FoodSchema implements IFood {
+export default class IngredientSchema implements IIngredient {
     readonly id: number;
 
     @IsNotEmpty()
