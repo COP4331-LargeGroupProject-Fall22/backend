@@ -4,7 +4,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta",
         "cuisines": [],
         "diets": [],
-        "type": "main course",
+        "mealType": "main course",
         "instruction": {
             "instructions": "Cook the pancetta in a large Dutch oven over medium heat, stirring occasionally, until the fat has rendered and the pancetta is crisp, about 5 minutes. Remove the pancetta to paper towels to drain, reserving the fat in the pot. Add the onion, Italian seasoning, red pepper flakes and a couple pinches of salt to the pot and saute, stirring frequently, until the onion is translucent, 8 to 10 minutes. Add the garlic and saute until fragrant, about 15 seconds. Deglaze the pot with the wine and bring to a simmer, scraping the bottom of the pot with a wooden spoon. Add the chicken stock, beans, tomatoes and 1 cup water to the pot. Increase the heat to medium high and bring to a boil, then reduce the heat to medium low and simmer until slightly thickened, about 30 minutes. Puree the soup with an immersion blender, about 30 seconds, keeping at least half of the beans intact (or puree in a regular blender, then return to the pot). Add the pasta and cook until al dente, 8 to 12 minutes. Stir in the pancetta and half each of the parmesan and basil. Adjust the seasoning, if necessary, and garnish with the remaining parmesan and basil. Serve with Soppressata Sandwiches. Split open and quarter 1 baguette. Layer thick slices of sharp provolone and thinly sliced soppressata on the bread. Add some baby arugula and drizzle with sweet Italian vinaigrette. Photograph by Ryan Liebe",
             "ingredients": [
@@ -374,7 +374,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta",
         "cuisines": [],
         "diets": [],
-        "type": "main course",
+        "mealType": "main course",
         "instruction": {
             "instructions": "Either put the flour (with the salt) in a bowl and crack the eggs into it, or make a mound of flour on a worktop and add the eggs to that. I don't bother to beat them before adding them to the flour, but if you prefer to, do. Just find the way that you prefer. All you do is mix the flour and eggs together, and then knead the mixture until it comes together in a satiny mass. Kneading involves no more than pushing the mixture away from you with the heels of your hands and then bringing it back toward you. If you've got an electric mixer with a dough hook, then use that, though for some reason I don't find it makes the pasta cohere any sooner. And you don't get the relaxing satisfaction of making it by hand. When the pasta is silky smooth, form it into a ball, cover with a cloth and leave for 30 minutes to 1 hour. Then get out your pasta machine, read the instructions and away you go. Two tips first: cut each slice you want to feed through the pasta machine, read the instructions and away you go. Put through the no. 1 press quite a few times, folding the strip in 1/2 and pushing it through again after each time. When the pasta dough's been fed a few times through the no. 1 slot, pass it through the remaining numbers on the gauge before pushing it through the tagliatelle-cutters. And I find that pasta strips cut into tagliatelle is better if you leave them hanging over the table or wherever to dry a little first (10 minutes is enough). When you cook the pasta, make sure you've got plenty of boiling, salted water and start tasting as soon as the water comes back to the boil after you've put the pasta in. Use about 1/3 of the Meatballs in their sauce to toss with the cooked, drained pasta and then pour the rest of them over the scantly sauced ribbons in the bowl. This is ambrosia: food to get you through the winter happily. Just put everything in a large bowl and then, using your hands, mix to combine before shaping into small balls. Place the meatballs on baking sheets or plates that you have lined with plastic wrap, and put in the refrigerator as you finish them. Put the onion, garlic and oregano into the processor and blitz to a pulp. Heat the butter and oil in a deep, wide pan, then scrape the onion-garlic mix into it and cook over low to medium heat for about 10 minutes. Don't let the mixture stick, just let it become soft. Add the tomatoes and then add about 3/4 cup cold water to the pan with a pinch of sugar and some salt and pepper, and cook for about 10 minutes. The tomato sauce may appear thin at this stage, but don't worry, as it will thicken a little later. Stir in the milk, and then drop the meatballs in 1 at a time. Don't stir the pan until the meatballs have turned from pink to brown, as you don't want to break them up. Cook everything for about 20 minutes, with the lid only partially covering it. At the end of cooking time, check the seasoning, as you may want more salt and a grind or 2 more of pepper.",
             "ingredients": [
@@ -755,7 +755,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta Pie",
         "cuisines": [],
         "diets": [],
-        "type": "main course",
+        "mealType": "main course",
         "instruction": {
             "instructions": "Cook spaghetti according to package directions; drain. Combine hot spaghetti, butter, Parmesan cheese and eggs in a large bowl. Turn into a greased 10-in. pie plate. Using your fingers, form a crust; set aside. In a skillet, cook beef, onion and green pepper over medium heat until meat is no longer pink; drain. Stir in the tomatoes, tomato paste, sugar, oregano and garlic salt; heat through. Spread cottage cheese evenly over crust. Spoon ground beef mixture over cottage cheese layer. Bake, uncovered, at 350° for 20 minutes or until set. Sprinkle with mozzarella cheese. Bake 5 minutes longer or until cheese is melted.",
             "ingredients": [
@@ -1047,7 +1047,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta Nest",
         "cuisines": [],
         "diets": [],
-        "type": "appetizer",
+        "mealType": "appetizer",
         "instruction": {
             "instructions": "Preheat the oven to 375F.Cook the pasta according to package instructions, drain.In a large bowl, whisk together the tofu, butter and cheese until combined. Add the cooked spaghetti and stir well to coat. In a muffin tin, divide the pasta for each cup. Form into a \"nest\" shape with your fingers. Don't overload - you should be able to make 18 nests (the less pasta you use, the crisper the nests will be). Bake for 20-25 minutes or until pasta nests are golden brown.",
             "ingredients": [
@@ -1154,7 +1154,7 @@ export const recipeSearchAPIResponse = [
         "diets": [
             "pescatarian"
         ],
-        "type": "main course",
+        "mealType": "main course",
         "instruction": {
             "instructions": "Bring a pot of water to boil for the pasta. For the sauce, melt butter in a saucepan which will be large enough to accommodate the pound of cooked pasta, and saute onion until it becomes translucent. Mix in the flour to make a roux. Gradually add milk and allow thickening. Stir in tomato sauce and heat through. Remove from heat and add cream cheese. Blend with an immersion blender. Immediately cover surface of sauce with a sheet of plastic wrap and set aside briefly. Boil the pasta until al dente and drain. Add the cooked pasta and strips of salmon to the pan containing the sauce and fold to coat pasta. Season with salt and pepper, as needed. Transfer to a serving dish and sprinkle with chives.",
             "ingredients": [
@@ -1405,7 +1405,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta Bake",
         "cuisines": [],
         "diets": [],
-        "type": "side dish",
+        "mealType": "side dish",
         "instruction": {
             "instructions": "If you are going to use include meat in this dish, brown it in a skillet.While the meat is browning, place uncooked pasta noodles in a 13x9 baking dish.In a large bowl combine the spaghetti sauce, water, and cooked meat. Pour spaghetti sauce mixture over noodles, mix enough to ensure the noodles are coated.Cover with foil and bake at 425 for 30 minutes or until the noodles are al dente. Spread cheese over the top and bake for 5 - 10 minutes more uncovered or until the cheese is completely melted. Let rest for several minutes before serving.",
             "ingredients": [
@@ -1526,7 +1526,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta Mama",
         "cuisines": [],
         "diets": [],
-        "type": "main course",
+        "mealType": "main course",
         "instruction": {
             "instructions": "Cook the pasta according to the package directions, drain, toss with a bit of oil to prevent sticking, and set aside. Heat the oil in a saut pan over medium heat. Add the onions and saut for 3 minutes. Add the garlic, bell peppers, zucchini, and salt, and saut 2 minutes, until all the veggies are soft. Add the cooked pasta to the veggies and toss to combine. Pour the whisked eggs and the parmesan over the veggies, reduce the heat to low and cook, stirring constantly and scraping the egg off the bottom of the pan, until the eggs are cooked through, about 3-5 minutes. Transfer to a plate and serve.",
             "ingredients": [
@@ -1704,7 +1704,7 @@ export const recipeSearchAPIResponse = [
         "name": "Pasta Ponza",
         "cuisines": [],
         "diets": [],
-        "type": "main course",
+        "mealType": "main course",
         "instruction": {
             "instructions": "Watch how to make this recipe. Place an oven rack in the center of the oven. Preheat the oven to 375 degrees F. Butter an 8 by 8-inch glass baking dish. Set aside. Place the tomatoes, capers, 1 tablespoon olive oil, 1/2 teaspoon salt, and 1/4 teaspoon pepper in the prepared baking dish. Toss to coat. Sprinkle the breadcrumbs over the tomato mixture. Drizzle the top with olive oil and bake for 30 to 35 minutes until the top is golden. Cool for 5 minutes. Bring a large pot of salted water to a boil over high heat. Add the pasta and cook until tender but still firm to the bite, stirring occasionally, about 8 to 10 minutes. Drain and reserve about 1 cup of the pasta water. Place the pasta in a large serving bowl. Spoon the tomato mixture onto the pasta. Add the cheese and toss well. Thin out the sauce with a little pasta water, if needed. Season with salt and pepper, to taste. Sprinkle with the chopped parsley and serve immediately.",
             "ingredients": [
@@ -1972,7 +1972,7 @@ export const recipeSearchAPIResponse = [
             "lacto ovo vegetarian",
             "vegan"
         ],
-        "type": "salad",
+        "mealType": "salad",
         "instruction": {
             "instructions": "Boil the pasta in salted water until al dente and drain well. Toss with ground black pepper and olive oil. For the dressing, add the vinegar to a blender and replace the lid. Turn on the blender add, 1 at a time through the feed opening, garlic, mustard, oregano, basil, salt, and black pepper. Leaving the blender running, add the olive oil in a slow thin stream. Toss together the pasta, yellow squash, zucchini, sun-dried tomatoes, basil and parsley with enough of the dressing to coat. Serve any additional dressing on the side.",
             "ingredients": [
@@ -2211,7 +2211,7 @@ export const recipeSearchAPIResponse = [
             "European"
         ],
         "diets": [],
-        "type": "side dish, appetizer",
+        "mealType": "side dish, appetizer",
         "instruction": {
             "instructions": "Cooking pasta Bring heavily salted water to a boil in a large pot on high heat. When cooking pasta you want to include enough salt so that the water “tastes like the ocean”. Add ziti or your preferred small-to-medium sized pasta to the boiling water. Reduce the heat to medium or medium-high, so that the water continues boiling but does not bubble over. Stir the pasta in intervals and cook for 8 to 10 minutes or according to package directions. The pasta should be al dente, or feel free to cook longer if you like a softer texture or are making a cold salad. Once cooked strain the pasta in a colander. For a cold salad, rinse the salad in fresh water or drizzle some oil on them and mix gently – to prevent the pasta from sticking. Making mayo dressing Take the mayonnaise, extra virgin olive oil, dijon mustard, red wine vinegar, ground black pepper, sweet paprika, sugar and salt as per taste in a mixing bowl. Mix very well. Check the taste of the dressing and feel free to add more seasonings to suit your taste. You can add more sugar too. Making pasta salad Add the cooked pasta. Add in the chopped veggies – onions, capsicum, carrots. Add the finely chopped celery, parsley and sliced olives if using. Toss and combine well so that the pasta and veggies are coated with the mayo dressing. Garnish with parsley and serve right away while warm, or allow the pasta salad to cool before storing in the fridge to chill and enjoy cold. Serving suggestions Serve pasta salad as a main dish with your preferred Italian-inspired sides. For a lighter meal serve with fresh vegetables – cucumber, radish, carrots or greens – like spinach or kale, either as a raw salad or steamed. Pasta salad is great for brunch or an afternoon lunch, or even as a hearty snack between meals.",
             "ingredients": [
