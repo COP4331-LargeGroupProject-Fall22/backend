@@ -1,5 +1,4 @@
 /**
- * Entry point of the Food API.
  * This file is responsible for setting up server and routing api request to their respective routes.
  */
 import * as dotenv from 'dotenv';
@@ -17,9 +16,7 @@ const app = express();
 
 app.use(Logger.consoleLog);
 
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.resolve(__dirname, '../frontend/html/public')));
-}
+app.use(express.static(path.resolve(__dirname, '../frontend/html/public')));
 
 app.use('/users', userRoute);
 app.use('/foods', foodRoute);

@@ -95,7 +95,6 @@ describe('Food endpoints', () => {
             let response = await supertest(app)
                 .get(`/foods/food/${mockFoodID}`);
 
-            console.log(response);
             expect(response.statusCode).toBe(404);
         });
     });
