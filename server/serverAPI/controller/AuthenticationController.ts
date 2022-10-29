@@ -126,13 +126,8 @@ export default class AuthenticationController {
             return;
         }
 
-<<<<<<< HEAD
         let sensitiveUser = this.convertToSensitiveUser(createdUser);
 
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
-=======
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, createdUser));
->>>>>>> add-client-server-interface-for-recipeAPI
     }
 }

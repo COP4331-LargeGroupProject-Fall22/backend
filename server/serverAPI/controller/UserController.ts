@@ -97,7 +97,6 @@ export default class UserController {
             return;
         }
 
-<<<<<<< HEAD
         if (!this.isAuthorized(req, user)) {
             res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
             return;
@@ -106,10 +105,6 @@ export default class UserController {
         let sensitiveUser = this.convertToSensitiveUser(user);
 
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
-=======
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
->>>>>>> add-client-server-interface-for-recipeAPI
     }
 
     /**
@@ -162,7 +157,6 @@ export default class UserController {
             return;
         }
 
-<<<<<<< HEAD
         if (!this.isAuthorized(req, user)) {
             res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
             return;
@@ -171,10 +165,6 @@ export default class UserController {
         let sensitiveUser = this.convertToSensitiveUser(updatedUser);
 
         res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
-=======
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
->>>>>>> add-client-server-interface-for-recipeAPI
     }
 
     /**
@@ -203,16 +193,12 @@ export default class UserController {
             return;
         }
 
-<<<<<<< HEAD
         if (!this.isAuthorized(req, user)) {
             res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
             return;
         }
 
         let result: boolean
-=======
-        let result: boolean;
->>>>>>> add-client-server-interface-for-recipeAPI
         try {
             result = await this.database.Delete(req.params.userID);
         } catch (error) {
