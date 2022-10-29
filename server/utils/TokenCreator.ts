@@ -26,9 +26,9 @@ export default class TokenCreator<T extends object> {
         );
     }
 
-    verify(token: string): any {
+    verify(token: string): T {
         try {
-            return jwt.verify(token, this.privateKey);
+            return jwt.verify(token, this.privateKey) as T;
         }
         catch (error) {
             throw new JsonWebTokenError(this.getException(error));

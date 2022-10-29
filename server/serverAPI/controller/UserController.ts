@@ -40,20 +40,19 @@ export default class UserController {
      * @param res Response parameter that holds information about response
      */
     getUsers = async (req: Request, res: Response) => {
-        let users: IInternalUser[] | null;
-        try {
-            users = await this.database.GetAll();
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        this.database.GetAll().then(users => {
+            let baseUsers: IBaseUser[] = [];
 
-        let baseUsers: IBaseUser[] = [];
-        users?.forEach(user => {
-            baseUsers.push(this.convertToBaseUser(user));
+            users?.forEach(user => {
+                baseUsers.push(this.convertToBaseUser(user));
+            });
+
+            return res.status(200)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, baseUsers.length === 0 ? null : baseUsers));
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
         });
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, baseUsers.length === 0 ? null : baseUsers));
     }
 
     /**
@@ -69,20 +68,18 @@ export default class UserController {
             ["_id", req.userIdentification?.id]
         ]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        this.database.Get(parameters).then(user => {
+            if (user === null) {
+                return res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            }
 
-        if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+            return res.status(200)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 
     /**
@@ -98,43 +95,37 @@ export default class UserController {
             ["_id", req.userIdentification?.id]
         ]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.database.Get(parameters).then(user => {
+            if (user === null) {
+                return res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            }
 
-        if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            return;
-        }
+            let newUser: IInternalUser = {
+                username: req.body.username === undefined ? user.username : req.body.username,
+                password: req.body.password === undefined ? user.password : req.body.password,
+                firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
+                lastName: req.body.lastName === undefined ? user.lastName : req.body.lastName,
+                lastSeen: user.lastSeen,
+                inventory: user.inventory
+            };
 
-        let updatedUser: IInternalUser | null;
-        try {
-            updatedUser = await this.database.Update(
-                req.params.userID,
-                {
-                    username: req.body.username === undefined ? user.username : req.body.username,
-                    password: req.body.password === undefined ? user.password : req.body.password,
-                    firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
-                    lastName: req.body.lastName === undefined ? user.lastName : req.body.lastName,
-                    lastSeen: user.lastSeen,
-                    inventory: user.inventory
+            return this.database.Update(req.userIdentification!.id!, newUser).then(updatedUser => {
+                if (updatedUser === null) {
+                    return res.status(404)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't been updated."));
                 }
-            );
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
 
-        if (updatedUser === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't been updated."));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
+                return res.status(200)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
+            }, (error) => {
+                return res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            });
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 
     /**
@@ -150,32 +141,28 @@ export default class UserController {
             ["_id", req.userIdentification?.id]
         ]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.database.Get(parameters).then(user => {
+            if (user === null) {
+                return res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
+            }
 
-        if (user === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            return;
-        }
+            return this.database.Delete(req.userIdentification!.id!).then(result => {
+                if (!result) {
+                    return res.status(404)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
+                }
 
-        let result: boolean
-        try {
-            result = await this.database.Delete(req.params.userID);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+                return res.status(200)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
 
-        if (!result) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
+            }, (error) => {
+                return res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            });
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 }

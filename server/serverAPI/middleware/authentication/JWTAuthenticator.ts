@@ -1,6 +1,3 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import { Request, Response, NextFunction } from 'express';
 import ResponseFormatter from '../../../utils/ResponseFormatter';
 import { ResponseTypes } from '../../../utils/ResponseTypes';
@@ -17,21 +14,22 @@ export default class JWTAuthenticator {
         return String(error);
     }
 
-    authenticate = (tokenCreator: TokenCreator<IUserIdentification>) => (req: Request, res: Response, next: NextFunction): void => {
-        if (!req.headers.authorization) {
-            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is invalid"));
-            return;
-        }
+    authenticate = (tokenCreator: TokenCreator<IUserIdentification>) =>
+        (req: Request, res: Response, next: NextFunction) => {
+            if (!req.headers.authorization) {
+                return res.status(401)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is invalid"));
+            }
 
-        let userIdentification: any;
-        try {
-            userIdentification = tokenCreator.verify(req.headers.authorization.trim());
-        } catch(error) {
-            res.status(403).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+            let userIdentification: IUserIdentification;
+            try {
+                userIdentification = tokenCreator.verify(req.headers.authorization.trim());
+            } catch (error) {
+                return res.status(403)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            }
 
-        req.userIdentification = userIdentification;
-        next();
-    }
+            req.userIdentification = userIdentification;
+            next();
+        }
 }

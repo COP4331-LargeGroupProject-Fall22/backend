@@ -36,20 +36,18 @@ export default class FoodController {
             ["id", req.params.foodID]
         ]);
 
-        let food: IFood | null;
-        try {
-            food = await this.foodAPI.GetFood(parameters);
-        } catch (error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.foodAPI.GetFood(parameters).then(food => {
+            if (food === null) {
+                return res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));
+            }
 
-        if (food === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item hasn't been found"));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
+            return res.status(200)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, food));
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
     /**
      * Lets client to get information about specific food defined by UPC parameter provided in the URL.
@@ -71,7 +69,7 @@ export default class FoodController {
      */
     searchFoods = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
-        
+
         if (req.query?.query !== undefined) {
             parameters.set("query", req.query.query);
         }
@@ -81,17 +79,15 @@ export default class FoodController {
         }
 
         if (req.query?.intolerence !== undefined) {
-            parameters.set("intolerence", req.query.intolerences);
+            parameters.set("intolerance", req.query.intolerences);
         }
 
-        let foods: IBaseFood[];
-        try {
-            foods = await this.foodAPI.SearchFood(parameters);
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
-        
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
+        return this.foodAPI.SearchFood(parameters).then(foods => {
+            return res.status(200)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foods));
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 }

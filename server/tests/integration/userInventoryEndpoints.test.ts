@@ -7,7 +7,6 @@ import { app } from "../../App";
 import UserDatabase from "../../database/UserDatabase";
 import IFoodItem from "../../serverAPI/model/food/IFoodItem";
 import IInternalUser from '../../serverAPI/model/user/IInternalUser';
-import IUser from "../../serverAPI/model/user/ISensitiveUser";
 
 let mockUser: IInternalUser;
 

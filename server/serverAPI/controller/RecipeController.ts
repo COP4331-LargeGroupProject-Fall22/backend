@@ -23,7 +23,7 @@ export default class RecipeController {
 
         return String(error);
     }
-    
+
     /**
      * Lets client to search recipes using specified parameters provided in the URL.
      * Upon successful operation, this handler will return recipe items. 
@@ -36,15 +36,13 @@ export default class RecipeController {
             ["query", req.query.query]
         ]);
 
-        let recipes: IBaseRecipe[];
-        try {
-            recipes = await this.recipeAPI.SearchRecipe(parameters);
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipes));
+        return this.recipeAPI.SearchRecipe(parameters).then(recipes => {
+            return res.status(200)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipes));
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 
     /**
@@ -54,24 +52,22 @@ export default class RecipeController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-     getRecipe = async (req: Request, res: Response) => {
+    getRecipe = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
             ["id", req.params.recipeID]
         ]);
 
-        let recipe: Partial<IRecipe | null>;
-        try {
-            recipe = await this.recipeAPI.GetRecipe(parameters);
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.recipeAPI.GetRecipe(parameters).then(recipe => {
+            if (recipe === null) {
+                return res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't find recipe."));
+            }
 
-        if (recipe === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't find recipe."));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipe));
-    }   
+            return res.status(200)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipe));
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        })
+    }
 }

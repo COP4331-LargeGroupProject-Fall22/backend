@@ -36,22 +36,18 @@ export default abstract class SpoonacularAPI {
             throw new RequestLimitReached("Request limit has been reached for Spoonacular API.");
         }
 
-        let response: AxiosResponse<any, any>;
-        try {
-            response = await axios.get(
-                url,
-                {
-                    headers: headers !== undefined ? Object.assign(headers, this.headers) : this.headers,
-                    params: params
-                }
-            );
-        } catch (error) {
-            // console.log(error);
+        return axios.get(
+            url,
+            {
+                headers: headers !== undefined ? Object.assign(headers, this.headers) : this.headers,
+                params: params
+            }
+        ).then(response => {
+            this.updateRequestCounters(response.headers);
+            
+            return response.data;
+        }, (error) => {
             return Promise.resolve(null);
-        }
-
-        this.updateRequestCounters(response.headers);
-
-        return response.data;
+        });
     }
 }

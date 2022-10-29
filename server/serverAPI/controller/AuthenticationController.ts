@@ -63,37 +63,43 @@ export default class AuthenticationController {
         let logs = await userCredentials.validate();
 
         if (logs.length > 0) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
-            return;
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
         }
 
         let parameters = new Map([
             ["username", userCredentials.username]
         ]);
 
-        let user: IInternalUser | null = await this.database.Get(parameters);
+        return this.database.Get(parameters).then(user => {
+            if (user === null) {
+                return res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
+            }
 
-        if (user === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
-            return;
-        }
+            return this.encryptor.compare(userCredentials.password, user.password).then(result => {
+                if (!result) {
+                    return res.status(403)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User credentials are incorrect.`));
+                }
 
-        let comparisonResult = await this.encryptor.compare(userCredentials.password, user.password);
+                let userIdentification: IUserIdentification = {
+                    username: user.username,
+                    id: user.id
+                };
 
-        if (!comparisonResult) {
-            res.status(403).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User credentials are incorrect.`));
-            return;
-        }
+                let token = this.tokenCreator.sign(userIdentification, 30 * 60);
 
-        let token = this.tokenCreator.sign(
-            {
-                username: user.username,
-                id: user.id
-            },
-            30 * 60
-        );
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, token));
+                return res.status(200)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, token));
+            }, (error) => {
+                return res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            });
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 
     /**
@@ -116,31 +122,38 @@ export default class AuthenticationController {
         let logs = await userCredentials.validate();
 
         if (logs.length > 0) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
-            return;
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
         }
 
         let parameters = new Map([
             ["username", userCredentials.username]
         ]);
 
-        let user: IInternalUser | null = await this.database.Get(parameters);
+        return this.database.Get(parameters).then(async user => {
+            if (user !== null) {
+                return res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such username already exists.`));
+            }
 
-        if (user !== null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such username already exists.`));
-            return;
-        }
+            let internalUser = this.convertToInternalUser(userCredentials);
+            internalUser.password = await this.encryptor.encrypt(internalUser.password);
 
-        let internalUser = this.convertToInternalUser(userCredentials);
-        internalUser.password = await this.encryptor.encrypt(internalUser.password);
+            return this.database.Create(internalUser).then(createdUser => {
+                if (createdUser === null) {
+                    return res.status(400)
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
+                }
 
-        let createdUser: IInternalUser | null = await this.database.Create(internalUser);
-
-        if (createdUser === null) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
+                return res.status(200)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
+            }, (error) => {
+                return res.status(400).
+                    json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+            });
+        }, (error) => {
+            return res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
+        });
     }
 }
