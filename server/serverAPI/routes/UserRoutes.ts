@@ -31,13 +31,13 @@ let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
-userRoute.get('/user', userController.get);
-userRoute.route('/user')
+userRoute.get('/', userController.get);
+userRoute.route('/')
     .delete(userController.delete)
     .put(express.urlencoded({ extended: true }), userController.update);
 
-userRoute.get('/user/foods', inventoryController.getAll);
-userRoute.post('/user/foods/food', express.urlencoded({ extended: true }), inventoryController.add);
-userRoute.get('/user/foods/food/:foodID', inventoryController.get);
-userRoute.put('/user/foods/food/:foodID', express.urlencoded({ extended: true }), inventoryController.update);
-userRoute.delete('/user/foods/food/:foodID', inventoryController.delete);
+userRoute.get('/inventory', inventoryController.getAll);
+userRoute.post('/inventory', express.urlencoded({ extended: true }), inventoryController.add);
+userRoute.get('/inventory/:foodID', inventoryController.get);
+userRoute.put('/inventory:foodID', express.urlencoded({ extended: true }), inventoryController.update);
+userRoute.delete('/inventory/:foodID', inventoryController.delete);
