@@ -21,9 +21,15 @@ export default class JWTAuthenticator {
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Token is invalid"));
             }
 
+            let authHeaderItems = req.headers.authorization.split(' ');
+
+            // According to specifications, accessToken is prefixed with Bearer.
+            // This logic removes Bearer if it exists.
+            let accessToken: string = authHeaderItems.length === 2 ? authHeaderItems[1] : authHeaderItems[0];
+
             let userIdentification: IIdentification;
             try {
-                userIdentification = tokenCreator.verify(req.headers.authorization.trim());
+                userIdentification = tokenCreator.verify(accessToken.trim());
             } catch (error) {
                 return res.status(403)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
