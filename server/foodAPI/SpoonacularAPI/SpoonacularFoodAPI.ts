@@ -104,7 +104,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @throws RequestLimitReached excpetion when request limit has been reached.
      * @returns Promise filled with an array of IFood objects.
      */
-    async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[]> {
+    async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
         let searchParams = this.convertFoodsParameters(parameters);
@@ -114,9 +114,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         let response = await this.sendRequest(foodSearchBaseURL, searchParams);
 
         if (response === null) {
-            return Promise.resolve([]);
+            return Promise.resolve(null);
         }
-
 
         return this.searchPagination(response, parameters.get("resultsPerPage"), parameters.get("page"));
     }

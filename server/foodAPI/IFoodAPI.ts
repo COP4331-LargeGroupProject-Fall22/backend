@@ -15,7 +15,7 @@ export default interface IFoodAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of IFood objects.
      */
-    GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[]>;
+    GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null>;
 
     /**
      * Retrieves food item that is specified by searching parameters.
