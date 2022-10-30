@@ -182,7 +182,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             searchParams.delete("unit");
         }
         else {
-            searchParams.set("amount", "1");
+            searchParams.set("amount", "100");
+            searchParams.set("unit", "g");
         }
 
         return searchParams;
