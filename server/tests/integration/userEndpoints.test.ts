@@ -69,13 +69,6 @@ describe('User endpoints', () => {
     });
 
     describe('Get User Requests', () => {
-        it('Get Users is empty', async () => {
-            let response = await supertest(app).get("/users");
-
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toBeNull();
-        });
-
         it(`Get User with supported id (user doesn't exist)`, async () => {
             let response = await supertest(app).get(`/users/user`);
 
@@ -89,14 +82,6 @@ describe('User endpoints', () => {
             let response = await supertest(app).get(`/users/user/`);
 
             expect(response.statusCode).toBe(200);
-        });
-
-        it('Get Users is not empty', async () => {
-            let response = await supertest(app).get("/users");
-
-            expect(response.statusCode).toBe(200);
-            expect(response.body.data).toHaveLength(1);
-            expect(response.body.data[0]).toMatchObject(mockBaseUser);
         });
     });
 

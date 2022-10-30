@@ -16,8 +16,10 @@ import IRecipeAPI from "../IRecipeAPI";
 export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected foodAPI: IFoodAPI;
 
+    // https://spoonacular.com/food-api/docs#Search-Recipes-Complex
     protected recipeSearchParameters: Map<string, string>;
 
+    // https://spoonacular.com/food-api/docs#Meal-Types
     protected mealTypes: Set<string>;
 
     constructor(apiKey: string, apiHost: string, foodAPI: IFoodAPI) {
@@ -65,7 +67,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
+    async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
@@ -82,7 +84,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             );
         }
 
-        return recipeArray;
+        return recipeArray.length === 0 ? Promise.resolve(null) : Promise.resolve(recipeArray);
     }
 
     /**
@@ -141,7 +143,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let instruction: IInstruction = await this.combineInstructionSteps(instructionSteps);
 
-        return {
+        return Promise.resolve({
             id: recipeObject.id,
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
@@ -154,7 +156,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             cookingTimeInMinutes: recipeObject.readyInMinutes,
             totalCost: recipeObject.pricePerServing * recipeObject.servings,
             costPerServing: recipeObject.pricePerServing
-        }
+        });
     }
 
     /**
@@ -176,10 +178,15 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
             for (let j = 0; j < ingredients.length; j++) {
                 let hashIngredient = JSON.stringify(ingredients[j]);
-                let parsedIngredient: IIngredient;
+                let parsedIngredient: IIngredient | null;
 
                 if (!ingredientMap.has(hashIngredient)) {
                     parsedIngredient = await this.parseIngredient(ingredients[j]);
+
+                    if (parsedIngredient === null) {
+                        continue;
+                    }
+
                     ingredientMap.set(hashIngredient, parsedIngredient);
                 }
 
@@ -196,16 +203,6 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     }
 
     /**
-     * Hashing an object.
-     * 
-     * @param food Ifood object.
-     * @returns pseudo hash of he food object.
-     */
-    private calculateFoodHash(food: IIngredient): string {
-        return "#" + String(food.id) + "#" + food.name + "#" + food.category + "#" + String(food.nutrients);
-    }
-
-    /**
      * Combines collection of instructions into one global Instruction object.
      * 
      * @param instructionSteps collection of Instruction objects.
@@ -213,14 +210,14 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      */
     protected async combineInstructionSteps(instructionSteps: IInstruction[]): Promise<IInstruction> {
         let ingredientsMap: Map<string, IIngredient> = new Map();
-        let instrucions: string = "";
+        let instructions: string = "";
 
         for (let i = 0; i < instructionSteps.length; i++) {
             let ingredients = instructionSteps[i].ingredients;
-            instrucions += instructionSteps[i].instructions + " ";
+            instructions += instructionSteps[i].instructions + " ";
 
             for (let j = 0; j < ingredients.length; j++) {
-                let foodHash = this.calculateFoodHash(ingredients[j]);
+                let foodHash = JSON.stringify(ingredients[j]);
 
                 if (!ingredientsMap.has(foodHash)) {
                     ingredientsMap.set(foodHash, ingredients[j]);
@@ -228,12 +225,12 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             }
         }
 
-        instrucions = instrucions.slice(0, instrucions.length - 1);
+        instructions = instructions.slice(0, instructions.length - 1);
 
-        return {
-            instructions: instrucions,
+        return Promise.resolve({
+            instructions: instructions,
             ingredients: Array.from(ingredientsMap.values())
-        };
+        });
     }
 
     /**
@@ -242,28 +239,23 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @param ingredientObject json object that represents ingredient in the API.
      * @returns Promise filled with IFood object.
      */
-    protected async parseIngredient(ingredientObject: any): Promise<IIngredient> {
+    protected async parseIngredient(ingredientObject: any): Promise<IIngredient | null> {
         let parsedName = ingredientObject.name !== undefined ? ingredientObject.name : "undefined";
         let parsedID = ingredientObject.id !== undefined ? ingredientObject.id : -1;
         let parsedCategory = ingredientObject.aisle !== undefined ? ingredientObject.aisle : "";
 
-        // Is there any other way to avoid "exception eating"
-        // 1 request call to API
-        let food: IIngredient | null;
-        try {
-            food = await this.foodAPI.Get(new Map([["id", parsedID]]));
-
+        return this.foodAPI.Get(new Map([["id", parsedID]])).then(food => {
             if (food !== null) {
-                return food;
+                return Promise.resolve(null);
             }
-        } catch (error) { }
 
-        return {
-            id: parsedID,
-            name: parsedName,
-            category: parsedCategory,
-            nutrients: []
-        }
+            return Promise.resolve({
+                id: parsedID,
+                name: parsedName,
+                category: parsedCategory,
+                nutrients: []
+            });
+        }, () => Promise.resolve(null));
     }
 
     private isIngteger(number: string): boolean {
@@ -286,7 +278,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             throw new NoParameterFound("Required parameter is missing.");
         }
 
-        if (!this.isIngteger(String(parameters.get("id"))) || 
+        if (!this.isIngteger(String(parameters.get("id"))) ||
             Number.parseInt(String(parameters.get("id"))) <= 0) {
             throw new IncorrectIDFormat("ID has incorrect format.");
         }
@@ -297,8 +289,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let response = await this.sendRequest(getRecipeURL);
 
-        let jsonObject: any = response;
-        let parsedRecipe = this.parseRecipe(jsonObject);
+        let parsedRecipe = await this.parseRecipe(response);
 
         return parsedRecipe;
     }

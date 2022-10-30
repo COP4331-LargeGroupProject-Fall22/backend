@@ -18,22 +18,6 @@ let mockServerUser: IIdentification = {
     username: mockUser.username
 }
 
-jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
-    return function () {
-        return {
-            authenticate: () => (req: Request, res: Response, next: NextFunction) => {
-                if (req.headers.authorization && req.headers.authorization.length > 0) {
-                    (req as any).serverUser = mockServerUser;
-                    next();
-                }
-                else {
-                    res.status(401).send();
-                }
-            }
-        }
-    }
-});
-
 jest.mock('../../serverAPI/middleware/logger/Logger', () => {
     return {
         consoleLog: (req: Request, res: Response, next: NextFunction) => { next(); }
@@ -50,31 +34,30 @@ import { app } from '../../App';
 import IUser from '../../serverAPI/model/user/IUser';
 import IIdentification from '../../serverAPI/model/user/IIdentification';
 
-
 describe('Authentication endpoints', () => {
     describe('Post Requests', () => {
         it('Register with incorrect field formats', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .set('Authorization', 'accessToken')
                 .send(`firstName=`)
                 .send(`lastName=`);
 
             expect(response.statusCode).toBe(400);
         });
 
-        it('Register with correct authorization token', async () => {
+        it('Register with correct information', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .set('Authorization', 'accessToken')
                 .send(`firstName=${mockUser.firstName}`)
                 .send(`lastName=${mockUser.lastName}`)
                 .send(`username=${mockUser.username}`)
                 .send(`password=${mockUser.password}`);
 
-            let expected = await UserDatabase.getInstance()?.Get(new Map<string, any>([
-                ["username", mockServerUser.username]
-            ]));
+            // let expected = await UserDatabase.getInstance()?.Get(new Map<string, any>([
+            //     ["username", mockServerUser.username]
+            // ]));
+
+            // console.log(expected);
 
             expect(response.statusCode).toBe(200);
         });
@@ -82,7 +65,6 @@ describe('Authentication endpoints', () => {
         it(`Register with already existing username`, async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .set('Authorization', 'accessToken')
                 .send(`firstName=${mockUser.firstName}`)
                 .send(`lastName=${mockUser.lastName}`)
                 .send(`username=${mockUser.username}`)
@@ -96,7 +78,6 @@ describe('Authentication endpoints', () => {
         it('Login with correct credentials', async () => {
             let response = await supertest(app)
                 .post('/auth/login')
-                .set('Authorization', 'accessToken')
                 .send(`username=${mockUser.username}`)
                 .send(`password=${mockUser.password}`);
 

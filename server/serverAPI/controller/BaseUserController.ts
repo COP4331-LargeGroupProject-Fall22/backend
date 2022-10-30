@@ -51,8 +51,22 @@ export default class BaseUserController extends BaseController {
         return Promise.resolve(newUser);
     }
 
-    protected async updateUser(req: Request, res: Response, user: IUser): Promise<IUser> {
-        return this.database.Update(req.serverUser.username, user).then(updatedUser => {
+    protected async requestCreate(user: IUser, res: Response): Promise<IUser> {
+        return this.database.Create(user).then(createdUser => {
+            if (createdUser === null) {
+                return Promise.reject(res.status(400)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user.")));
+            }
+
+            return Promise.resolve(createdUser);
+        }, (error) => {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error))));
+        });
+    }
+
+    protected async requestUpdate(id: string, user: IUser, res: Response): Promise<IUser> {
+        return this.database.Update(id, user).then(updatedUser => {
             if (updatedUser === null) {
                 return Promise.reject(res.status(400)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User update error.")));
@@ -65,11 +79,18 @@ export default class BaseUserController extends BaseController {
         });
     }
 
-    protected async getUser(req: Request, res: Response): Promise<IUser> {
-        let parameters = new Map<string, any>([
-            ["username", req.serverUser.username]
-        ]);
+    protected async requestDelete(id: string, res: Response): Promise<boolean> {
+        return this.database.Delete(id).then(result => {
+            if (!result) {
+                return Promise.reject(res.status(404)
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful.")));
+            }
 
+            return Promise.resolve(true);
+        }, () => Promise.resolve(false));
+    }
+
+    protected async requestGet(parameters: Map<string, any>, res: Response): Promise<IUser> {
         return this.database.Get(parameters).then(async user => {
             if (user === null) {
                 return Promise.reject(res.status(404)

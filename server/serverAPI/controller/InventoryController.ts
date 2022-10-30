@@ -54,7 +54,9 @@ export default class InventoryController extends BaseUserController {
      * @param res Response parameter that holds information about response.
      */
     getAll = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+
+        return this.requestGet(parameters, res).then(user => {
             return res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
         }, (response) => response);
     }
@@ -67,7 +69,9 @@ export default class InventoryController extends BaseUserController {
     * @param res Response parameter that holds information about response.
     */
     add = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+
+        return this.requestGet(parameters, res).then(user => {
             return this.validateIngredient(req, res).then(ingredient => {
                 let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredient.id);
 
@@ -78,7 +82,7 @@ export default class InventoryController extends BaseUserController {
 
                 user.inventory.push(ingredient);
 
-                return this.updateUser(req, res, user).then(updatedUser => {
+                return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
                     return res.status(200)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
                 }, (response) => response);
@@ -94,7 +98,9 @@ export default class InventoryController extends BaseUserController {
     * @param res Response parameter that holds information about response
     */
     get = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+
+        return this.requestGet(parameters, res).then(user => {
             let foodItem = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
@@ -116,7 +122,9 @@ export default class InventoryController extends BaseUserController {
     * @param res Response parameter that holds information about response
     */
     update = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+
+        return this.requestGet(parameters, res).then(user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -148,7 +156,7 @@ export default class InventoryController extends BaseUserController {
 
             user.inventory = newInventory;
 
-            return this.updateUser(req, res, user).then(updatedUser => {
+            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
             }, (response) => response);
@@ -162,7 +170,9 @@ export default class InventoryController extends BaseUserController {
     * @param res Response parameter that holds information about response.
     */
     delete = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+
+        return this.requestGet(parameters, res).then(user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -183,7 +193,7 @@ export default class InventoryController extends BaseUserController {
 
             user.inventory = newInventory;
 
-            return this.updateUser(req, res, user).then(updatedUser => {
+            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
             }, (response) => response);

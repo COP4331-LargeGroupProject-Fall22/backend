@@ -16,35 +16,15 @@ export default class UserController extends BaseUserController {
     }
 
     /**
-     * Gets information about all users existed on the server.
-     * 
-     * @param req Request parameter that holds information about request.
-     * @param res Response parameter that holds information about response.
-     */
-    getAll = async (req: Request, res: Response) => {
-        this.database.GetAll().then(users => {
-            let baseUsers: IBaseUser[] = [];
-
-            users?.forEach(user => {
-                baseUsers.push(this.convertToBaseUser(user));
-            });
-
-            return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, baseUsers.length === 0 ? null : baseUsers));
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
-    }
-
-    /**
      * Gets information about user at specified userID.
      *  
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
     get = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+       
+        return this.requestGet(parameters, res).then(user => {
             return res.status(200)
                 .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
         }, (response) => response);
@@ -67,7 +47,9 @@ export default class UserController extends BaseUserController {
      * @param res Response parameter that holds information about response.
      */
     update = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(async user => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+       
+        return this.requestGet(parameters, res).then(async user => {
             if (req.body.username !== undefined) {
                 let result = await this.isUnique(req.body.username);
 
@@ -78,7 +60,7 @@ export default class UserController extends BaseUserController {
             }
 
             return this.validateUser(req, res, user).then(validatedUser => {
-                return this.updateUser(req, res, validatedUser).then(updatedUser => {
+                return this.requestUpdate(req.serverUser.username, validatedUser, res).then(updatedUser => {
                     return res.status(200)
                         .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
                 }, (response) => response);
@@ -93,20 +75,17 @@ export default class UserController extends BaseUserController {
      * @param res Response parameter that holds information about response.
      */
     delete = async (req: Request, res: Response) => {
-        return this.getUser(req, res).then(user => {
-            return this.database.Delete(req.serverUser.username).then(result => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+
+        return this.requestGet(parameters, res).then(() => {
+            return this.requestDelete(req.serverUser.username, res).then(result => {
                 if (!result) {
-                    return res.status(404)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
+                    return res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR));
                 }
 
                 return res.status(200)
                     .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
-
-            }, (error) => {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            });
+            }, (response) => response);
         }, (response) => response);
     }
 }

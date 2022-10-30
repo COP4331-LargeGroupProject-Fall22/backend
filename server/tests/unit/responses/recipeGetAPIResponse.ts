@@ -38,12 +38,6 @@ export const recipeGetAPIResponse = {
                 "name": "cheese",
                 "category": "",
                 "nutrients": []
-            },
-            {
-                "id": 0,
-                "name": "spread",
-                "category": "",
-                "nutrients": []
             }
         ]
     },
@@ -100,12 +94,6 @@ export const recipeGetAPIResponse = {
                 {
                     "id": 1041009,
                     "name": "cheese",
-                    "category": "",
-                    "nutrients": []
-                },
-                {
-                    "id": 0,
-                    "name": "spread",
                     "category": "",
                     "nutrients": []
                 }

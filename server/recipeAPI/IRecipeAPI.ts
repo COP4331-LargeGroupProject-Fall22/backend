@@ -17,7 +17,7 @@ export default interface IRecipeAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[]>;
+    GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null>;
 
     /**
      * Retrieves specific Recipe item that is defined by unique identifier.

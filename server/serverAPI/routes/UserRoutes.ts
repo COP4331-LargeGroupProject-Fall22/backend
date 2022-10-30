@@ -31,7 +31,6 @@ let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
-userRoute.get('/', userController.getAll);
 userRoute.get('/user', userController.get);
 userRoute.route('/user')
     .delete(userController.delete)
