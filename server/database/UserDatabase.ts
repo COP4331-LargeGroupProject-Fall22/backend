@@ -84,14 +84,14 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @param parameters query parameters used for searching.
      * @returns Promise filled with IBaseUser or null if useres weren't found.
      */
-    async GetAll(parameters?: Map<String, any>): Promise<IUser[]> {
+    async GetAll(parameters?: Map<String, any>): Promise<IUser[] | null> {
         return this.collection.find().toArray().then(users => {
             if (users.length === 0) {
-                return Promise.reject(null);
+                return Promise.resolve(null);
             }
 
             return Promise.resolve(users);
-        }, () => Promise.reject(null));
+        }, () => Promise.resolve(null));
     }
 
     /**
@@ -127,7 +127,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    async Get(parameters: Map<String, any>): Promise<IUser> {
+    async Get(parameters: Map<String, any>): Promise<IUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
 
         if (filter._id !== undefined) {
@@ -136,11 +136,11 @@ export default class UserDatabase implements IDatabase<IUser> {
 
         return this.collection.findOne(filter).then(user => {
             if (user === null) {
-                return Promise.reject(null);
+                return Promise.resolve(null);
             }
 
             return Promise.resolve(user);
-        }, () => Promise.reject(null));
+        }, () => Promise.resolve(null));
     }
 
     /**
@@ -150,24 +150,24 @@ export default class UserDatabase implements IDatabase<IUser> {
      * 
      * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
      */
-    private async GetUserByObjectId(id: ObjectId): Promise<IUser> {
+    private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
         return this.collection.findOne({ "_id": id }).then(user => {
             if (user === null) {
-                return Promise.reject(null);
+                return Promise.resolve(null);
             }
 
             return Promise.resolve(user);
-        }, () => Promise.reject(null));
+        }, () => Promise.resolve(null));
     }
 
-    private async GetUserByUsername(username: string): Promise<IUser> {
+    private async GetUserByUsername(username: string): Promise<IUser | null> {
         return this.collection.findOne({ "username": username }).then(user => {
             if (user === null) {
-                return Promise.reject(null);
+                return Promise.resolve(null);
             }
 
             return Promise.resolve(user);
-        }, () => Promise.reject(null));
+        }, () => Promise.resolve(null));
     }
 
     /**
@@ -177,7 +177,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
      * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
      */
-    async Create(user: IUser): Promise<IUser> {
+    async Create(user: IUser): Promise<IUser | null> {
         let newUser = {
             firstName: user.firstName,
             lastName: user.lastName,
@@ -189,7 +189,7 @@ export default class UserDatabase implements IDatabase<IUser> {
 
         return this.collection.insertOne(newUser).then(result => {
             return this.GetUserByObjectId(result.insertedId);
-        }, () => Promise.reject(null));
+        }, () => Promise.resolve(null));
     }
 
     /**
@@ -202,29 +202,27 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
      */
-    async Update(username: string, user: IUser): Promise<IUser> {
-        return this.GetUserByUsername(username).then(() => {
-            if (username !== user.username) {
-                return this.GetUserByUsername(user.username).then(() => {
-                    return this.collection.updateOne(
-                        { "username": username },
-                        {
-                            $set:
-                            {
-                                "username": user.username,
-                                "password": user.password,
-                                "firstName": user.firstName,
-                                "lastName": user.lastName,
-                                "lastSeen": user.lastSeen,
-                                "inventory": user.inventory
-                            }
-                        }
-                    ).then(updatedUser => this.GetUserByObjectId(updatedUser.upsertedId), () => Promise.reject(null));
-                }, () => Promise.reject(null));    
+    async Update(username: string, user: IUser): Promise<IUser | null> {
+        return this.GetUserByUsername(username).then(async () => {
+            if (username !== user.username && await this.GetUserByUsername(user.username) !== null) {
+                return Promise.resolve(null);
             }
 
-            return Promise.reject(null);
-        }, () => Promise.reject(null));
+            return this.collection.updateOne(
+                { "username": username },
+                {
+                    $set:
+                    {
+                        "username": user.username,
+                        "password": user.password,
+                        "firstName": user.firstName,
+                        "lastName": user.lastName,
+                        "lastSeen": user.lastSeen,
+                        "inventory": user.inventory
+                    }
+                }
+            ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));
+        }, () => Promise.resolve(null));
     }
 
     /**
@@ -240,6 +238,6 @@ export default class UserDatabase implements IDatabase<IUser> {
             return this.collection.deleteOne({ "username": username }).then(result => {
                 return Promise.resolve(result.deletedCount === 1);
             });
-        }, () => Promise.reject(false));
+        }, () => Promise.resolve(false));
     }
 }
