@@ -70,7 +70,7 @@ describe('User endpoints', () => {
 
     describe('Get User Requests', () => {
         it(`Get User with supported id (user doesn't exist)`, async () => {
-            let response = await supertest(app).get(`/users/user`);
+            let response = await supertest(app).get(`/user`);
 
             expect(response.statusCode).toBe(404);
             expect(response.body.data).toBe(undefined);
@@ -79,7 +79,7 @@ describe('User endpoints', () => {
         it(`Get User with supported id (user exist)`, async () => {
             await UserDatabase.getInstance()?.Create(mockUser);
 
-            let response = await supertest(app).get(`/users/user/`);
+            let response = await supertest(app).get(`/user`);
 
             expect(response.statusCode).toBe(200);
         });
@@ -88,7 +88,7 @@ describe('User endpoints', () => {
     describe('Update User Requests', () => {
         it('Update User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .put(`/users/user`)
+                .put(`/user`)
                 .send(`firstName=${mockUpdatedUser.firstName}`)
                 .send(`lastName=${mockUpdatedUser.lastName}`);
 
@@ -99,7 +99,7 @@ describe('User endpoints', () => {
     describe('Delete User Requests', () => {
         it('Delete User with supported id (user exists)', async () => {
             let response = await supertest(app)
-                .delete(`/users/user`);
+                .delete(`/user`);
 
             expect(response.statusCode).toBe(200);
         });

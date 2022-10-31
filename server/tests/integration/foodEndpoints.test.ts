@@ -75,7 +75,7 @@ describe('Food endpoints', () => {
             mockAxios.onGet(getFoodBaseURL).reply(200, food);
 
             let response = await supertest(app)
-                .get(`/foods/food/${foodID}`);
+                .get(`/foods/${foodID}`);
 
             expect(response.body.data).toMatchObject(foodEndpointResponse);
         });
@@ -84,7 +84,7 @@ describe('Food endpoints', () => {
             mockAxios.onGet(getFoodBaseURL).reply(200, food);
 
             let response = await supertest(app)
-                .get(`/foods/food/${mockIncorrectFoodID}`);
+                .get(`/foods/${mockIncorrectFoodID}`);
 
             expect(response.statusCode).toBe(400);
         });
@@ -93,7 +93,7 @@ describe('Food endpoints', () => {
             mockAxios.onGet(getFoodBaseURL).reply(200, food);
 
             let response = await supertest(app)
-                .get(`/foods/food/${mockFoodID}`);
+                .get(`/foods/${mockFoodID}`);
 
             expect(response.statusCode).toBe(404);
         });

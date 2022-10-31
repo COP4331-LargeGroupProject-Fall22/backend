@@ -4,6 +4,7 @@ import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
+import INutrient from "../model/nutrients/INutrient";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 
@@ -16,24 +17,24 @@ export default class InventoryController extends BaseUserController {
         super(database);
     }
 
-    private parseNutrients(req: Request): string {
+    private parseNutrients(req: Request): INutrient[] {
         let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
 
         if (nutrients.at(0) !== '[') {
             nutrients = "[" + nutrients + "]";
         }
 
-        return nutrients;
+        return JSON.parse(nutrients);
     }
 
-    private async validateIngredient(req: Request, res: Response): Promise<IInventoryIngredient> {
+    private async getIngredientFromRequest(req: Request, res: Response): Promise<IInventoryIngredient> {
         let nutrients = this.parseNutrients(req);
 
         let ingredientSchema = new InventoryIngredientSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
             req.body?.category,
-            JSON.parse(nutrients),
+            nutrients,
             Number.parseFloat(req.body?.expirationDate)
         );
 
@@ -72,12 +73,12 @@ export default class InventoryController extends BaseUserController {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         return this.requestGet(parameters, res).then(user => {
-            return this.validateIngredient(req, res).then(ingredient => {
+            return this.getIngredientFromRequest(req, res).then(ingredient => {
                 let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredient.id);
 
                 if (duplicateFood !== undefined) {
                     return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item already exists in inventory"));
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient already exists in inventory."));
                 }
 
                 user.inventory.push(ingredient);
@@ -106,7 +107,7 @@ export default class InventoryController extends BaseUserController {
 
             if (foodItem === undefined) {
                 return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory."));
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient doesn't exist in inventory."));
             }
 
             return res.status(200)
@@ -141,17 +142,19 @@ export default class InventoryController extends BaseUserController {
                         id: Number.parseInt(req.params.foodID),
                         name: req.body.name === undefined ? foodToAdd.name : req.body.name,
                         category: req.body.category === undefined ? foodToAdd.category : req.body.category,
-                        nutrients: JSON.parse(nutrients),
+                        nutrients: nutrients,
                         expirationDate: Number.parseFloat(req.body.expirationDate)
                     };
                 }
+
+                console.log(foodToAdd);
 
                 newInventory.push(foodToAdd);
             }
 
             if (!isFound) {
                 return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food Item hasn't been found."));
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient could not be found."));
             }
 
             user.inventory = newInventory;
@@ -188,7 +191,7 @@ export default class InventoryController extends BaseUserController {
 
             if (!isFound) {
                 return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Food item doesn't exist in inventory"));
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient doesn't exist in inventory."));
             }
 
             user.inventory = newInventory;

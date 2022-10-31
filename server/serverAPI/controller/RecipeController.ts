@@ -52,7 +52,7 @@ export default class RecipeController extends BaseController {
         return this.recipeAPI.Get(parameters).then(recipe => {
             if (recipe === null) {
                 return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't find recipe."));
+                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Recipe could not be found."));
             }
 
             return res.status(200)

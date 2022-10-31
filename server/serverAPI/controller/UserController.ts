@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IBaseUser from "../model/user/IBaseUser";
 import IUser from "../model/user/IUser";
+import UserSchema from "../model/user/requestSchema/UserSchema";
 import BaseUserController from "./BaseUserController";
 
 /**
@@ -13,6 +13,34 @@ import BaseUserController from "./BaseUserController";
 export default class UserController extends BaseUserController {
     constructor(database: IDatabase<IUser>) {
         super(database);
+    }
+
+    protected async getUserFromRequest(req: Request, res: Response, user: IUser): Promise<IUser> {
+        let userSchema = new UserSchema(
+            req.body.firstName === undefined ? user.firstName : req.body.firstName,
+            req.body.lastName === undefined ? user.lastName : req.body.lastName,
+            req.body.username === undefined ? user.username : req.body.username,
+            req.body.password === undefined ? user.password : req.body.password,
+            user.lastSeen,
+        );
+
+        let logs = await userSchema.validate();
+
+        if (logs.length > 0) {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs)));
+        }
+
+        let newUser: IUser = {
+            inventory: user.inventory,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            lastSeen: user.lastSeen,
+            password: user.password,
+            username: user.username
+        };
+
+        return Promise.resolve(newUser);
     }
 
     /**
@@ -26,7 +54,7 @@ export default class UserController extends BaseUserController {
        
         return this.requestGet(parameters, res).then(user => {
             return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user));
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUserResponse(user)));
         }, (response) => response);
     }
 
@@ -55,14 +83,14 @@ export default class UserController extends BaseUserController {
 
                 if (!result) {
                     return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User with such username already exists."));
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Username already exists."));
                 }
             }
 
-            return this.validateUser(req, res, user).then(validatedUser => {
+            return this.getUserFromRequest(req, res, user).then(validatedUser => {
                 return this.requestUpdate(req.serverUser.username, validatedUser, res).then(updatedUser => {
                     return res.status(200)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser));
+                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUserResponse(updatedUser)));
                 }, (response) => response);
             }, (response) => response);
         }, (response) => response);

@@ -96,7 +96,7 @@ describe(`User inventory endpoints`, () => {
             await UserDatabase.getInstance()?.Create(mockUser);
 
             let response = await supertest(app)
-                .post(`/users/user/foods/food`)
+                .post(`/user/inventory`)
                 .send(`name=${mockFood.name}`)
                 .send(`category=${mockFood.category}`)
                 .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
@@ -109,7 +109,7 @@ describe(`User inventory endpoints`, () => {
 
         it(`Create Food Item in user's inventory (food item is not unique)`, async () => {
             let response = await supertest(app)
-                .post(`/users/user/foods/food`)
+                .post(`/user/inventory`)
                 .send(`name=${mockFood.name}`)
                 .send(`category=${mockFood.category}`)
                 .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
@@ -123,14 +123,14 @@ describe(`User inventory endpoints`, () => {
     describe('Get Food Requests', () => {
         it(`Get Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
-                .get(`/users/user/foods/food/${mockFakeFoodID}`);
+                .get(`/user/inventory/${mockFakeFoodID}`);
 
             expect(response.statusCode).toBe(400);
         });
 
         it(`Get Food Item from user's inventory`, async () => {
             let response = await supertest(app)
-                .get(`/users/user/foods/food/${mockFoodID}`);
+                .get(`/user/inventory/${mockFoodID}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject(mockFood);
@@ -138,7 +138,7 @@ describe(`User inventory endpoints`, () => {
 
         it(`Get all Food Items from user's inventory`, async () => {
             let response = await supertest(app)
-                .get(`/users/user/foods`);
+                .get(`/user/inventory`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject([mockFood]);
@@ -148,7 +148,7 @@ describe(`User inventory endpoints`, () => {
     describe(`Update Food Requests`, () => {
         it(`Update Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
-                .put(`/users/user/foods/food/${mockFakeFoodID}`)
+                .put(`/user/inventory/${mockFakeFoodID}`)
                 .send(`id=${mockFood.id}`)
                 .send(`name=${mockFood.name}`)
                 .send(`category=${mockFood.category}`)
@@ -160,7 +160,7 @@ describe(`User inventory endpoints`, () => {
 
         it(`Update Food Item from user's inventory`, async () => {
             let response = await supertest(app)
-                .put(`/users/user/foods/food/${mockFoodID}`)
+                .put(`/user/inventory/${mockFoodID}`)
                 .send(`id=${mockUpdatedFood.id}`)
                 .send(`name=${mockUpdatedFood.name}`)
                 .send(`category=${mockUpdatedFood.category}`)
@@ -175,14 +175,14 @@ describe(`User inventory endpoints`, () => {
     describe(`Delete Food Requests`, () => {
         it(`Delete Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
-                .delete(`/users/user/foods/food/${mockFakeFoodID}`);
+                .delete(`/user/inventory/${mockFakeFoodID}`);
 
             expect(response.statusCode).toBe(404);
         });
 
         it(`Delete Food Item from user's inventory`, async () => {
             let response = await supertest(app)
-                .delete(`/users/user/foods/food/${mockFoodID}`);
+                .delete(`/user/inventory/${mockFoodID}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toStrictEqual([]);
