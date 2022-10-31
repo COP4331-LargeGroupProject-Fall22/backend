@@ -20,7 +20,7 @@ export default class InventoryController extends BaseUserController {
     private parseNutrients(data: any): INutrient[] {
         let nutrients: string = data === undefined ? "[]" : data;
 
-        if (nutrients.at(0) !== '[') {
+        if (nutrients.charAt(0) !== '[') {
             nutrients = "[" + nutrients + "]";
         }
 
