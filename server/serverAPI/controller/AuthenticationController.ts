@@ -119,7 +119,7 @@ export default class AuthenticationController extends BaseUserController {
                     return this.sendError(400, res, `User could not be created.`);
                 }
 
-                return this.sendError(200, res);
+                return this.sendSuccess(200, res);
             }, (error) => this.sendError(400, res, this.getException(error)));
         }, (error) => this.sendError(400, res, this.getException(error)))
     }

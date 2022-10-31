@@ -22,7 +22,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
 
         this.foodSearchParameters = new Map([
             ['query', 'query'],
-            ['resultsPerPage', 'number'],
+            ['resultsPerPage', 'resultsPerPage'],
             ['page', 'page'],
             ['language', 'language'],
             ['intolerance', 'intolerance']
@@ -59,6 +59,9 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
                 throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
             }
         });
+
+
+        searchParams.set("amount", "100");
 
         return searchParams;
     }
