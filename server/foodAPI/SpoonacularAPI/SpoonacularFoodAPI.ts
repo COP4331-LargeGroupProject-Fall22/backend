@@ -23,6 +23,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         this.foodSearchParameters = new Map([
             ['query', 'query'],
             ['resultsPerPage', 'number'],
+            ['page', 'page'],
             ['language', 'language'],
             ['intolerance', 'intolerance']
         ]);
