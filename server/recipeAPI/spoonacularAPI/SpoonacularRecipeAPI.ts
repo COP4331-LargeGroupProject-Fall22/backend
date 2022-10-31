@@ -116,7 +116,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             if (this.recipeSearchParameters.has(key)) {
                 searchParameters.append(String(this.recipeSearchParameters.get(key)), parameters.get(key));
             } else {
-                throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
+                throw new ParameterIsNotAllowed(`${key} parameter is not allowed.`);
             }
         });
 

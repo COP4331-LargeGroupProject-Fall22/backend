@@ -24,9 +24,23 @@ export default class RecipeController extends BaseController {
      * @param res Response parameter that holds information about response
      */
     getAll = async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>([
-            ["query", req.query.query]
-        ]);
+        let parameters = new Map<string, any>();
+
+        if (req.query?.query !== undefined) {
+            parameters.set("query", req.query.query);
+        }
+
+        if (req.query?.page !== undefined) {
+            parameters.set("page", req.query.page);
+        }
+
+        if (req.query?.resultsPerPage !== undefined) {
+            parameters.set("resultsPerPage", req.query.resultsPerPage);
+        }
+
+        if (req.query?.intolerence !== undefined) {
+            parameters.set("intolerance", req.query.intolerance);
+        }
 
         return this.recipeAPI.GetAll(parameters).then(recipes => {
             return this.sendSuccess(200, res, recipes);
