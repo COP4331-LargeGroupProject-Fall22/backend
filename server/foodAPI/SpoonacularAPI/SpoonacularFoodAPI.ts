@@ -11,7 +11,10 @@ import IFoodAPI from "../IFoodAPI";
  * This class implements IFoodAPI interface using Spoonacular API.
  */
 export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodAPI {
+    // https://spoonacular.com/food-api/docs#Ingredient-Search
     private foodSearchParameters: Map<string, string>;
+
+    // https://spoonacular.com/food-api/docs#Get-Ingredient-Information
     private foodInfoParameters: Map<string, string>;
 
     constructor(apiKey: string, apiHost: string) {
@@ -114,7 +117,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         let response = await this.sendRequest(foodSearchBaseURL, searchParams);
 
         if (response === null) {
-            return Promise.resolve(null);
+            return null;
         }
 
         return this.searchPagination(response, parameters.get("resultsPerPage"), parameters.get("page"));
@@ -231,6 +234,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return parsedFood;
     }
 
+    // TODO(#57): Add support for finding food items by UPC
     GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null> {
         throw new Error('not implemented yet');
     }

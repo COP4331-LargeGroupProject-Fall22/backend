@@ -29,17 +29,12 @@ export default class RecipeController extends BaseController {
         ]);
 
         return this.recipeAPI.GetAll(parameters).then(recipes => {
-            return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipes));
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+            return this.sendSuccess(200, res, recipes);
+        }, (error) => this.sendSuccess(400, res, this.getException(error)));
     }
 
     /**
-     * Lets client to get information about specific recipe using specified parameters provided in the URL.
-     * Upon successful operation, this handler will return recipe item. 
+     * Gets information about specific recipe using specified parameters provided in the URL.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -51,15 +46,10 @@ export default class RecipeController extends BaseController {
 
         return this.recipeAPI.Get(parameters).then(recipe => {
             if (recipe === null) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Recipe could not be found."));
+                return this.sendError(404, res,  "Recipe could not be found.");
             }
 
-            return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipe));
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        })
+            return this.sendSuccess(200, res, recipe);
+        }, (error) => this.sendError(400, res, this.getException(error)));
     }
 }

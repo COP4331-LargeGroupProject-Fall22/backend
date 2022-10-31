@@ -53,12 +53,6 @@ describe('Authentication endpoints', () => {
                 .send(`username=${mockUser.username}`)
                 .send(`password=${mockUser.password}`);
 
-            // let expected = await UserDatabase.getInstance()?.Get(new Map<string, any>([
-            //     ["username", mockServerUser.username]
-            // ]));
-
-            // console.log(expected);
-
             expect(response.statusCode).toBe(200);
         });
 
@@ -91,7 +85,7 @@ describe('Authentication endpoints', () => {
                 .send(`username=Hey`)
                 .send(`password=${mockUser.password}`);
 
-            expect(response.statusCode).toBe(403);
+            expect(response.statusCode).toBe(404);
         });
 
         it('Login with incorrect credentials (password)', async () => {
@@ -112,7 +106,7 @@ describe('Authentication endpoints', () => {
                 .send(`username=IOnlySeeYouWhenYouAreWalking`)
                 .send(`password=WalkingToSomewhere`);
 
-            expect(response.statusCode).toBe(403);
+            expect(response.statusCode).toBe(404);
         });
     });
 });

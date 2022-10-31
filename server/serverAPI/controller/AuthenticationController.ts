@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import Encryptor from "../../utils/Encryptor";
-import ResponseFormatter from "../../utils/ResponseFormatter";
-import { ResponseTypes } from "../../utils/ResponseTypes";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
 import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
 import TokenCreator from "../../utils/TokenCreator";
@@ -30,7 +28,7 @@ export default class AuthenticationController extends BaseUserController {
         this.tokenCreator = tokenCreator;
     }
 
-    convertToUser(userCredentials: UserRegistrationSchema): IUser {
+    private convertToUser(userCredentials: UserRegistrationSchema): IUser {
         return {
             username: userCredentials.username,
             password: userCredentials.password,
@@ -43,7 +41,6 @@ export default class AuthenticationController extends BaseUserController {
 
     /**
      * Logs client into the server using token from authorization header.
-     * Upon successful login operation, this handler will redirect user to the /api/user route.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -57,8 +54,7 @@ export default class AuthenticationController extends BaseUserController {
         let logs = await userCredentials.validate();
 
         if (logs.length > 0) {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return this.sendError(400, res, logs);
         }
 
         let parameters = new Map([
@@ -67,14 +63,12 @@ export default class AuthenticationController extends BaseUserController {
 
         return this.database.Get(parameters).then(user => {
             if (user === null) {
-                return res.status(403)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
+                return this.sendError(404, res, `User with such username doesn't exist.`);
             }
 
             return this.encryptor.compare(userCredentials.password, user.password).then(result => {
                 if (!result) {
-                    return res.status(403)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User credentials are incorrect.`));
+                    return this.sendError(403, res, `User credentials are incorrect.`);
                 }
 
                 let identification: IIdentification = {
@@ -83,22 +77,13 @@ export default class AuthenticationController extends BaseUserController {
 
                 let token = this.tokenCreator.sign(identification, 30 * 60);
 
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, token));
-            }, (error) => {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+                return this.sendSuccess(200, res, { accessToken: token });
+            }, (error) => this.sendError(400, res, this.getException(error)));
+        }, (error) => this.sendError(400, res, this.getException(error)));
     }
 
     /**
      * Registers client account on the server.
-     * Client is expected to provide all required information and token in authorization header.
-     * Upon successful register operation, this handler will return full information about registered user. 
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -114,8 +99,7 @@ export default class AuthenticationController extends BaseUserController {
         let logs = await userCredentials.validate();
 
         if (logs.length > 0) {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs));
+            return this.sendError(400, res, logs);
         }
 
         let parameters = new Map([
@@ -124,8 +108,7 @@ export default class AuthenticationController extends BaseUserController {
 
         return this.database.Get(parameters).then(async user => {
             if (user !== null) {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such username already exists.`));
+                return this.sendError(400, res, `User with such username already exists.`);
             }
 
             let internalUser = this.convertToUser(userCredentials);
@@ -133,19 +116,11 @@ export default class AuthenticationController extends BaseUserController {
 
             return this.database.Create(internalUser).then(createdUser => {
                 if (createdUser === null) {
-                    return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
+                    return this.sendError(400, res, `User could not be created.`);
                 }
 
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
-            }, (error) => {
-                return res.status(400).
-                    json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            });
-        }, (error) => {
-            return res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-        });
+                return this.sendError(200, res);
+            }, (error) => this.sendError(400, res, this.getException(error)));
+        }, (error) => this.sendError(400, res, this.getException(error)))
     }
 }

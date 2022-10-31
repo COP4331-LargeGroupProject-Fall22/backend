@@ -85,7 +85,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             );
         }
 
-        return recipeArray.length === 0 ? Promise.resolve(null) : Promise.resolve(recipeArray);
+        return recipeArray.length === 0 ? null : recipeArray;
     }
 
     /**
@@ -127,10 +127,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     }
 
     protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
-        return Promise.resolve({
+        return {
             id: recipeObject.id,
             name: recipeObject.title
-        });
+        };
     }
 
     /**
@@ -143,7 +143,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let instructionSteps: IInstruction[] = await this.parseInstructionSteps(recipeObject);
         let instruction: IInstruction = await this.combineInstructionSteps(instructionSteps);
 
-        return Promise.resolve({
+        return {
             id: recipeObject.id,
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
@@ -156,7 +156,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             cookingTimeInMinutes: recipeObject.readyInMinutes,
             totalCost: recipeObject.pricePerServing * recipeObject.servings,
             costPerServing: recipeObject.pricePerServing
-        });
+        };
     }
 
     private parseIngredients(ingredientObjects: any[]): IIngredient[] {

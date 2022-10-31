@@ -51,10 +51,9 @@ export default class UserController extends BaseUserController {
      */
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
-       
+
         return this.requestGet(parameters, res).then(user => {
-            return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUserResponse(user)));
+            return this.sendSuccess(200, res, this.convertToUserResponse(user));
         }, (response) => response);
     }
 
@@ -76,22 +75,20 @@ export default class UserController extends BaseUserController {
      */
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
-       
+
         return this.requestGet(parameters, res).then(async user => {
             if (req.body.username !== undefined) {
                 let result = await this.isUnique(req.body.username);
 
                 if (!result) {
-                    return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Username already exists."));
+                    return this.sendError(404, res, "Username already exists.");
                 }
             }
 
             return this.getUserFromRequest(req, res, user).then(validatedUser => {
-                return this.requestUpdate(req.serverUser.username, validatedUser, res).then(updatedUser => {
-                    return res.status(200)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, this.convertToUserResponse(updatedUser)));
-                }, (response) => response);
+                return this.requestUpdate(req.serverUser.username, validatedUser, res)
+                    .then(updatedUser =>
+                        this.sendSuccess(200, res, this.convertToUserResponse(updatedUser)), (response) => response);
             }, (response) => response);
         }, (response) => response);
     }
@@ -108,11 +105,10 @@ export default class UserController extends BaseUserController {
         return this.requestGet(parameters, res).then(() => {
             return this.requestDelete(req.serverUser.username, res).then(result => {
                 if (!result) {
-                    return res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR));
+                    return this.sendError(400, res, "User could not be deleted.");
                 }
 
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
+                return this.sendSuccess(200, res);
             }, (response) => response);
         }, (response) => response);
     }

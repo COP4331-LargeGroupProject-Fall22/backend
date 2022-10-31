@@ -125,7 +125,7 @@ describe(`User inventory endpoints`, () => {
             let response = await supertest(app)
                 .get(`/user/inventory/${mockFakeFoodID}`);
 
-            expect(response.statusCode).toBe(400);
+            expect(response.statusCode).toBe(404);
         });
 
         it(`Get Food Item from user's inventory`, async () => {

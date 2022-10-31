@@ -41,15 +41,14 @@ export default class InventoryController extends BaseUserController {
         let logs = await ingredientSchema.validate();
 
         if (logs.length > 0) {
-            return Promise.reject(res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs)));
+            return Promise.reject(this.sendError(400, res, logs));
         }
 
-        return Promise.resolve(ingredientSchema);
+        return ingredientSchema;
     }
 
     /**
-     * Returns all food in user inventory for user specified by userID.
+     * Returns all food in user inventory.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -58,17 +57,16 @@ export default class InventoryController extends BaseUserController {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         return this.requestGet(parameters, res).then(user => {
-            return res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, user.inventory));
+            return this.sendSuccess(200, res, user.inventory);
         }, (response) => response);
     }
 
     /**
-    * Adds food to user's inventory where user is at specified userID.
-    * Upon successful operation, this handler will return all food items from user's inventory.
-    * 
-    * @param req Request parameter that holds information about request.
-    * @param res Response parameter that holds information about response.
-    */
+     * Adds food to user's inventory.
+     * 
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
+     */
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
@@ -77,51 +75,46 @@ export default class InventoryController extends BaseUserController {
                 let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredient.id);
 
                 if (duplicateFood !== undefined) {
-                    return res.status(400)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient already exists in inventory."));
+                    return this.sendError(400, res, "Ingredient already exists in inventory.");
                 }
 
                 user.inventory.push(ingredient);
 
                 return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                    return res.status(200)
-                        .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+                    return this.sendSuccess(200, res, updatedUser.inventory);
                 }, (response) => response);
             }, (response) => response)
         }, (response) => response);
     }
 
     /**
-     * Lets client to get complete informations of the food item from user's inventory where user is at specified userID.
-     * Upon successful operation, this handler will return food item from user's inventory.
-    * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
-    */
+     * Gets complete informations of the food item from user's inventory.
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         return this.requestGet(parameters, res).then(user => {
-            let foodItem = user.inventory
+            console.log("?!?!?!");
+            let ingredient = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
-            if (foodItem === undefined) {
-                return res.status(400)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient doesn't exist in inventory."));
+            if (ingredient === undefined) {
+                return this.sendError(404, res, "Ingredient doesn't exist in inventory.");
             }
 
-            return res.status(200)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, foodItem));
+            return this.sendSuccess(200, res, ingredient);
         }, (response) => response);
     }
 
     /**
-     * Lets client to update information of the food item from user's inventory where user is at specified userID.
-     * Upon successful operation, this handler will return all food items in user's inventory.
-    * 
-    * @param req Request parameter that holds information about request
-    * @param res Response parameter that holds information about response
-    */
+     * Updates information of the food item from user's inventory.
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
@@ -131,47 +124,43 @@ export default class InventoryController extends BaseUserController {
             let newInventory: IInventoryIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
-                let foodToAdd = user.inventory[i];
+                let ingredientToAdd = user.inventory[i];
 
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
 
                     let nutrients = this.parseNutrients(req);
 
-                    foodToAdd = {
+                    ingredientToAdd = {
                         id: Number.parseInt(req.params.foodID),
-                        name: req.body.name === undefined ? foodToAdd.name : req.body.name,
-                        category: req.body.category === undefined ? foodToAdd.category : req.body.category,
+                        name: req.body.name === undefined ? ingredientToAdd.name : req.body.name,
+                        category: req.body.category === undefined ? ingredientToAdd.category : req.body.category,
                         nutrients: nutrients,
                         expirationDate: Number.parseFloat(req.body.expirationDate)
                     };
                 }
 
-                console.log(foodToAdd);
-
-                newInventory.push(foodToAdd);
+                newInventory.push(ingredientToAdd);
             }
 
             if (!isFound) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient could not be found."));
+                return this.sendError(404, res, "Ingredient could not be found.");
             }
 
             user.inventory = newInventory;
 
             return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+                return this.sendSuccess(200, res, updatedUser.inventory);
             }, (response) => response);
         }, (response) => response);
     }
 
     /**
-    * Deletes food item from item from user's inventory where user is at specified userID.
-    * 
-    * @param req Request parameter that holds information about request.
-    * @param res Response parameter that holds information about response.
-    */
+     * Deletes food item from item from user's inventory.
+     * 
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
+     */
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
@@ -190,15 +179,13 @@ export default class InventoryController extends BaseUserController {
             }
 
             if (!isFound) {
-                return res.status(404)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Ingredient doesn't exist in inventory."));
+                return this.sendError(404, res, "Ingredient doesn't exist in inventory.");
             }
 
             user.inventory = newInventory;
 
             return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                return res.status(200)
-                    .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, updatedUser.inventory));
+                return this.sendSuccess(200, res, updatedUser.inventory);
             }, (response) => response);
         }, (response) => response);
     }
