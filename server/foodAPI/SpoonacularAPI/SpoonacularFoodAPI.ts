@@ -77,7 +77,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         if (resultsPerPage !== undefined && page !== undefined &&
             this.isIngteger(resultsPerPage) && this.isIngteger(page)) {
             start = Number.parseInt(resultsPerPage) * (Number.parseInt(page) - 1);
-            length = Number.parseInt(resultsPerPage) + start;
+            length = Math.min(Number.parseInt(resultsPerPage) + start, jsonArray.length);
         }
 
         for (let i = start; i < length; i++) {
