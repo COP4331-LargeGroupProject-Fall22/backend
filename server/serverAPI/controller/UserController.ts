@@ -17,10 +17,10 @@ export default class UserController extends BaseUserController {
 
     protected async getUserFromRequest(req: Request, res: Response, user: IUser): Promise<IUser> {
         let userSchema = new UserSchema(
-            req.body.firstName === undefined ? user.firstName : req.body.firstName,
-            req.body.lastName === undefined ? user.lastName : req.body.lastName,
-            req.body.username === undefined ? user.username : req.body.username,
-            req.body.password === undefined ? user.password : req.body.password,
+            this.isStringUndefinedOrEmpty(req.body?.firstName) ? user.firstName : req.body.firstName,
+            this.isStringUndefinedOrEmpty(req.body?.lastName) ? user.lastName : req.body.lastName,
+            this.isStringUndefinedOrEmpty(req.body?.username) ? user.username : req.body.username,
+            this.isStringUndefinedOrEmpty(req.body?.password) ? user.password : req.body.password,
             user.lastSeen,
         );
 
@@ -33,14 +33,14 @@ export default class UserController extends BaseUserController {
 
         let newUser: IUser = {
             inventory: user.inventory,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: userSchema.firstName,
+            lastName: userSchema.lastName,
             lastSeen: user.lastSeen,
-            password: user.password,
-            username: user.username
+            password: userSchema.password,
+            username: userSchema.username
         };
 
-        return Promise.resolve(newUser);
+        return newUser;
     }
 
     /**

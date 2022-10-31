@@ -20,4 +20,8 @@ export default class BaseController {
         return res.status(statusCode)
             .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, message));
     }
+
+    protected isStringUndefinedOrEmpty(data: string): boolean {
+        return data === undefined || data.length === 0;
+    }
 }

@@ -17,8 +17,8 @@ export default class InventoryController extends BaseUserController {
         super(database);
     }
 
-    private parseNutrients(req: Request): INutrient[] {
-        let nutrients: string = req.body.nutrients === undefined ? "[]" : req.body.nutrients;
+    private parseNutrients(data: any): INutrient[] {
+        let nutrients: string = data === undefined ? "[]" : data;
 
         if (nutrients.at(0) !== '[') {
             nutrients = "[" + nutrients + "]";
@@ -91,7 +91,6 @@ export default class InventoryController extends BaseUserController {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         return this.requestGet(parameters, res).then(user => {
-            console.log("?!?!?!");
             let ingredient = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
@@ -123,14 +122,14 @@ export default class InventoryController extends BaseUserController {
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
 
-                    let nutrients = this.parseNutrients(req);
-
                     ingredientToAdd = {
                         id: Number.parseInt(req.params.foodID),
-                        name: req.body.name === undefined ? ingredientToAdd.name : req.body.name,
-                        category: req.body.category === undefined ? ingredientToAdd.category : req.body.category,
-                        nutrients: nutrients,
-                        expirationDate: Number.parseFloat(req.body.expirationDate)
+                        name: this.isStringUndefinedOrEmpty(req.body.name) ? ingredientToAdd.name : req.body.name,
+                        category: this.isStringUndefinedOrEmpty(req.body.category) ? ingredientToAdd.category : req.body.category,
+                        nutrients: this.isStringUndefinedOrEmpty(req.body.nutrients) ?
+                            ingredientToAdd.nutrients : this.parseNutrients(req.body.nutrients),
+                        expirationDate: this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
+                            ingredientToAdd.expirationDate : Number.parseFloat(req.body.expirationDate)
                     };
                 }
 
