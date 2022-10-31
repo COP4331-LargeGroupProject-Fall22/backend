@@ -27,26 +27,6 @@ export default class InventoryController extends BaseUserController {
         return JSON.parse(nutrients);
     }
 
-    private async getIngredientFromRequest(req: Request, res: Response): Promise<IInventoryIngredient> {
-        let nutrients = this.parseNutrients(req);
-
-        let ingredientSchema = new InventoryIngredientSchema(
-            Number.parseInt(req.body?.id),
-            req.body?.name,
-            req.body?.category,
-            nutrients,
-            Number.parseFloat(req.body?.expirationDate)
-        );
-
-        let logs = await ingredientSchema.validate();
-
-        if (logs.length > 0) {
-            return Promise.reject(this.sendError(400, res, logs));
-        }
-
-        return ingredientSchema;
-    }
-
     /**
      * Returns all food in user inventory.
      * 
@@ -70,20 +50,34 @@ export default class InventoryController extends BaseUserController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(user => {
-            return this.getIngredientFromRequest(req, res).then(ingredient => {
-                let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredient.id);
+        return this.requestGet(parameters, res).then(async user => {
+            let nutrients = this.parseNutrients(req);
 
-                if (duplicateFood !== undefined) {
-                    return this.sendError(400, res, "Ingredient already exists in inventory.");
-                }
+            let ingredientSchema = new InventoryIngredientSchema(
+                Number.parseInt(req.body?.id),
+                req.body?.name,
+                req.body?.category,
+                nutrients,
+                Number.parseFloat(req.body?.expirationDate)
+            );
 
-                user.inventory.push(ingredient);
+            let logs = await ingredientSchema.validate();
 
-                return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                    return this.sendSuccess(200, res, updatedUser.inventory);
-                }, (response) => response);
-            }, (response) => response)
+            if (logs.length > 0) {
+                return Promise.reject(this.sendError(400, res, logs));
+            }
+
+            let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredientSchema.id);
+
+            if (duplicateFood !== undefined) {
+                return this.sendError(400, res, "Ingredient already exists in inventory.");
+            }
+
+            user.inventory.push(ingredientSchema);
+
+            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
+                return this.sendSuccess(200, res, updatedUser.inventory);
+            }, (response) => response);
         }, (response) => response);
     }
 
