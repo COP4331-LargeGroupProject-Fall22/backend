@@ -51,7 +51,7 @@ export default class InventoryController extends BaseUserController {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         return this.requestGet(parameters, res).then(async user => {
-            let nutrients = this.parseNutrients(req);
+            let nutrients = this.parseNutrients(req.body.nutrients);
 
             let ingredientSchema = new InventoryIngredientSchema(
                 Number.parseInt(req.body?.id),
