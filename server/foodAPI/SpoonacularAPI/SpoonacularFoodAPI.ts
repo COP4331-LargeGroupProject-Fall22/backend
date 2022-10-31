@@ -70,16 +70,17 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
     private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<IBaseIngredient[]> {
         let partialFoods: IBaseIngredient[] = [];
 
-        let offset: number = Number.MAX_SAFE_INTEGER;
+        let start: number = 0;
         
+        let length = jsonArray.length;
+
         if (resultsPerPage !== undefined && page !== undefined &&
             this.isIngteger(resultsPerPage) && this.isIngteger(page)) {
-            offset = Number.parseInt(resultsPerPage) * Number.parseInt(page);
+            start = Number.parseInt(resultsPerPage) * (Number.parseInt(page) - 1);
+            length = Number.parseInt(resultsPerPage);
         }
 
-        let length = Math.min(offset, jsonArray.length);
-
-        for (let i = 0; i < length; i++) {
+        for (let i = start; i < length; i++) {
             let object = jsonArray[i];
 
             let parsedFood = await this.parseFood(object);
