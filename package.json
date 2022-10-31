@@ -9,8 +9,7 @@
   "scripts": {
     "test": "jest --verbose",
     "start": "node build/Server.js",
-    "postinstall": "tsc",
-    "deploy": "git add . && git commit -m Heroku && git push heroku master"
+    "postinstall": "tsc"
   },
   "keywords": [],
   "author": "",

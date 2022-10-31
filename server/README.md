@@ -32,51 +32,32 @@ Save password of that user and their username, you will use it in your connectio
 
 ![alt](https://i.imgur.com/msHT5eu.png)
 
-environment variable names should be the same, the only parts that change are values.
+Environment variable names should be the same, the only parts that change are values.
 
-## Firebase server setup:
+## Environment Variables:
 
-- Register account in firebase.
+Aside from environment variables for MongoDB we also utilize several other variables that should be initialized in .env file.
 
-- In your console, "Add new project".
+`PORT` should be defined with a port number for the server
 
-![alt](https://i.imgur.com/WL2jaVO.png)
+`PRIVATE_KEY_FOR_USER_TOKEN` shoud be defined with the random string that will act as unique private key for bcrypt encryption
 
-- When project is created, go to the "Project settings".
+`SPOONACULAR_API_KEY` should be defined with a key to spoonacular api
 
-![alt](https://i.imgur.com/ZDowUt5.png)
+`SPOONACULAR_HOST="spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"`
 
-- Go to "Service accounts" and "Generate new private key".
+`SPOONACULAR_INGREDIENTS_BASE_URL="https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/food/ingredients"`
+`SPOONACULAR_GROCERY_PRODUCT_BASE_URL="https://api.spoonacular.com/food/products"`
 
-![alt](https://i.imgur.com/PN3Svzt.png)
-
-- Now, save that file on your local server and export its location as the Global variable.
-
-![alt](https://i.imgur.com/kGtzCUI.png)
-
-At this point your server will be able to connect to the Firebase project you created. That being said, there are still some steps to be done to setup authentication part.
-
-- In "Project Overview" find "Authentication" and go to "Sign-in method" tab:
-
-![alt](https://i.imgur.com/FFw2QIH.png)
-
-- On this tab press "Add new provider" and select "Email/Password".
-
-![alt](https://i.imgur.com/bTtm9ub.png)
-
-- Be sure to disable passwordless authentication in the setup settings. You can find it if you press "Edit configuration" of the provider on the "Sign-in method" tab:
-
-![alt](https://i.imgur.com/9bXzMev.png)
-
-Congratulations! Your server side is ready to run.
+`SPOONACULAR_RECIPE_BASE_URL="https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes"`
 
 ## Run Server:
 
-To run server install latest npm and run `npm install`. All required packages will be installed automatically. Now, go to the project directory and run either `npm start` or `npm run start:dev`. `npm start` will run server as usualy, whereas, `npm run start:dev` will run server with nodemon which allows realtime restart of the server on file changes.
+To run server install latest npm and run `npm install`. All required packages will be installed automatically. Now, go to the project directory and run `npm start`.
 
 ## Testing:
 
-To run tests use `npm run test`
+To run tests use `npm run test` or `npm test`.
 
 ## User Endpoints:
 
