@@ -5,7 +5,7 @@ export const recipeGetAPIResponse = {
     "diets": [
         "dairy free"
     ],
-    "mealType": [
+    "mealTypes": [
         "side dish"
     ],
     "instruction": {

@@ -20,7 +20,7 @@ export default interface IRecipe extends IBaseRecipe {
     /**
      * Type of the dish that is going to be cooked. e.g. main dish, dessert etc.
      */
-    readonly mealType: string[];
+    readonly mealTypes: string[];
     
     /**
      * Complete instructions including all needed ingredients and cooking instructions.

@@ -8,7 +8,9 @@ interface IBaseRecipe {
 interface IRecipe extends IBaseRecipe {
     + cuisines: string[]
     + diets: string[] 
-    + mealType: string[]
+    + mealTypes: string[]
+
+    + intolerances: string[]
 
     + instruction: IInstruction
     + instructionSteps: IInstruction[]

@@ -6,22 +6,23 @@ import UserRegistrationSchema from "../model/user/requestSchema/UserRegistration
 import TokenCreator from "../../utils/TokenCreator";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseUserController";
+import BaseController from "./BaseController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class AuthenticationController extends BaseUserController {
+export default class AuthenticationController extends BaseController {
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IIdentification>;
+    private database: IDatabase<IUser>;
 
     constructor(
         database: IDatabase<IUser>,
         encryptor: Encryptor,
         tokenCreator: TokenCreator<IIdentification>
     ) {
-        super(database);
+        super();
 
         this.database = database;
         this.encryptor = encryptor;
@@ -63,7 +64,7 @@ export default class AuthenticationController extends BaseUserController {
 
         return this.database.Get(parameters).then(user => {
             if (user === null) {
-                return this.sendError(404, res, `User with such username doesn't exist.`);
+                return this.sendError(404, res, "User could not be found.");
             }
 
             return this.encryptor.compare(userCredentials.password, user.password).then(result => {
