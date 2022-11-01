@@ -46,7 +46,7 @@ export default abstract class SpoonacularAPI {
             this.updateRequestCounters(response.headers);
             
             return response.data;
-        }, (error) => {
+        }, () => {
             return Promise.resolve(null);
         });
     }

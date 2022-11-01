@@ -13,4 +13,6 @@ export default interface IBaseIngredient {
      * Food category.
      */
     readonly category: string;
+
+    readonly quantityUnits: string[];
 }

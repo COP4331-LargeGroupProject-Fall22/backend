@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsString, validate, ValidateNested } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsPositive, IsString, validate, ValidateNested } from "class-validator";
 import ISchema from "../../ISchema";
 import INutrient from "../../nutrients/INutrient";
+import IUnit from "../../unit/IUnit";
 import IInventoryIngredient from "../IInventoryIngredient";
 
 export default class InventoryIngredientSchema implements IInventoryIngredient, ISchema {
@@ -23,18 +24,24 @@ export default class InventoryIngredientSchema implements IInventoryIngredient, 
     @IsString()
     category: string;
 
+    quantity?: IUnit | undefined;
+
+    @IsArray()
+    quantityUnits: string[];
 
     constructor(
         id: number,
         name: string,
         category: string,
         nutrients: INutrient[],
+        quantityUnits: string[],
         expirationDate: number
     ) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.nutrients = nutrients;
+        this.quantityUnits = quantityUnits;
         this.expirationDate = expirationDate;
     }
 

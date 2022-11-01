@@ -4,6 +4,7 @@ import ParameterIsNotAllowed from "../../exceptions/ParameterIsNotAllowed";
 import IBaseIngredient from "../../serverAPI/model/food/IBaseIngredient";
 import IIngredient from "../../serverAPI/model/food/IIngredient";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
+import IUnit from "../../serverAPI/model/unit/IUnit";
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
 import IFoodAPI from "../IFoodAPI";
 
@@ -91,7 +92,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             partialFoods.push({
                 id: parsedFood.id,
                 name: parsedFood.name,
-                category: parsedFood.category
+                category: parsedFood.category,
+                quantityUnits: parsedFood.quantityUnits
             });
         }
 
@@ -138,9 +140,18 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         let id = data.id;
         let name = data.name;
         let category = data.aisle;
+        let quantityUnits = data.possibleUnits;
+        let quantity: IUnit | undefined = undefined
+
+        if (data.amount !== undefined && data.unit !== undefined) {
+            quantity = {
+                unit: data.unit,
+                value: data.amount
+            };
+        }
 
         let nutrients: INutrient[] = [];
-
+        
         data?.nutrition?.nutrients.forEach((nutrient: any) => {
             nutrients.push({
                 name: nutrient.name,
@@ -156,7 +167,9 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             id: id,
             name: name,
             category: category,
-            nutrients: nutrients
+            nutrients: nutrients,
+            quantityUnits: quantityUnits,
+            quantity: quantity
         };
     }
 
@@ -188,10 +201,6 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         if ((isAmount && !isUnit) || (!isAmount && isUnit)) {
             searchParams.delete("amount");
             searchParams.delete("unit");
-        }
-        else {
-            searchParams.set("amount", "100");
-            searchParams.set("unit", "g");
         }
 
         return searchParams;

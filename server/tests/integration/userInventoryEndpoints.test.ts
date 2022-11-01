@@ -61,6 +61,7 @@ describe(`User inventory endpoints`, () => {
             id: mockFoodID,
             name: "FoodItemA",
             category: "CatA",
+            quantityUnits: ['g'],
             nutrients: [
                 {
                     name: "nutrientC",
@@ -78,6 +79,7 @@ describe(`User inventory endpoints`, () => {
             id: mockFoodID,
             name: "FoodItemB",
             category: "CatB",
+            quantityUnits: ['g'],
             nutrients: [
                 {
                     name: "nutrientA",

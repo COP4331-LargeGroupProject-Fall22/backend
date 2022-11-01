@@ -57,13 +57,16 @@ export default class InventoryController extends BaseUserController {
                 req.body?.name,
                 req.body?.category,
                 nutrients,
+                req.body?.quantityUnits,
                 Number.parseFloat(req.body?.expirationDate)
             );
+
+            ingredientSchema.quantity = req.body?.quantity;
 
             let logs = await ingredientSchema.validate();
 
             if (logs.length > 0) {
-                return Promise.reject(this.sendError(400, res, logs));
+                return this.sendError(400, res, logs);
             }
 
             let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredientSchema.id);
@@ -123,10 +126,12 @@ export default class InventoryController extends BaseUserController {
 
                     ingredientToAdd = {
                         id: Number.parseInt(req.params.foodID),
-                        name: this.isStringUndefinedOrEmpty(req.body.name) ? ingredientToAdd.name : req.body.name,
-                        category: this.isStringUndefinedOrEmpty(req.body.category) ? ingredientToAdd.category : req.body.category,
-                        nutrients: this.isStringUndefinedOrEmpty(req.body.nutrients) ?
-                            ingredientToAdd.nutrients : this.parseNutrients(req.body.nutrients),
+                        name: ingredientToAdd.name,
+                        category: ingredientToAdd.category,
+                        nutrients: ingredientToAdd.nutrients,
+                        quantityUnits: ingredientToAdd.quantityUnits,
+                        quantity: this.isStringUndefinedOrEmpty(req.body.quantity) ?
+                            ingredientToAdd.quantity : req.body.quantity,
                         expirationDate: this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
                             ingredientToAdd.expirationDate : Number.parseFloat(req.body.expirationDate)
                     };

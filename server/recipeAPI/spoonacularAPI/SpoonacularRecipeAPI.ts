@@ -11,6 +11,7 @@ import IInstruction from '../../serverAPI/model/instruction/IInstruction';
 import INutrient from '../../serverAPI/model/nutrients/INutrient';
 import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
+import IUnit from '../../serverAPI/model/unit/IUnit';
 import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 import IRecipeAPI from "../IRecipeAPI";
 
@@ -251,6 +252,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let id = ingredientObject.id;
         let name = ingredientObject.name;
         let category = "";
+        let quantity: IUnit = {
+            unit: ingredientObject.unit,
+            value: Number.parseFloat(ingredientObject.amount)
+        };
 
         let nutrients: INutrient[] = [];
 
@@ -269,7 +274,9 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             id: id,
             name: name,
             category: category,
-            nutrients: nutrients
+            nutrients: nutrients,
+            quantityUnits: [ quantity.unit ],
+            quantity: quantity
         };
     }
 
