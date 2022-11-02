@@ -66,7 +66,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return searchParams;
     }
 
-    private isIngteger(number: string): boolean {
+    private isInteger(number: string): boolean {
         return Number.isInteger(Number.parseInt(number));
     }
 
@@ -78,7 +78,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         let length = jsonArray.length;
 
         if (resultsPerPage !== undefined && page !== undefined &&
-            this.isIngteger(resultsPerPage) && this.isIngteger(page)) {
+            this.isInteger(resultsPerPage) && this.isInteger(page)) {
             start = Number.parseInt(resultsPerPage) * (Number.parseInt(page) - 1);
             length = Math.min(Number.parseInt(resultsPerPage) + start, jsonArray.length);
         }
@@ -104,7 +104,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
      * @param parameters query parameters used for searching.
      * - query - required parameter that defines the name of the Food Item (partial names are accepted).
      * - resultsPerPage - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that definds page number.
+     * - page - optional parameter that defines page number.
      * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching.
      * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
      * 
@@ -182,10 +182,10 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         });
 
         // (A && !B) || (!A && B)
-        let isAmount = searchParams.has("amount");
-        let isUnit = searchParams.has("unit");
+        let hasAmount = searchParams.has("amount");
+        let hasUnit = searchParams.has("unit");
 
-        if ((isAmount && !isUnit) || (!isAmount && isUnit)) {
+        if (hasAmount != hasUnit) {
             searchParams.delete("amount");
             searchParams.delete("unit");
         }
@@ -214,7 +214,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             throw new NoParameterFound("id parameter is missing");
         }
 
-        if (!this.isIngteger(String(parameters.get("id"))) || 
+        if (!this.isInteger(String(parameters.get("id"))) || 
             Number.parseInt(String(parameters.get("id"))) <= 0) {
             throw new IncorrectIDFormat("FoodID has incorrect format.");
         }

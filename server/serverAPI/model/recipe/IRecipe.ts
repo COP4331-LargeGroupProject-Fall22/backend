@@ -48,12 +48,12 @@ export default interface IRecipe extends IBaseRecipe {
     readonly preparationInMinutes: number;
 
     /**
-     * Approximate total cost of the meal.
+     * Approximate total cost of the meal in USD.
      */
     readonly totalCost: number;
 
     /**
-     * Approximate cost of the meal per serving.
+     * Approximate cost of the meal per serving in USD.
      */
     readonly costPerServing: number;
 }

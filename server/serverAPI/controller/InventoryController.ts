@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
-
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
 import INutrient from "../model/nutrients/INutrient";
@@ -164,8 +163,7 @@ export default class InventoryController extends BaseUserController {
             for (let i = 0; i < user.inventory.length; i++) {
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
-                }
-                else {
+                } else {
                     newInventory.push(user.inventory[i]);
                 }
             }

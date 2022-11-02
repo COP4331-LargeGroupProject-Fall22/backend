@@ -17,6 +17,9 @@ export default class AuthenticationController extends BaseController {
     private tokenCreator: TokenCreator<IIdentification>;
     private database: IDatabase<IUser>;
 
+    // 30 minutes in seconds.
+    protected timeoutTimeInSeconds = 30 * 60;
+
     constructor(
         database: IDatabase<IUser>,
         encryptor: Encryptor,
@@ -76,7 +79,7 @@ export default class AuthenticationController extends BaseController {
                     username: user.username
                 };
 
-                let token = this.tokenCreator.sign(identification, 30 * 60);
+                let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
 
                 return this.sendSuccess(200, res, { accessToken: token });
             }, (error) => this.sendError(400, res, this.getException(error)));

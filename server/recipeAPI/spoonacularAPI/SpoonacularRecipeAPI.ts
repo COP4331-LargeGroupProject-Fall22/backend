@@ -42,6 +42,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             "drink"
         ]);
 
+        // Map ServerAPI parameters to spoonacularAPI parameters 
         this.recipeSearchParameters = new Map([
             ['query', 'query'],
             ['cuisines', 'cuisine'],
@@ -59,14 +60,13 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @param parameters parameters used for searching.
      * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
      * - resultsPerPage - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that definds page number.     
+     * - page - optional parameter that defines page number.
      * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
      * - cuisines - optional parameter that limits search results to specific cuisines.
      * - mealTypes - optional parameter that limits search results to specific meal types.
-     * 
      * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
-     * @returns Promise filled with a collection of Partial<IRecipe> objects.
+     * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items wasn't found.
      */
     async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
@@ -233,7 +233,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             }
         }
 
-        instructions = instructions.slice(0, instructions.length - 1);
+        // Removes last whitespace.
+        instructions = instructions.slice(instructions.length - 1);
 
         return {
             instructions: instructions,
@@ -282,10 +283,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @param parameters parameters used for searching.
      * - id - required parameter that defines unique identifier of the Recipe item
-     * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws IncorrectIDFormat exception when unique identifier has incorrect format.
-     * 
      * @returns Promise filled with a IRecipe object or null when Recipe item wasn't found.
      */
     async Get(parameters: Map<string, any>): Promise<IRecipe | null> {

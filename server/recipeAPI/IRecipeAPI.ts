@@ -8,11 +8,15 @@ export default interface IRecipeAPI {
      * 
      * @param parameters parameters used for searching.
      * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
-     * - resultsPerPage - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that definds page number.     
-     * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
-     * - cuisine - optional parameter that limits search results to specific cuisines.
-     * - mealType - optional parameter that limits search results to specific meal types.
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned. (default = 100)
+     * - page - optional parameter that definds page number. (default = 1)
+     * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching. (default = none)
+     * - cuisine - optional parameter that limits search results to specific cuisines. (default = none)
+     * - mealType - optional parameter that limits search results to specific meal types. (default = none)
+     * 
+     * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
+     * Complete list of mealTypes is available at // https://spoonacular.com/food-api/docs#Meal-Types
+     * 
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
