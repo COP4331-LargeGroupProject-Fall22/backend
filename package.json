@@ -4,7 +4,7 @@
   "description": "This is a full stack web+mobile app with a custom backend that aims to help people use their leftovers by inventorying the food they have and suggesting recipes they can make with their ingredients.",
   "main": "Server.js",
   "engines": {
-    "node": ">=18.10.0"
+    "node": "18.12.0"
   },
   "scripts": {
     "test": "jest --verbose",
