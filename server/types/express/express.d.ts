@@ -22,6 +22,9 @@ declare global {
         interface ProcessEnv {
             PORT: number;
             NODE_ENV: string;
+            
+            LOCAL_MONGODB_CONNECTION_STRING: string;
+            MONGODB_CONNECTION_STRING: string;
 
             DB_CONNECTION_STRING_TESTING: string;
             DB_CONNECTION_STRING: string;
@@ -35,8 +38,6 @@ declare global {
             SPOONACULAR_GROCERY_PRODUCT_BASE_URL: string;
             SPOONACULAR_RECIPE_BASE_URL: string;
 
-            FIREBASE_ADMIN_SERVICE_ACCOUNT: string;
-            
             PRIVATE_KEY_FOR_USER_TOKEN: string;
         }
 
