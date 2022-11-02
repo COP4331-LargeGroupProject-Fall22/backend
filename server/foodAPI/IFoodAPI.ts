@@ -30,5 +30,6 @@ export default interface IFoodAPI {
      * @returns Promise filled with IFood object on successful search or null.
      */
     Get(parameters: Map<string, any>): Promise<IIngredient | null>;
+
     GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null>;
 }

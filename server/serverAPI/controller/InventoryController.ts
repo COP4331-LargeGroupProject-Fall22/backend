@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
+import IFoodAPI from "../../foodAPI/IFoodAPI";
 
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
@@ -12,8 +13,11 @@ import BaseUserController from "./BaseUserController";
  * provided to the user.
  */
 export default class InventoryController extends BaseUserController {
-    constructor(database: IDatabase<IUser>) {
+    private foodAPI: IFoodAPI;
+
+    constructor(database: IDatabase<IUser>, foodAPI: IFoodAPI) {
         super(database);
+        this.foodAPI = foodAPI;
     }
 
     private parseNutrients(data: any): INutrient[] {
@@ -113,7 +117,7 @@ export default class InventoryController extends BaseUserController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(user => {
+        return this.requestGet(parameters, res).then(async user => {
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -123,6 +127,20 @@ export default class InventoryController extends BaseUserController {
 
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
+
+                    let nutrients = ingredientToAdd.nutrients;
+                    let quantity = ingredientToAdd.quantity;
+
+                    if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
+                        quantity = req.body.quantity;
+                    
+                        let ingredient = await this.foodAPI.Get(new Map([
+                            ["id", ingredientToAdd.id],
+                            ["quantity", req.body.value],
+                            ["unit", req.body.unit]
+                        ]));
+
+                    }
 
                     ingredientToAdd = {
                         id: Number.parseInt(req.params.foodID),

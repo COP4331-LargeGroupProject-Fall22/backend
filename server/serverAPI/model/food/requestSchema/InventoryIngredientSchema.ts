@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsNumber, IsPositive, IsString, validate, ValidateNested } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsObject, IsPositive, IsString, validate, ValidateNested } from "class-validator";
 import ISchema from "../../ISchema";
 import INutrient from "../../nutrients/INutrient";
 import IUnit from "../../unit/IUnit";

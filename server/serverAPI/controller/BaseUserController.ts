@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import IDatabase from "../../database/IDatabase";
+import ISchema from "../model/ISchema";
 import IUser from "../model/user/IUser";
 import IUserResponse from "../model/user/responseSchema/IUserResponse";
 import BaseController from "./BaseController";
@@ -20,6 +21,7 @@ export default class BaseUserController extends BaseController {
             lastSeen: user.lastSeen
         }
     }
+
     protected async requestCreate(user: IUser, res: Response): Promise<IUser> {
         return this.database.Create(user).then(createdUser => {
             if (createdUser === null) {
