@@ -16,6 +16,11 @@ export default interface IRecipe extends IBaseRecipe {
      * Collection of diets to which recipe belongs.
      */
     readonly diets: string[];
+
+    /**
+     * Type of the dish that is going to be cooked. e.g. main dish, dessert etc.
+     */
+    readonly mealTypes: string[];
     
     /**
      * Complete instructions including all needed ingredients and cooking instructions.
@@ -43,12 +48,12 @@ export default interface IRecipe extends IBaseRecipe {
     readonly preparationInMinutes: number;
 
     /**
-     * Type of the dish that is going to be cooked. e.g. main dish, dessert etc.
+     * Approximate total cost of the meal in USD.
      */
-    readonly mealType: string;
+    readonly totalCost: number;
 
     /**
-     * Approximate total cost of ingredients.
+     * Approximate cost of the meal per serving in USD.
      */
-    readonly totalCost:number;
+    readonly costPerServing: number;
 }

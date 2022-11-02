@@ -1,4 +1,4 @@
-export default interface IBaseFood {
+export default interface IBaseIngredient {
     /**
      * Unique food identifier.
      */

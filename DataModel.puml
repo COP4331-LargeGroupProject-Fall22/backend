@@ -1,0 +1,99 @@
+@startuml
+
+interface IBaseRecipe {
+    + id: number
+    + name: string
+}
+
+interface IRecipe extends IBaseRecipe {
+    + cuisines: string[]
+    + diets: string[] 
+    + mealTypes: string[]
+
+    + intolerances: string[]
+
+    + instruction: IInstruction
+    + instructionSteps: IInstruction[]
+    
+    + servings: number
+    
+    + cookingTimeInMinutes: number
+    + preparationInMinutes: number
+    
+    + totalCost: number
+    + costPerServing: number
+}
+
+IInstruction o-- IRecipe
+
+interface IInstruction {
+    + instruction: string
+    + ingredients: IIngredient[]
+}
+
+IIngredient o-- IInstruction
+
+interface IBaseUser {
+    + firstName: string
+    + lastName: string
+    + lastSeen: number
+}
+
+interface IIdentification {
+    + username: string
+}
+
+interface IContactInformation {
+    email?: string
+}
+
+interface ICredentials extends IIdentification {
+    + password: string
+}
+
+interface IBaseIngredient {
+    + id: string
+    + name: string
+    + category: string
+}
+
+interface IIngredient extends IBaseIngredient {
+    + nutrients: INutrient[]
+    + quantity: IUnit
+}
+
+IUnit o-- IIngredient
+
+interface IInventoryIngredient extends IIngredient {
+    + expirationDate: number
+}
+
+interface INutrient {
+    + name: string
+    + unit: IUnit
+    + percentOfDaily: number
+}
+
+interface IUnit {
+    + unit: string
+    + value: number
+}
+
+interface IUser extends IBaseUser, ICredentials, IContactInformation {
+    + inventory: IInventoryIngredient[]
+}
+
+interface ISchema {
+    + validate: any[]
+}
+
+class UserLoginSchema implements ICredentials, ISchema {}
+class UserRegistrationSchema extends UserSchema {}
+class UserSchema implements ICredentials, IBaseUser, ISchema {}
+class InventoryIngredientSchema implements IInventoryIngredient {}
+
+IInventoryIngredient o-- IUser
+INutrient o-- IIngredient
+IUnit o-- INutrient
+
+@enduml

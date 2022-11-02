@@ -1,10 +1,9 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import ISensitiveUser from "../../serverAPI/model/user/ISensitiveUser";
 import UserDatabase from "../../database/UserDatabase";
 import IBaseUser from '../../serverAPI/model/user/IBaseUser';
-import IInternalUser from '../../serverAPI/model/user/IInternalUser';
+import IUser from '../../serverAPI/model/user/IUser';
 
 describe('User database functionality', () => {
     let userDB: UserDatabase
@@ -13,12 +12,55 @@ describe('User database functionality', () => {
     let databaseName = process.env.DB_NAME!;
     let collectionName = process.env.DB_USERS_COLLECTION!;
     
-    let uid: string | undefined;
-    let _id: string | undefined;
+    let mockUser: IUser = {
+        inventory: [{
+            expirationDate: 1231123,
+            name: "Test",
+            id: 234,
+            category: "testCategory",
+            nutrients: [
+                {
+                    name: "nutrientA",
+                    unit: {
+                        unit: "g",
+                        value: 10
+                    },
+                    percentOfDaily: 10.4
+                }
+            ]
+        }],
+        firstName: 'Mikhail',
+        lastName: 'Plekunov',
+        lastSeen: Date.now(),
+        password: '123',
+        username: 'Mekromic'
+    };
 
-    let mockUser: IInternalUser;
+    let mockUpdatedUser: IUser = {
+        firstName: "Alex",
+        lastName: "The Great",
+        lastSeen: 123454093567,
+        inventory: [{
+            expirationDate: 1231123,
+            name: "Test",
+            id: 234,
+            category: "testCategory",
+            nutrients: [
+                {
+                    name: "nutrientB",
+                    unit: {
+                        unit: "g",
+                        value: 10
+                    },
+                    percentOfDaily: 10.4
+                }
+            ]
+        }],
+        password: 'Mekromic',
+        username: 'password'
+    };
+
     let mockUserSummary: IBaseUser;
-    let mockUserUpdated: IInternalUser;
 
     beforeAll(async () => {
         userDB = UserDatabase.connect(
@@ -26,58 +68,12 @@ describe('User database functionality', () => {
             databaseName,
             collectionName
         );
-        
-        mockUser = {
-            firstName: "Mikhail",
-            lastName: "Plekunov",
-            uid: "123op02osiao30kn1",
-            lastSeen: 12345213567,
-            inventory: [{
-                expirationDate: 1231123,
-                name: "Test",
-                id: 234,
-                category: "testCategory",
-                nutrients: [
-                    {
-                        name: "nutrientA",
-                        unit: {
-                            unit: "g",
-                            value: 10
-                        },
-                        percentOfDaily: 10.4
-                    }
-                ]
-            }]
-        };
 
         mockUserSummary = {
-            firstName: "Mikhail",
-            lastName: "Plekunov",
-            lastSeen: 12345213567
+            firstName: mockUser.firstName,
+            lastName: mockUser.lastName,
+            lastSeen: mockUser.lastSeen
         };
-
-        mockUserUpdated = {
-            firstName: "Alex",
-            lastName: "The Great",
-            uid: "123lk02psiao30412",
-            lastSeen: 123454093567,
-            inventory: [{
-                expirationDate: 1231123,
-                name: "Test",
-                id: 234,
-                category: "testCategory",
-                nutrients: [
-                    {
-                        name: "nutrientB",
-                        unit: {
-                            unit: "g",
-                            value: 10
-                        },
-                        percentOfDaily: 10.4
-                    }
-                ]
-            }]
-        }
     });
 
     afterAll(async () => {
@@ -87,8 +83,6 @@ describe('User database functionality', () => {
     describe('create', () => {
         it('create user ', async () => {
             let actual = await userDB.Create(mockUser);
-            uid = actual?.uid;
-            _id = actual?.id;
             
             expect(actual).toMatchObject(mockUser);
         });
@@ -101,21 +95,10 @@ describe('User database functionality', () => {
             expect(actual).toMatchObject([mockUserSummary]);
         });
 
-        it('get user by uid', async () => {
-            expect(uid).not.toBeUndefined();
+        it('get user by username', async () => {
 
             let actual = await userDB.Get(new Map<String, any>([
-                ["uid", uid]
-            ]));
-
-            expect(actual).toMatchObject(mockUser);
-        });
-
-        it ('get user by _id', async () => {
-            expect(_id).not.toBeUndefined();
-
-            let actual = await userDB.Get(new Map<String, any>([
-                ["_id", _id]
+                ["username", mockUser.username]
             ]));
 
             expect(actual).toMatchObject(mockUser);
@@ -123,20 +106,16 @@ describe('User database functionality', () => {
     });
 
     describe('update', () => {
-        it ('update user info by _id', async () => {
-           expect(_id).not.toBeUndefined();
-           
-           let actual = await userDB.Update(_id!, mockUserUpdated);
+        it ('update user info by username', async () => {           
+           let actual = await userDB.Update(mockUser.username, mockUpdatedUser);
 
-           expect(actual).toMatchObject(mockUserUpdated);
+           expect(actual).toMatchObject(mockUpdatedUser);
         });
     });
 
     describe('delete', () => {
-        it ('delete user by _id', async () => {
-            expect(_id).not.toBeUndefined();
-
-            let actual = await userDB.Delete(_id!);
+        it ('delete user by username', async () => {
+            let actual = await userDB.Delete(mockUpdatedUser.username);
 
             expect(actual).toBeTruthy();
         });

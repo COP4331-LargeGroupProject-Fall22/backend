@@ -1,17 +1,12 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { MongoClient, Collection, Db, ObjectId, Filter, WithId } from 'mongodb';
+import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
 import { exit } from 'process';
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
-import IncorrectSchema from '../exceptions/IncorrectSchema';
-import NoParameterFound from '../exceptions/NoParameterFound';
-import IInternalUser from '../serverAPI/model/user/IInternalUser';
-import InternalUserSchema from '../serverAPI/model/user/InternalUserSchema';
-import ISensitiveUser from '../serverAPI/model/user/ISensitiveUser';
+import IUser from '../serverAPI/model/user/IUser';
 
-import { Validator } from '../utils/Validator';
 import IDatabase from './IDatabase';
 
 /**
@@ -21,20 +16,24 @@ import IDatabase from './IDatabase';
  * It also uses Singleton design pattern. As such, there is only one database instance that will be created through out
  * execution lifetime.
  */
-export default class UserDatabase implements IDatabase<IInternalUser> {
+export default class UserDatabase implements IDatabase<IUser> {
     private static instance?: UserDatabase;
 
     protected client!: MongoClient;
 
     protected database!: Db;
-    protected collection!: Collection<IInternalUser>;
+    protected collection!: Collection<IUser>;
 
-    private constructor(mongoURL: string, databaseName: string, collectionName: string) {
+    private constructor(
+        mongoURL: string,
+        databaseName: string,
+        collectionName: string,
+    ) {
         try {
             this.client = new MongoClient(mongoURL);
 
             this.database = this.client.db(databaseName);
-            this.collection = this.database.collection<IInternalUser>(collectionName);
+            this.collection = this.database.collection<IUser>(collectionName);
 
             return this;
         } catch (e) {
@@ -57,7 +56,11 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * 
      * @returns UserDatabase object.
      */
-    static connect(mongoURL: string, name: string, collection: string): UserDatabase {
+    static connect(
+        mongoURL: string,
+        name: string,
+        collection: string,
+    ): UserDatabase {
         if (UserDatabase.instance === undefined) {
             UserDatabase.instance = new UserDatabase(mongoURL, name, collection);
         }
@@ -79,75 +82,22 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * Retrieves general information about all user objects stored in the database. 
      * 
      * @param parameters query parameters used for searching.
-     * @returns Promise filled with IBaseUser or null if useres weren't found.
+     * @returns Promise filled with IBaseUser or null if users weren't found.
      */
-    async GetAll(parameters?: Map<String, any>): Promise<IInternalUser[] | null> {
-        const users = this.collection.find();
+    async GetAll(parameters?: Map<String, any>): Promise<IUser[] | null> {
+        return this.collection.find().toArray().then(users => {
+            if (users.length === 0) {
+                return Promise.resolve(null);
+            }
 
-        let userArr = await users.toArray();
-
-        if (userArr.length == 0) {
-            return new Promise(resolve => resolve(null));
-        }
-
-        let internalUsers: IInternalUser[] = [];
-        userArr.forEach(user => internalUsers.push(this.convertToIInternalUser(user)));
-
-        return userArr;
-    }
-
-    private convertToIInternalUser(user: WithId<IInternalUser>): IInternalUser {
-        return {
-            id: user._id.toString(),
-            firstName: user.firstName,
-            lastName: user.lastName,
-            lastSeen: user.lastSeen,
-            uid: user.uid,
-            inventory: user.inventory
-        };
-    }
-
-    /**
-     * Attempts to convert ISensitiveUser to UserSchema.
-     * 
-<<<<<<< HEAD
-     * @param user IUser object
-     * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
-     * @return UserSchema if conversion was successful.
-=======
-     * @param user IUser object.
-     * @throws IncorrectSchema exception when IUser doesn't have correct format.
-     * @return UserScema if conversion was successful.
->>>>>>> add-client-server-interface-for-recipeAPI
-     */
-    private async convertToUserSchema(user: IInternalUser): Promise<IInternalUser> {
-        let definedUser = new InternalUserSchema(
-            user.firstName,
-            user.lastName,
-            user.uid
-        );
-
-        definedUser.inventory = user.inventory;
-        definedUser.lastSeen = user.lastSeen;
-
-        let logs = new Validator().validate(definedUser);
-
-        if ((await logs).length > 0) {
-            throw new IncorrectSchema(`User object doesn't have correct format.\n${logs}`);
-        }
-
-        return definedUser;
+            return Promise.resolve(users);
+        }, () => Promise.resolve(null));
     }
 
     /**
     * Attempts to convert id to ObjectID.
     * 
-<<<<<<< HEAD
     * @param id unique identifier of the user that is used internally in the database.
-    * 
-=======
-    * @param id unique identifier of the user that is used internally in the MongoDB.
->>>>>>> add-client-server-interface-for-recipeAPI
     * @throws EmptyID exception when id is empty.
     * @throws IncorrectIDFormat exception when id has incorrect format.
     * @return ObjectID if conversion was successful.
@@ -169,81 +119,77 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * Retrieves complete information about specific user defined by user's _id.
      * 
      * @param parameters query parameters used for searching.
+     *  One of two parameters required. If both provided, the result will have to satisfy both parameters
      * - _id - required parameter that defines user's _id.
+     * - username - required parameter that defines unique user's username.
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
-     * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
+     * @returns Promise filled with IUser object or null if user wasn't found.
      */
-    async Get(parameters: Map<String, any>): Promise<IInternalUser | null> {
+    async Get(parameters: Map<String, any>): Promise<IUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
-
-        if (filter._id === undefined && filter.uid === undefined) {
-            throw new NoParameterFound("Need to provide either _id or uid");
-        }
 
         if (filter._id !== undefined) {
             filter._id = this.convertToObjectID(filter._id);
         }
 
-        let user = await this.collection.findOne(filter);
+        return this.collection.findOne(filter).then(user => {
+            if (user === null) {
+                return Promise.resolve(null);
+            }
 
-        if (user === null) {
-            return Promise.resolve(null);
-        }
-
-        return this.convertToIInternalUser(user);
+            return Promise.resolve(user);
+        }, () => Promise.resolve(null));
     }
 
     /**
      * Retrieves complete information about specific user defined by only user's _id.
      * 
-<<<<<<< HEAD
      * @param id unique identifier of the user that is used internally in the database.
      * 
-     * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
-=======
-     * @param id unique identifier of the user that is used internally in the MongoDB.
      * @returns Promise filled with IUser object or null if user wasn't found.
->>>>>>> add-client-server-interface-for-recipeAPI
      */
-    private async GetUserByObjectId(id: ObjectId): Promise<IInternalUser | null> {
-        const user = await this.collection.findOne(
-            { "_id": id }
-        );
+    private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
+        return this.collection.findOne({ "_id": id }).then(user => {
+            if (user === null) {
+                return Promise.resolve(null);
+            }
 
-        if (user === null) {
-            return Promise.resolve(null);
-        }
+            return Promise.resolve(user);
+        }, () => Promise.resolve(null));
+    }
 
-        return this.convertToIInternalUser(user);
+    private async GetUserByUsername(username: string): Promise<IUser | null> {
+        return this.collection.findOne({ "username": username }).then(user => {
+            if (user === null) {
+                return Promise.resolve(null);
+            }
+
+            return Promise.resolve(user);
+        }, () => Promise.resolve(null));
     }
 
     /**
      * Creates user object in the database.
      * 
      * @param user IUser object filled with information about user.
-<<<<<<< HEAD
-     * 
-     * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
-     * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
-=======
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @returns Promise filled with IUser object or null if user wasn't created.
->>>>>>> add-client-server-interface-for-recipeAPI
      */
-    async Create(user: IInternalUser): Promise<IInternalUser | null> {
-        let userSchema = await this.convertToUserSchema(user)
+    async Create(user: IUser): Promise<IUser | null> {
+        let newUser = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            password: user.password,
+            inventory: user.inventory,
+            lastSeen: user.lastSeen
+        };
 
-        let insertResult = await this.collection.insertOne({
-            firstName: userSchema.firstName,
-            lastName: userSchema.lastName,
-            uid: userSchema.uid,
-            inventory: userSchema.inventory,
-            lastSeen: userSchema.lastSeen
-        });
-
-        return this.GetUserByObjectId(insertResult.insertedId);
+        return this.collection.insertOne(newUser).then(result => {
+            return this.GetUserByObjectId(result.insertedId);
+        }, () => Promise.resolve(null));
     }
 
     /**
@@ -251,70 +197,47 @@ export default class UserDatabase implements IDatabase<IInternalUser> {
      * 
      * @param id unique identifier of the user that is used internally in the database.
      * @param user IUser object filled with information about user.
-<<<<<<< HEAD
-     * 
-     * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
-=======
      * @throws IncorrectSchema exception when IUser doesn't have correct format.
->>>>>>> add-client-server-interface-for-recipeAPI
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
-     * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
+     * @returns Promise filled with updated IUser object or null if user wasn't updated.
      */
-    async Update(id: string, user: IInternalUser): Promise<IInternalUser | null> {
-        let userSchema = await this.convertToUserSchema(user);
-
-        let objectID = this.convertToObjectID(id);
-
-        let existingUser = await this.GetUserByObjectId(objectID);
-
-        if (existingUser === null) {
-            return new Promise(resolve => resolve(null));
-        }
-
-        await this.collection.updateOne(
-            { "_id": objectID },
-            {
-                $set:
-                {
-                    "uid": userSchema.uid,
-                    "firstName": userSchema.firstName,
-                    "lastName": userSchema.lastName,
-                    "lastSeen": userSchema.lastSeen,
-                    "inventory": userSchema.inventory
-                }
+    async Update(username: string, user: IUser): Promise<IUser | null> {
+        return this.GetUserByUsername(username).then(async () => {
+            if (username !== user.username && await this.GetUserByUsername(user.username) !== null) {
+                return Promise.resolve(null);
             }
-        );
 
-        return this.GetUserByObjectId(objectID);
+            return this.collection.updateOne(
+                { "username": username },
+                {
+                    $set:
+                    {
+                        "username": user.username,
+                        "password": user.password,
+                        "firstName": user.firstName,
+                        "lastName": user.lastName,
+                        "lastSeen": user.lastSeen,
+                        "inventory": user.inventory
+                    }
+                }
+            ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));
+        }, () => Promise.resolve(null));
     }
 
     /**
      * Deletes user object from database.
      * 
-<<<<<<< HEAD
      * @param id unique identifier of the user that is used internally in the database.
-     * 
-=======
-     * @param id unique identifier of the user that is used internally in the MongoDB.
->>>>>>> add-client-server-interface-for-recipeAPI
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @returns Promise filled with boolean value indication status of the operation.
      */
-    async Delete(id: string): Promise<boolean> {
-        let objectID = this.convertToObjectID(id);
-
-        let existingUser = await this.GetUserByObjectId(objectID);
-
-        if (existingUser === null) {
-            return new Promise(resolve => resolve(false));
-        }
-
-        let deleteResult = await this.collection.deleteOne(
-            { "_id": objectID }
-        );
-
-        return new Promise(resolve => resolve(deleteResult.deletedCount === 1));
+    async Delete(username: string): Promise<boolean> {
+        return this.GetUserByUsername(username).then(() => {
+            return this.collection.deleteOne({ "username": username }).then(result => {
+                return Promise.resolve(result.deletedCount === 1);
+            });
+        }, () => Promise.resolve(false));
     }
 }

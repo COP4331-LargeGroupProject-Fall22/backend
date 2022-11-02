@@ -7,7 +7,6 @@ import SpoonacularFoodAPI from "../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI"
 import SpoonacularRecipeAPI from "../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI";
 import RecipeController from "../controller/RecipeController";
 
-
 export const recipeRoute = express.Router();
 
 let apiKey = process.env.SPOONACULAR_API_KEY;
@@ -21,5 +20,5 @@ const recipeController = new RecipeController(
     )
 );
 
-recipeRoute.get('/', recipeController.searchRecipe)
-recipeRoute.get('/recipe/:recipeID',recipeController.getRecipe);
+recipeRoute.get('/', recipeController.getAll)
+recipeRoute.get('/:recipeID',recipeController.get);

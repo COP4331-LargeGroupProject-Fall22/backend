@@ -77,8 +77,8 @@ describe('Recipe endpoints', () => {
         mockAxios.onGet(process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete").reply(200, []);
 
         let response = await supertest(app)
-            .get(`/recipes/recipe/${mockRecipeID}`);
-        
+            .get(`/recipes/${mockRecipeID}`);
+
         expect(response.body.data).toMatchObject(getAPIResponse)
     });
 })

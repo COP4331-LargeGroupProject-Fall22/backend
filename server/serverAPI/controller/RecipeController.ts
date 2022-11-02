@@ -2,28 +2,20 @@ import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IBaseRecipe from "../model/recipe/IBaseRecipe";
-import IRecipe from "../model/recipe/IRecipe";
+import BaseController from "./BaseController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class RecipeController {
+export default class RecipeController extends BaseController {
     private recipeAPI: IRecipeAPI;
 
     constructor(recipeAPI: IRecipeAPI) {
+        super();
         this.recipeAPI = recipeAPI;
     }
 
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
-        }
-
-        return String(error);
-    }
-    
     /**
      * Lets client to search recipes using specified parameters provided in the URL.
      * Upon successful operation, this handler will return recipe items. 
@@ -31,47 +23,47 @@ export default class RecipeController {
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-    searchRecipe = async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>([
-            ["query", req.query.query]
-        ]);
+    getAll = async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>();
 
-        let recipes: IBaseRecipe[];
-        try {
-            recipes = await this.recipeAPI.SearchRecipe(parameters);
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
+        if (req.query?.query !== undefined) {
+            parameters.set("query", req.query.query);
         }
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipes));
+        if (req.query?.page !== undefined) {
+            parameters.set("page", req.query.page);
+        }
+
+        if (req.query?.resultsPerPage !== undefined) {
+            parameters.set("resultsPerPage", req.query.resultsPerPage);
+        }
+
+        if (req.query?.intolerence !== undefined) {
+            parameters.set("intolerance", req.query.intolerance);
+        }
+
+        return this.recipeAPI.GetAll(parameters).then(recipes => {
+            return this.sendSuccess(200, res, recipes);
+        }, (error) => this.sendSuccess(400, res, this.getException(error)));
     }
 
     /**
-     * Lets client to get information about specific recipe using specified parameters provided in the URL.
-     * Upon successful operation, this handler will return recipe item. 
+     * Gets information about specific recipe using specified parameters provided in the URL.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
      */
-     getRecipe = async (req: Request, res: Response) => {
+    get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([
             ["id", req.params.recipeID]
         ]);
 
-        let recipe: Partial<IRecipe | null>;
-        try {
-            recipe = await this.recipeAPI.GetRecipe(parameters);
-        } catch(error) {
-            res.status(400).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.recipeAPI.Get(parameters).then(recipe => {
+            if (recipe === null) {
+                return this.sendError(404, res,  "Recipe could not be found.");
+            }
 
-        if (recipe === null) {
-            res.status(404).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't find recipe."));
-            return;
-        }
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, recipe));
-    }   
+            return this.sendSuccess(200, res, recipe);
+        }, (error) => this.sendError(400, res, this.getException(error)));
+    }
 }

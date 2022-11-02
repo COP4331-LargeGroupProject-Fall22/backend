@@ -1,133 +1,130 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
-import ResponseFormatter from "../../utils/ResponseFormatter";
-import { ResponseTypes } from "../../utils/ResponseTypes";
-import IInternalUser from "../model/user/IInternalUser";
-import ISensitiveUser from "../model/user/ISensitiveUser";
+import Encryptor from "../../utils/Encryptor";
+import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
+import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
+import TokenCreator from "../../utils/TokenCreator";
+import IIdentification from "../model/user/IIdentification";
+import IUser from "../model/user/IUser";
+import BaseController from "./BaseController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class AuthenticationController {
-    private database: IDatabase<IInternalUser>;
+export default class AuthenticationController extends BaseController {
+    private encryptor: Encryptor;
+    private tokenCreator: TokenCreator<IIdentification>;
+    private database: IDatabase<IUser>;
 
-    constructor(database: IDatabase<IInternalUser>) {
+    // 30 minutes in seconds.
+    protected timeoutTimeInSeconds = 30 * 60;
+
+    constructor(
+        database: IDatabase<IUser>,
+        encryptor: Encryptor,
+        tokenCreator: TokenCreator<IIdentification>
+    ) {
+        super();
+
         this.database = database;
+        this.encryptor = encryptor;
+        this.tokenCreator = tokenCreator;
     }
 
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
-        }
-
-        return String(error);
-    }
-
-    private convertToSensitiveUser(user: ISensitiveUser): ISensitiveUser {
+    private convertToUser(userCredentials: UserRegistrationSchema): IUser {
         return {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            lastSeen: user.lastSeen,
-            inventory: user.inventory
-        };
-    }
-
-    private isAuthorized(req: Request, user: IInternalUser): boolean {
-        return req.uid === user.uid;
+            username: userCredentials.username,
+            password: userCredentials.password,
+            firstName: userCredentials.firstName,
+            lastName: userCredentials.lastName,
+            lastSeen: userCredentials.lastSeen,
+            inventory: []
+        }
     }
 
     /**
      * Logs client into the server using token from authorization header.
-     * Upon successful login operation, this handler will redirect user to the /api/user route.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
     login = async (req: Request, res: Response) => {
+        let userCredentials = new UserLoginSchema(
+            req.body?.username,
+            req.body?.password
+        );
+
+        let logs = await userCredentials.validate();
+
+        if (logs.length > 0) {
+            return this.sendError(400, res, logs);
+        }
+
         let parameters = new Map([
-            ["uid", req.uid]
+            ["username", userCredentials.username]
         ]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.database.Get(parameters).then(user => {
+            if (user === null) {
+                return this.sendError(404, res, "User could not be found.");
+            }
 
-        if (user === null) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User doesn't exist.`));
-            return;
-        }
+            return this.encryptor.compare(userCredentials.password, user.password).then(result => {
+                if (!result) {
+                    return this.sendError(403, res, `User credentials are incorrect.`);
+                }
 
-        if (!this.isAuthorized(req, user)) {
-            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
-            return;
-        }
+                let identification: IIdentification = {
+                    username: user.username
+                };
 
-        let sensitiveUser = this.convertToSensitiveUser(user);
+                let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
 
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
+                return this.sendSuccess(200, res, { accessToken: token });
+            }, (error) => this.sendError(400, res, this.getException(error)));
+        }, (error) => this.sendError(400, res, this.getException(error)));
     }
 
     /**
      * Registers client account on the server.
-     * Client is expected to provide all required information and token in authorization header.
-     * Upon successful register operation, this handler will return full information about registered user. 
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
     register = async (req: Request, res: Response) => {
+        let userCredentials = new UserRegistrationSchema(
+            req.body?.firstName,
+            req.body?.lastName,
+            req.body?.username,
+            req.body?.password
+        );
+
+        let logs = await userCredentials.validate();
+
+        if (logs.length > 0) {
+            return this.sendError(400, res, logs);
+        }
+
         let parameters = new Map([
-            ["uid", req.uid]
+            ["username", userCredentials.username]
         ]);
 
-        let user: ISensitiveUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.database.Get(parameters).then(async user => {
+            if (user !== null) {
+                return this.sendError(400, res, `User with such username already exists.`);
+            }
 
-        if (user !== null) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, `User with such UID already exists.`));
-            return;
-        }
+            let internalUser = this.convertToUser(userCredentials);
+            internalUser.password = await this.encryptor.encrypt(internalUser.password);
 
-        const newUser: IInternalUser = {
-            uid: String(req.uid),
-            firstName: req.body?.firstName,
-            lastName: req.body?.lastName,
-            lastSeen: Date.now(),
-            inventory: []
-        };
+            return this.database.Create(internalUser).then(createdUser => {
+                if (createdUser === null) {
+                    return this.sendError(400, res, `User could not be created.`);
+                }
 
-        let createdUser: ISensitiveUser | null;
-        try {
-            createdUser = await this.database.Create(newUser);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
-
-        if (createdUser === null) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Couldn't create user."));
-            return;
-        }
-
-        let sensitiveUser = this.convertToSensitiveUser(createdUser);
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
+                return this.sendSuccess(200, res);
+            }, (error) => this.sendError(400, res, this.getException(error)));
+        }, (error) => this.sendError(400, res, this.getException(error)))
     }
 }

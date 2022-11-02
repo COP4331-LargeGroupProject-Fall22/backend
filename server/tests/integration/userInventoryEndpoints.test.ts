@@ -5,26 +5,33 @@ import { NextFunction, Request, Response } from "express";
 import supertest from "supertest";
 import { app } from "../../App";
 import UserDatabase from "../../database/UserDatabase";
-import IFoodItem from "../../serverAPI/model/food/IFoodItem";
-import IInternalUser from '../../serverAPI/model/user/IInternalUser';
-import IUser from "../../serverAPI/model/user/ISensitiveUser";
+import IInventoryIngredient from '../../serverAPI/model/food/IInventoryIngredient';
+import IIdentification from '../../serverAPI/model/user/IIdentification';
+import IUser from '../../serverAPI/model/user/IUser';
 
-let mockUser: IInternalUser;
+let mockUser: IUser = {
+    inventory: [],
+    firstName: 'Mikhail',
+    lastName: 'Plekunov',
+    lastSeen: Date.now(),
+    password: '123',
+    username: 'Mekromic'
+};
 
-let mockFood: IFoodItem;
-let mockFoodUpdated: IFoodItem;
+let mockServerUser: IIdentification = {
+    username: mockUser.username
+};
 
 let mockFoodID: number;
 let mockFakeFoodID: number;
 
-let mockUserID: string;
-let mockFakeUserID: string;
-let mockIncorrectUserID: string;
-
-jest.mock('../../serverAPI/middleware/authentication/Authenticator', () => {
+jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
     return function () {
         return {
-            authenticate: (req: Request, res: Response, next: NextFunction) => { next(); }
+            authenticate: () => (req: Request, res: Response, next: NextFunction) => {
+                (req as any).serverUser = mockServerUser;
+                next();
+            }
         };
     }
 });
@@ -41,14 +48,13 @@ let collectionName = process.env.DB_USERS_COLLECTION!;
 
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
+let mockFood: IInventoryIngredient;
+let mockUpdatedFood: IInventoryIngredient;
+
 describe(`User inventory endpoints`, () => {
     beforeAll(() => {
         mockFoodID = 123321;
         mockFakeFoodID = 123;
-
-        mockUserID = '634de9e4938f784f15998696';
-        mockFakeUserID = '634de9e4938f784f15998696';
-        mockIncorrectUserID = "123";
 
         mockFood = {
             expirationDate: 99999,
@@ -67,7 +73,7 @@ describe(`User inventory endpoints`, () => {
             ]
         };
 
-        mockFoodUpdated = {
+        mockUpdatedFood = {
             expirationDate: 77777,
             id: mockFoodID,
             name: "FoodItemB",
@@ -83,47 +89,14 @@ describe(`User inventory endpoints`, () => {
                 }
             ]
         };
-
-        mockUser = {
-            firstName: "Mikhail",
-            lastName: "Plekunov",
-            uid: "123op02osiao30kn1",
-            lastSeen: 12345213567,
-            inventory: []
-        };
     });
 
     describe('Create Food Requests', () => {
-        it(`Create Food Item in user's inventory (user id doesn't exist)`, async () => {
-            let response = await supertest(app)
-                .post(`/users/user/${mockFakeUserID}/foods/food`)
-                .send(`name=${mockFood.name}`)
-                .send(`category=${mockFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
-                .send(`expirationDate=${mockFood.expirationDate}`)
-                .send(`id=${mockFood.id}`);
-
-            expect(response.statusCode).toBe(404);
-        });
-
-        it(`Create Food Item in user's inventory (user id has incorrect format)`, async () => {
-            let response = await supertest(app)
-                .post(`/users/user/${mockIncorrectUserID}/foods/food`)
-                .send(`name=${mockFood.name}`)
-                .send(`category=${mockFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
-                .send(`expirationDate=${mockFood.expirationDate}`)
-                .send(`id=${mockFood.id}`);
-
-            expect(response.statusCode).toBe(400);
-        });
-
         it(`Create Food Item in user's inventory (food item is unique)`, async () => {
-            let expected = await UserDatabase.getInstance()?.Create(mockUser);
-            mockUser = expected!;
+            await UserDatabase.getInstance()?.Create(mockUser);
 
             let response = await supertest(app)
-                .post(`/users/user/${mockUser.id}/foods/food`)
+                .post(`/user/inventory`)
                 .send(`name=${mockFood.name}`)
                 .send(`category=${mockFood.category}`)
                 .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
@@ -136,7 +109,7 @@ describe(`User inventory endpoints`, () => {
 
         it(`Create Food Item in user's inventory (food item is not unique)`, async () => {
             let response = await supertest(app)
-                .post(`/users/user/${(mockUser as any)._id}/foods/food`)
+                .post(`/user/inventory`)
                 .send(`name=${mockFood.name}`)
                 .send(`category=${mockFood.category}`)
                 .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
@@ -148,52 +121,24 @@ describe(`User inventory endpoints`, () => {
     });
 
     describe('Get Food Requests', () => {
-        it(`Get Food Item from user's inventory (user id doesn't exist)`, async () => {
+        it(`Get Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
-                .get(`/users/user/${mockFakeUserID}/foods/food/${mockFoodID}`);
+                .get(`/user/inventory/${mockFakeFoodID}`);
 
             expect(response.statusCode).toBe(404);
         });
 
-        it(`Get Food Item from user's inventory (user id has incorrect format)`, async () => {
-            let response = await supertest(app)
-                .get(`/users/user/${mockIncorrectUserID}/foods/food/${mockFoodID}`);
-
-            expect(response.statusCode).toBe(400);
-        });
-
-        it(`Get Food Item from user's inventory (food item doesn't exist)`, async () => {
-            let response = await supertest(app)
-                .get(`/users/user/${(mockUser as any)._id}/foods/food/${mockFakeFoodID}`);
-
-            expect(response.statusCode).toBe(400);
-        });
-
         it(`Get Food Item from user's inventory`, async () => {
             let response = await supertest(app)
-                .get(`/users/user/${mockUser.id}/foods/food/${mockFoodID}`);
+                .get(`/user/inventory/${mockFoodID}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject(mockFood);
         });
 
-        it(`Get all Food Items from user's inventory (user id doesn't exist)`, async () => {
-            let response = await supertest(app)
-                .get(`/users/user/${mockFakeUserID}/foods`);
-
-            expect(response.statusCode).toBe(404);
-        });
-
-        it(`Get all Food Items from user's inventory (user id has incorrect format)`, async () => {
-            let response = await supertest(app)
-                .get(`/users/user/${mockIncorrectUserID}/foods`);
-
-            expect(response.statusCode).toBe(400);
-        });
-
         it(`Get all Food Items from user's inventory`, async () => {
             let response = await supertest(app)
-                .get(`/users/user/${mockUser.id}/foods`);
+                .get(`/user/inventory`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject([mockFood]);
@@ -201,81 +146,43 @@ describe(`User inventory endpoints`, () => {
     });
 
     describe(`Update Food Requests`, () => {
-        it(`Update Food Item from user's inventory (user id doesn't exist)`, async () => {
-            let response = await supertest(app)
-                .put(`/users/user/${mockFakeUserID}/foods/food/${mockFoodID}`)
-                .send(`id=${mockFoodUpdated.id}`)
-                .send(`name=${mockFoodUpdated.name}`)
-                .send(`category=${mockFoodUpdated.category}`)
-                .send(`nutrients=${JSON.stringify(mockFoodUpdated.nutrients)}`)
-                .send(`expirationDate=${mockFoodUpdated.expirationDate}`);
-
-            expect(response.statusCode).toBe(404);
-        });
-
-        it(`Update Food Item from user's inventory (user id has incorrect format)`, async () => {
-            let response = await supertest(app)
-                .put(`/users/user/${mockIncorrectUserID}/foods/food/${mockFoodID}`)
-                .send(`id=${mockFoodUpdated.id}`)
-                .send(`name=${mockFoodUpdated.name}`)
-                .send(`category=${mockFoodUpdated.category}`)
-                .send(`nutrients=${JSON.stringify(mockFoodUpdated.nutrients)}`)
-                .send(`expirationDate=${mockFoodUpdated.expirationDate}`);
-
-            expect(response.statusCode).toBe(400);
-        });
-
         it(`Update Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
-                .put(`/users/user/${mockUser.id}/foods/food/${mockFakeFoodID}`)
-                .send(`id=${mockFoodUpdated.id}`)
-                .send(`name=${mockFoodUpdated.name}`)
-                .send(`category=${mockFoodUpdated.category}`)
-                .send(`nutrients=${JSON.stringify(mockFoodUpdated.nutrients)}`)
-                .send(`expirationDate=${mockFoodUpdated.expirationDate}`);
+                .put(`/user/inventory/${mockFakeFoodID}`)
+                .send(`id=${mockFood.id}`)
+                .send(`name=${mockFood.name}`)
+                .send(`category=${mockFood.category}`)
+                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
+                .send(`expirationDate=${mockFood.expirationDate}`);
 
             expect(response.statusCode).toBe(404);
         });
 
         it(`Update Food Item from user's inventory`, async () => {
             let response = await supertest(app)
-                .put(`/users/user/${mockUser.id}/foods/food/${mockFoodID}`)
-                .send(`id=${mockFoodUpdated.id}`)
-                .send(`name=${mockFoodUpdated.name}`)
-                .send(`category=${mockFoodUpdated.category}`)
-                .send(`nutrients=${JSON.stringify(mockFoodUpdated.nutrients)}`)
-                .send(`expirationDate=${mockFoodUpdated.expirationDate}`);
+                .put(`/user/inventory/${mockFoodID}`)
+                .send(`id=${mockUpdatedFood.id}`)
+                .send(`name=${mockUpdatedFood.name}`)
+                .send(`category=${mockUpdatedFood.category}`)
+                .send(`nutrients=${JSON.stringify(mockUpdatedFood.nutrients)}`)
+                .send(`expirationDate=${mockUpdatedFood.expirationDate}`);
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject([mockFoodUpdated]);
+            expect(response.body.data).toMatchObject([mockUpdatedFood]);
         });
     });
 
     describe(`Delete Food Requests`, () => {
-        it(`Delete Food Item from user's inventory (user id doesn't exist)`, async () => {
-            let response = await supertest(app)
-                .delete(`/users/user/${mockFakeUserID}/foods/food/${mockFoodID}`);
-
-            expect(response.statusCode).toBe(404);
-        });
-
-        it(`Delete Food Item from user's inventory (user id has incorrect format)`, async () => {
-            let response = await supertest(app)
-                .delete(`/users/user/${mockIncorrectUserID}/foods/food/${mockFoodID}`);
-
-            expect(response.statusCode).toBe(400);
-        });
-
         it(`Delete Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
-                .delete(`/users/user/${mockUser.id}/foods/food/${mockFakeFoodID}`);
+                .delete(`/user/inventory/${mockFakeFoodID}`);
 
             expect(response.statusCode).toBe(404);
         });
 
         it(`Delete Food Item from user's inventory`, async () => {
             let response = await supertest(app)
-                .delete(`/users/user/${mockUser.id}/foods/food/${mockFoodID}`);
+                .delete(`/user/inventory/${mockFoodID}`);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toStrictEqual([]);

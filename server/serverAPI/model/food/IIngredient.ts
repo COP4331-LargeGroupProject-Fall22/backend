@@ -1,10 +1,10 @@
 import INutrient from "../nutrients/INutrient";
-import IBaseFood from "./IBaseFood";
+import IBaseIngredient from "./IBaseIngredient";
 
 /**
  * Food interface.
  */
-export default interface IFood extends IBaseFood {
+export default interface IIngredient extends IBaseIngredient {
     /**
      * Collection of nutrients that food contains.
      */

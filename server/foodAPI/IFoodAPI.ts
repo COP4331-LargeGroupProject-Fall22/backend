@@ -1,44 +1,36 @@
-import IBaseFood from "../serverAPI/model/food/IBaseFood";
-import IFood from "../serverAPI/model/food/IFood";
+import IBaseIngredient from "../serverAPI/model/food/IBaseIngredient";
+import IIngredient from "../serverAPI/model/food/IIngredient";
 
 export default interface IFoodAPI {
     /**
      * Retrieves collection of food items that satisfy searching parameters.
      * 
      * @param parameters query parameters used for searching.
-     * - query - required parameter that defines the name of the Food Item (partial names are accepted, not case sensitive).
-     * - number - optional parameter that defines max number of the results to be returned.
-     * - intolerance - optional parameter that defines the type of intolerences to be taken in consideration during searching.
+     * - query - required parameter that defines the name of the Food Item (partial names are accepted).
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned. (default = 100)
+     * - page - optional parameter that definds page number. (default = 1)
+     * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching. (default = none)
      * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of IFood objects.
      */
-    SearchFood(parameters: Map<string, any>): Promise<IBaseFood[]>;
+    GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null>;
 
     /**
      * Retrieves food item that is specified by searching parameters.
      * 
      * @param parameters query parameters used for searching.
      * - id - required parameter that defines unique identifier of the Food Item.
-     * - amount - optional parameter that defines max number of the food items. (default = 1)
+     * - quantity - optional parameter that defines the amount of that food items. (default = 1)
+     * - unit - optional parameter that defines the unit for given amount. (default = serving)
      * 
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @throws NoParameterFound exception when required parameters weren't found. 
      * @returns Promise filled with IFood object on successful search or null.
      */
-    GetFood(parameters: Map<string, any>): Promise<IFood | null>;
+    Get(parameters: Map<string, any>): Promise<IIngredient | null>;
 
-    /**
-     * Retrieves food item that is specified by searching parameters.
-     * 
-     * @param parameters query parameters used for searching.
-     * - upc - required parameter that defines UPC of the Food Item.
-     * 
-     * @throws IncorrectIDFormat exception when id has incorrect format.
-     * @throws NoParameterFound exception when required parameters weren't found. 
-     * @returns Promise filled with IFood object on successful search or null.
-     */
-    //TODO(#57): add support for UPC
-    GetFoodByUPC(parameters: Map<string, any>): Promise<IFood | null>;
+    // TODO(#57): add support for UPC
+    GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null>;
 }

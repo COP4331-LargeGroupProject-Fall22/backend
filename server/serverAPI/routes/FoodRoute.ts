@@ -15,7 +15,6 @@ const foodController = new FoodController(
     new SpoonacularFoodAPI(apiKey, apiHost)
 );
 
-// TODO(#55): change routes
-foodRoute.get('/', foodController.searchFood)
-foodRoute.get('/food/:foodID',foodController.getFood);
-foodRoute.get('/food/upc/:upc', foodController.getFoodByUPC);
+foodRoute.get('/', foodController.getAll)
+foodRoute.get('/:foodID',foodController.get);
+foodRoute.get('/upc/:upc', foodController.getByUPC);

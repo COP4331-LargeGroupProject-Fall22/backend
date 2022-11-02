@@ -6,8 +6,9 @@ import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
 import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
 import IFoodAPI from '../../foodAPI/IFoodAPI';
-import IFood from '../../serverAPI/model/food/IFood';
+import IIngredient from '../../serverAPI/model/food/IIngredient';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
+import INutrient from '../../serverAPI/model/nutrients/INutrient';
 import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
 import IRecipe from "../../serverAPI/model/recipe/IRecipe";
 import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
@@ -17,17 +18,17 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     protected foodAPI: IFoodAPI;
 
     // https://spoonacular.com/food-api/docs#Search-Recipes-Complex
-    protected recipeSearchParameters: Set<string>;
+    protected recipeSearchParameters: Map<string, string>;
 
-    // https://spoonacular.com/food-api/docs#Diets
-    protected dishTypes: Set<string>;
+    // https://spoonacular.com/food-api/docs#Meal-Types
+    protected mealTypes: Set<string>;
 
     constructor(apiKey: string, apiHost: string, foodAPI: IFoodAPI) {
         super(apiKey, apiHost);
 
         this.foodAPI = foodAPI;
 
-        this.dishTypes = new Set([
+        this.mealTypes = new Set([
             "main course",
             "side dish",
             "dessert",
@@ -41,13 +42,15 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             "drink"
         ]);
 
-        this.recipeSearchParameters = new Set([
-            'query',
-            'cuisine',
-            'diet',
-            'intolerances',
-            'includeIngredients',
-            'type'
+        // Map ServerAPI parameters to spoonacularAPI parameters 
+        this.recipeSearchParameters = new Map([
+            ['query', 'query'],
+            ['cuisines', 'cuisine'],
+            ['diets', 'diet'],
+            ['intolerances', 'intolerances'],
+            ['mealTypes', 'type'],
+            ['resultsPerPage', 'number'],
+            ['page', 'offset']
         ]);
     }
 
@@ -56,17 +59,16 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @param parameters parameters used for searching.
      * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
-     * - number - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that defines page number for pagination.
-     * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching.
-     * - cuisine - optional parameter that limits search results to specific cuisines.
-     * - type - optional parameter that limits search results to specific dish types.
-     * 
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned.
+     * - page - optional parameter that defines page number.
+     * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
+     * - cuisines - optional parameter that limits search results to specific cuisines.
+     * - mealTypes - optional parameter that limits search results to specific meal types.
      * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
-     * @returns Promise filled with a collection of Partial<IRecipe> objects.
+     * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items weren't found.
      */
-    async SearchRecipe(parameters: Map<string, any>): Promise<IBaseRecipe[]> {
+    async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
@@ -74,6 +76,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let response = await this.sendRequest(searchRecipeURL, urlSearchParameters);
 
         let jsonArray: any[] = response.results;
+
         let recipeArray: IBaseRecipe[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
@@ -82,7 +85,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             );
         }
 
-        return recipeArray;
+        return recipeArray.length === 0 ? null : recipeArray;
     }
 
     /**
@@ -90,11 +93,11 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * 
      * @param parameters parameters used for searching.
      * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
-     * - number - optional parameter that defines max number of the results to be returned.
-     * - page - optional parameter that defines page number for pagination.
-     * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching.
+     * - resultsPerPage - optional parameter that defines max number of the results to be returned.
+     * - page - optional parameter that definds page number.     
+     * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
      * - cuisine - optional parameter that limits search results to specific cuisines.
-     * - type - optional parameter that limits search results to specific dish types.
+     * - mealType - optional parameter that limits search results to specific meal types.
      * 
      * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
@@ -110,15 +113,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         }
 
         keys.forEach(key => {
-            if (this.recipeSearchParameters.has(String(key))) {
-                if (key === "page") {
-                    searchParameters.append("offset", String(parameters.get(key)));
-                } else {
-                    searchParameters.append(key, String(parameters.get(key)));
-                }
-            }
-            else {
-                throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
+            if (this.recipeSearchParameters.has(key)) {
+                searchParameters.append(String(this.recipeSearchParameters.get(key)), parameters.get(key));
+            } else {
+                throw new ParameterIsNotAllowed(`${key} parameter is not allowed.`);
             }
         });
 
@@ -132,7 +130,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         return {
             id: recipeObject.id,
             name: recipeObject.title
-        }
+        };
     }
 
     /**
@@ -142,10 +140,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @returns Promise filled with IRecipe object.
      */
     protected async parseRecipe(recipeObject: any): Promise<IRecipe> {
-        let types: string = this.parseDishTypes(recipeObject.dishTypes);
-
         let instructionSteps: IInstruction[] = await this.parseInstructionSteps(recipeObject);
-
         let instruction: IInstruction = await this.combineInstructionSteps(instructionSteps);
 
         return {
@@ -153,14 +148,27 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             name: recipeObject.title,
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
-            mealType: types,
+            mealTypes: recipeObject.dishTypes,
             instruction: instruction,
             instructionSteps: instructionSteps,
             servings: recipeObject.servings,
             preparationInMinutes: recipeObject.preparationMinutes,
             cookingTimeInMinutes: recipeObject.readyInMinutes,
-            totalCost: recipeObject.pricePerServing * recipeObject.servings
+            totalCost: recipeObject.pricePerServing * recipeObject.servings,
+            costPerServing: recipeObject.pricePerServing
+        };
+    }
+
+    private parseIngredients(ingredientObjects: any[]): IIngredient[] {
+        let ingredients: IIngredient[] = [];
+
+        for (let i = 0; i < ingredientObjects.length; i++) {
+            ingredients.push(
+                this.parseIngredient(ingredientObjects[i])
+            );
         }
+
+        return ingredients;
     }
 
     /**
@@ -171,25 +179,28 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      */
     protected async parseInstructionSteps(recipeObject: any): Promise<IInstruction[]> {
         let instructions: any[] = recipeObject.analyzedInstructions[0].steps;
+        let ingredients: IIngredient[] = this.parseIngredients(recipeObject.nutrition.ingredients);
+
+        let ingredientMap: Map<number, IIngredient> = new Map();
+        
+        ingredients.forEach(ingredient => {
+            if (!ingredientMap.has(ingredient.id)) {
+                ingredientMap.set(ingredient.id, ingredient);
+            }
+        });
 
         let instructionSteps: IInstruction[] = [];
 
-        let ingredientMap: Map<string, IFood> = new Map();
-
         for (let i = 0; i < instructions.length; i++) {
-            let ingredients: any[] = instructions[i].ingredients;
-            let parsedIngredients: IFood[] = [];
+            let stepIngredients: any[] = instructions[i].ingredients;
+            let parsedIngredients: IIngredient[] = [];
 
-            for (let j = 0; j < ingredients.length; j++) {
-                let hashIngredient = JSON.stringify(ingredients[j]);
-                let parsedIngredient: IFood;
+            for (let j = 0; j < stepIngredients.length; j++) {
+                let key = Number.parseInt(stepIngredients[j].id);
 
-                if (!ingredientMap.has(hashIngredient)) {
-                    parsedIngredient = await this.parseIngredient(ingredients[j]);
-                    ingredientMap.set(hashIngredient, parsedIngredient);
+                if (ingredientMap.has(key)) {
+                    parsedIngredients.push(ingredientMap.get(key)!);
                 }
-
-                parsedIngredients.push(ingredientMap.get(hashIngredient)!);
             }
 
             instructionSteps.push({
@@ -202,42 +213,31 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     }
 
     /**
-     * Hashing an object.
-     * 
-     * @param food Ifood object.
-     * @returns pseudo hash of he food object.
-     */
-    private calculateFoodHash(food: IFood): string {
-        return "#" + String(food.id) + "#" + food.name + "#" + food.category + "#" + String(food.nutrients);
-    }
-
-    /**
      * Combines collection of instructions into one global Instruction object.
      * 
      * @param instructionSteps collection of Instruction objects.
      * @returns Promise filled with Instruction object.
      */
     protected async combineInstructionSteps(instructionSteps: IInstruction[]): Promise<IInstruction> {
-        let ingredientsMap: Map<string, IFood> = new Map();
-        let instrucions: string = "";
+        let ingredientsMap: Map<number, IIngredient> = new Map();
+        let instructions: string = "";
 
         for (let i = 0; i < instructionSteps.length; i++) {
             let ingredients = instructionSteps[i].ingredients;
-            instrucions += instructionSteps[i].instructions + " ";
+            instructions += instructionSteps[i].instructions + " ";
 
             for (let j = 0; j < ingredients.length; j++) {
-                let foodHash = this.calculateFoodHash(ingredients[j]);
-
-                if (!ingredientsMap.has(foodHash)) {
-                    ingredientsMap.set(foodHash, ingredients[j]);
+                if (!ingredientsMap.has(ingredients[j].id)) {
+                    ingredientsMap.set(ingredients[j].id, ingredients[j]);
                 }
             }
         }
 
-        instrucions = instrucions.slice(0, instrucions.length - 1);
+        // Removes last whitespace.
+        instructions = instructions.slice(0, instructions.length - 1);
 
         return {
-            instructions: instrucions,
+            instructions: instructions,
             ingredients: Array.from(ingredientsMap.values())
         };
     }
@@ -248,78 +248,65 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @param ingredientObject json object that represents ingredient in the API.
      * @returns Promise filled with IFood object.
      */
-    protected async parseIngredient(ingredientObject: any): Promise<IFood> {
-        let parsedName = ingredientObject.name !== undefined ? ingredientObject.name : "undefined";
-        let parsedID = ingredientObject.id !== undefined ? ingredientObject.id : -1;
-        let parsedCategory = ingredientObject.aisle !== undefined ? ingredientObject.aisle : "";
+    protected parseIngredient(ingredientObject: any): IIngredient {
+        let id = ingredientObject.id;
+        let name = ingredientObject.name;
+        let category = "";
 
-        // Is there any other way to avoid "exception eating"
-        // 1 request call to API
-        let food: IFood | null;
-        try {
-            food = await this.foodAPI.GetFood(new Map([["id", parsedID]]));
+        let nutrients: INutrient[] = [];
 
-            if (food !== null) {
-                return food;
-            }
-        } catch (error) { }
-
-        return {
-            id: parsedID,
-            name: parsedName,
-            category: parsedCategory,
-            nutrients: []
-        }
-    }
-
-    /**
-     * Parses dishes to specified format.
-     * 
-     * @param recipeDishTypes types of dishes as collection of string
-     * @returns parsed dishes as string
-     */
-    protected parseDishTypes(recipeDishTypes: string[]): string {
-        let types = "";
-        recipeDishTypes.forEach((type: string) => {
-            if (this.dishTypes.has(type)) {
-                types += type + ", ";
-            }
+        ingredientObject?.nutrients.forEach((nutrient: any) => {
+            nutrients.push({
+                name: nutrient.name,
+                unit: {
+                    unit: nutrient.unit,
+                    value: Number.parseFloat(nutrient.amount)
+                },
+                percentOfDaily: Number.parseFloat(nutrient.percentOfDailyNeeds)
+            });
         });
 
-        types = types.slice(0, types.length - 2);
-
-        return types;
+        return {
+            id: id,
+            name: name,
+            category: category,
+            nutrients: nutrients
+        };
     }
 
+    private isIngteger(number: string): boolean {
+        return Number.isInteger(Number.parseInt(number));
+    }
 
     /**
      * Retrieves specific Recipe item that is defined by unique identifier.
      * 
      * @param parameters parameters used for searching.
      * - id - required parameter that defines unique identifier of the Recipe item
-     * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws IncorrectIDFormat exception when unique identifier has incorrect format.
-     * 
      * @returns Promise filled with a IRecipe object or null when Recipe item wasn't found.
      */
-    async GetRecipe(parameters: Map<string, any>): Promise<IRecipe | null> {
+    async Get(parameters: Map<string, any>): Promise<IRecipe | null> {
         if (!parameters.has("id")) {
             throw new NoParameterFound("Required parameter is missing.");
         }
 
-        let recipeID = Number.parseInt(parameters.get("id"));
-
-        if (Number.isNaN(recipeID) || recipeID < 0) {
-            throw new IncorrectIDFormat("ID should be a positive integer.");
+        if (!this.isIngteger(String(parameters.get("id"))) ||
+            Number.parseInt(String(parameters.get("id"))) <= 0) {
+            throw new IncorrectIDFormat("ID has incorrect format.");
         }
+
+        let recipeID = Number.parseInt(parameters.get("id"));
 
         let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
 
-        let response = await this.sendRequest(getRecipeURL);
+        let searchParameters = new URLSearchParams();
+        searchParameters.set("includeNutrition", "true");
 
-        let jsonObject: any = response;
-        let parsedRecipe = this.parseRecipe(jsonObject);
+        let response = await this.sendRequest(getRecipeURL, searchParameters);
+
+        let parsedRecipe = this.parseRecipe(response);
 
         return parsedRecipe;
     }

@@ -8,8 +8,10 @@ dotenv.config();
 import express from 'express';
 import UserController from '../controller/UserController';
 import UserDatabase from '../../database/UserDatabase';
-import Authenticator from '../middleware/authentication/Authenticator';
 import InventoryController from '../controller/InventoryController';
+import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
+import TokenCreator from '../../utils/TokenCreator';
+import IIdentification from '../model/user/IIdentification';
 
 export const userRoute = express.Router();
 
@@ -20,23 +22,22 @@ let collectionName = process.env.DB_USERS_COLLECTION;
 const database = UserDatabase.connect(
     databaseURL,
     databaseName,
-    collectionName
+    collectionName,
 );
 
 const userController = new UserController(database);
 const inventoryController = new InventoryController(database);
+let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
-userRoute.use(new Authenticator().authenticate);
-// TODO(#55): change routes
+userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
-userRoute.get('/', userController.getUsers);
-userRoute.get('/user/:userID', userController.getUser);
-userRoute.route('/user/:userID')
-    .delete(userController.deleteUser)
-    .put(express.urlencoded({ extended: true }), userController.updateUser);
+userRoute.route('/')
+    .get(userController.get)
+    .delete(userController.delete)
+    .put(express.urlencoded({ extended: true }), userController.update);
 
-userRoute.get('/user/:userID/foods', inventoryController.getInventory);
-userRoute.post('/user/:userID/foods/food', express.urlencoded({ extended: true }), inventoryController.addFood);
-userRoute.get('/user/:userID/foods/food/:foodID', inventoryController.getFood);
-userRoute.put('/user/:userID/foods/food/:foodID', express.urlencoded({ extended: true }), inventoryController.updateFood);
-userRoute.delete('/user/:userID/foods/food/:foodID', inventoryController.deleteFood);
+userRoute.get('/inventory', inventoryController.getAll);
+userRoute.post('/inventory', express.urlencoded({ extended: true }), inventoryController.add);
+userRoute.get('/inventory/:foodID', inventoryController.get);
+userRoute.put('/inventory/:foodID', express.urlencoded({ extended: true }), inventoryController.update);
+userRoute.delete('/inventory/:foodID', inventoryController.delete);

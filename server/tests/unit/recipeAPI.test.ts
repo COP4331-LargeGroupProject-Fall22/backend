@@ -54,7 +54,7 @@ describe('Recipe API ', () => {
             "test",
             new SpoonacularFoodAPI("test", "test"));
 
-        let response = await recipeAPI.SearchRecipe(new Map([
+        let response = await recipeAPI.GetAll(new Map([
             ["query", "pasta"]
         ]));
         
@@ -70,7 +70,7 @@ describe('Recipe API ', () => {
             "test",
             new SpoonacularFoodAPI("test", "test"));
 
-        let response = await recipeAPI.GetRecipe(new Map([
+        let response = await recipeAPI.Get(new Map([
             ["id", mockRecipeID]
         ]));
 

@@ -2,73 +2,45 @@ import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
-import IBaseUser from "../model/user/IBaseUser";
-import IInternalUser from "../model/user/IInternalUser";
-import ISensitiveUser from "../model/user/ISensitiveUser";
+import IUser from "../model/user/IUser";
+import UserSchema from "../model/user/requestSchema/UserSchema";
+import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for user-actions 
  * provided to the user.
  */
-export default class UserController {
-    private database: IDatabase<IInternalUser>;
-
-    constructor(database: IDatabase<IInternalUser>) {
-        this.database = database;
+export default class UserController extends BaseUserController {
+    constructor(database: IDatabase<IUser>) {
+        super(database);
     }
 
-    private getException(error: unknown): string {
-        if (error instanceof Error) {
-            return error.message;
+    protected async getUserFromRequest(req: Request, res: Response, user: IUser): Promise<IUser> {
+        let userSchema = new UserSchema(
+            this.isStringUndefinedOrEmpty(req.body?.firstName) ? user.firstName : req.body.firstName,
+            this.isStringUndefinedOrEmpty(req.body?.lastName) ? user.lastName : req.body.lastName,
+            this.isStringUndefinedOrEmpty(req.body?.username) ? user.username : req.body.username,
+            this.isStringUndefinedOrEmpty(req.body?.password) ? user.password : req.body.password,
+            user.lastSeen,
+        );
+
+        let logs = await userSchema.validate();
+
+        if (logs.length > 0) {
+            return Promise.reject(res.status(400)
+                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs)));
         }
 
-        return String(error);
-    }
-
-    private convertToBaseUser(user: IInternalUser): IBaseUser {
-        return {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            lastSeen: user.lastSeen
-        };
-    }
-
-    private convertToSensitiveUser(user: IInternalUser): ISensitiveUser {
-        return {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
+        let newUser: IUser = {
+            inventory: user.inventory,
+            firstName: userSchema.firstName,
+            lastName: userSchema.lastName,
             lastSeen: user.lastSeen,
-            inventory: user.inventory
+            password: userSchema.password,
+            username: userSchema.username
         };
-    }
 
-    private isAuthorized(req: Request, user: IInternalUser): boolean {
-        return req.uid === user.uid;
-    }
-
-    /**
-     * Gets information about all users existed on the server.
-     * 
-     * @param req Request parameter that holds information about request.
-     * @param res Response parameter that holds information about response.
-     */
-    getUsers = async (req: Request, res: Response) => {
-        let users: IInternalUser[] | null;
-        try {
-            users = await this.database.GetAll();
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
-
-        let baseUsers: IBaseUser[] = [];
-        users?.forEach(user => {
-            baseUsers.push(this.convertToBaseUser(user));
-        });
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, baseUsers.length === 0 ? null : baseUsers));
+        return newUser;
     }
 
     /**
@@ -77,34 +49,18 @@ export default class UserController {
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
-    getUser = async (req: Request, res: Response) => {
-        let parameters = new Map<String, any>([
-            ["_id", req.params.userID]
-        ]);
+    get = async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.requestGet(parameters, res).then(user => {
+            return this.sendSuccess(200, res, this.convertToUserResponse(user));
+        }, (response) => response);
+    }
 
-        if (user === null) {
-            res.status(404)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            return;
-        }
-
-        if (!this.isAuthorized(req, user)) {
-            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
-            return;
-        }
-
-        let sensitiveUser = this.convertToSensitiveUser(user);
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
+    private async isUnique(username: string): Promise<boolean> {
+        return this.database.Get(new Map([["username", username]])).then(user => {
+            return user === null;
+        });
     }
 
     /**
@@ -113,58 +69,24 @@ export default class UserController {
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
-    updateUser = async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>([
-            ["_id", req.params.userID]
-        ]);
+    update = async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.requestGet(parameters, res).then(async user => {
+            if (req.body.username !== undefined) {
+                let result = await this.isUnique(req.body.username);
 
-        if (user === null) {
-            res.status(404)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User doesn't exist"));
-            return;
-        }
-
-        let updatedUser: IInternalUser | null;
-        try {
-            updatedUser = await this.database.Update(
-                req.params.userID,
-                {
-                    uid: user.uid,
-                    firstName: req.body.firstName === undefined ? user.firstName : req.body.firstName,
-                    lastName: req.body.lastName === undefined ? user.lastName : req.body.lastName,
-                    lastSeen: user.lastSeen,
-                    inventory: user.inventory
+                if (!result) {
+                    return this.sendError(404, res, "Username already exists.");
                 }
-            );
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+            }
 
-        if (updatedUser === null) {
-            res.status(404)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User couldn't be updated."));
-            return;
-        }
-
-        if (!this.isAuthorized(req, user)) {
-            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
-            return;
-        }
-
-        let sensitiveUser = this.convertToSensitiveUser(updatedUser);
-
-        res.status(200).json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS, sensitiveUser));
+            return this.getUserFromRequest(req, res, user).then(validatedUser => {
+                return this.requestUpdate(req.serverUser.username, validatedUser, res)
+                    .then(updatedUser =>
+                        this.sendSuccess(200, res, this.convertToUserResponse(updatedUser)), (response) => response);
+            }, (response) => response);
+        }, (response) => response);
     }
 
     /**
@@ -173,47 +95,17 @@ export default class UserController {
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
      */
-    deleteUser = async (req: Request, res: Response) => {
-        let parameters = new Map([
-            ["_id", req.params.userID]
-        ]);
+    delete = async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        let user: IInternalUser | null;
-        try {
-            user = await this.database.Get(parameters);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
+        return this.requestGet(parameters, res).then(() => {
+            return this.requestDelete(req.serverUser.username, res).then(result => {
+                if (!result) {
+                    return this.sendError(400, res, "User could not be deleted.");
+                }
 
-        if (user === null) {
-            res.status(404)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User hasn't been found."));
-            return;
-        }
-
-        if (!this.isAuthorized(req, user)) {
-            res.status(401).json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "User is trying to perform an operation on account that doesn't belong to them."));
-            return;
-        }
-
-        let result: boolean
-        try {
-            result = await this.database.Delete(req.params.userID);
-        } catch (error) {
-            res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, this.getException(error)));
-            return;
-        }
-
-        if (!result) {
-            res.status(404)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, "Delete was unsuccessful."));
-            return;
-        }
-
-        res.status(200)
-            .json(ResponseFormatter.formatAsJSON(ResponseTypes.SUCCESS));
+                return this.sendSuccess(200, res);
+            }, (response) => response);
+        }, (response) => response);
     }
 }
