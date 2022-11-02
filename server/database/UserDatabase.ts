@@ -38,7 +38,7 @@ export default class UserDatabase implements IDatabase<IUser> {
             return this;
         } catch (e) {
             console.log(e);
-            // exit(1);
+            exit(1);
         }
     }
 
