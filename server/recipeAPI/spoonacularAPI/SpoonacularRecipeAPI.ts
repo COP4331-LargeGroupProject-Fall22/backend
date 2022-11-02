@@ -234,7 +234,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         }
 
         // Removes last whitespace.
-        instructions = instructions.slice(instructions.length - 1);
+        instructions = instructions.slice(0, instructions.length - 1);
 
         return {
             instructions: instructions,
