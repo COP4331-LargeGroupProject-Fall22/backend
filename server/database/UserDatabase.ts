@@ -119,7 +119,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Retrieves complete information about specific user defined by user's _id.
      * 
      * @param parameters query parameters used for searching.
-     *  One of two parameters required.
+     *  One of two parameters required. If both provided, the result will have to satisfy both parameters
      * - _id - required parameter that defines user's _id.
      * - username - required parameter that defines unique user's username.
      * @throws NoParameterFound exception when required parameters weren't found.

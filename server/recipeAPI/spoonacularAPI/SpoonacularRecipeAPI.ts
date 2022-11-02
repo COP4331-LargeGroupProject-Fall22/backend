@@ -66,7 +66,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * - mealTypes - optional parameter that limits search results to specific meal types.
      * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
-     * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items wasn't found.
+     * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items weren't found.
      */
     async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';

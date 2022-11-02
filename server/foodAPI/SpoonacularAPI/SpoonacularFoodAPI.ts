@@ -181,7 +181,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             }
         });
 
-        // (A && !B) || (!A && B)
+        // Checks that if one of these is set, both are set
         let hasAmount = searchParams.has("amount");
         let hasUnit = searchParams.has("unit");
 
@@ -190,8 +190,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             searchParams.delete("unit");
         }
         else {
-            searchParams.set("amount", "100");
-            searchParams.set("unit", "g");
+            searchParams.set("amount", "1");
+            searchParams.set("unit", "serving");
         }
 
         return searchParams;

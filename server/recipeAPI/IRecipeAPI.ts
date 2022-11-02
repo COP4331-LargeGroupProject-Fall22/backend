@@ -14,7 +14,7 @@ export default interface IRecipeAPI {
      * - cuisine - optional parameter that limits search results to specific cuisines. (default = none)
      * - mealType - optional parameter that limits search results to specific meal types. (default = none)
      * 
-     * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
+     * Complete list of intolerances is available at https://spoonacular.com/food-api/docs#Intolerances 
      * Complete list of mealTypes is available at // https://spoonacular.com/food-api/docs#Meal-Types
      * 
      * 

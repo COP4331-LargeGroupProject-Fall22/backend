@@ -22,8 +22,8 @@ export default interface IFoodAPI {
      * 
      * @param parameters query parameters used for searching.
      * - id - required parameter that defines unique identifier of the Food Item.
-     * - quantity - optional parameter that defines the amount of that food items. (default = 100)
-     * - unit - optional parameter that defines the unit for given amount. (default = grams)
+     * - quantity - optional parameter that defines the amount of that food items. (default = 1)
+     * - unit - optional parameter that defines the unit for given amount. (default = serving)
      * 
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @throws NoParameterFound exception when required parameters weren't found. 
@@ -31,6 +31,6 @@ export default interface IFoodAPI {
      */
     Get(parameters: Map<string, any>): Promise<IIngredient | null>;
 
-    //TODO(#57): add support for UPC
+    // TODO(#57): add support for UPC
     GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null>;
 }
