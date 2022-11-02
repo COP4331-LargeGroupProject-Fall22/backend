@@ -1,10 +1,12 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
 import INutrient from "../model/nutrients/INutrient";
+import IUnit from "../model/unit/IUnit";
+import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 
@@ -67,22 +69,18 @@ export default class InventoryController extends BaseUserController {
 
             ingredientSchema.quantity = req.body?.quantity;
 
-            let logs = await ingredientSchema.validate();
+            return this.verifySchema(ingredientSchema, res).then(ingredientSchema => {
+                let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredientSchema.id);
 
-            if (logs.length > 0) {
-                return this.sendError(400, res, logs);
-            }
+                if (duplicateFood !== undefined) {
+                    return this.sendError(400, res, "Ingredient already exists in inventory.");
+                }
 
-            let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredientSchema.id);
+                user.inventory.push(ingredientSchema);
 
-            if (duplicateFood !== undefined) {
-                return this.sendError(400, res, "Ingredient already exists in inventory.");
-            }
-
-            user.inventory.push(ingredientSchema);
-
-            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                return this.sendSuccess(200, res, updatedUser.inventory);
+                return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
+                    return this.sendSuccess(200, res, updatedUser.inventory);
+                }, (response) => response);
             }, (response) => response);
         }, (response) => response);
     }
@@ -128,17 +126,29 @@ export default class InventoryController extends BaseUserController {
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
 
+                    let ingredient = Promise.resolve(ingredientToAdd);
+
                     let nutrients = ingredientToAdd.nutrients;
-                    let quantity = ingredientToAdd.quantity;
+                    let quantity: Promise<IUnit | undefined> = Promise.resolve(ingredientToAdd.quantity);
 
                     if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
-                        quantity = req.body.quantity;
-                    
-                        let ingredient = await this.foodAPI.Get(new Map([
-                            ["id", ingredientToAdd.id],
-                            ["quantity", req.body.value],
-                            ["unit", req.body.unit]
-                        ]));
+                        let quantitySchema = new UnitSchema(
+                            req.body.quantity.unit,
+                            Number.parseFloat(req.body.quantity.value)
+                        );
+                        
+                        this.verifySchema(quantitySchema, res).then(async quantitySchema => {
+                            return this.foodAPI.Get(new Map<string, any>([
+                                ["id", ingredientToAdd.id],
+                                ["quantity", quantitySchema.value],
+                                ["unit", quantitySchema.unit]
+                            ])).then(updatedIngredient => {
+      
+                            }, (error) => this.sendError(400, res, this.getException(error)));
+                        }, (response) => response)
+
+
+                       
 
                     }
 

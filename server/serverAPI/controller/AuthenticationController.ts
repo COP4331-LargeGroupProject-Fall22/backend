@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import Encryptor from "../../utils/Encryptor";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
@@ -52,35 +52,31 @@ export default class AuthenticationController extends BaseController {
             req.body?.password
         );
 
-        let logs = await userCredentials.validate();
-
-        if (logs.length > 0) {
-            return this.sendError(400, res, logs);
-        }
-
-        let parameters = new Map([
-            ["username", userCredentials.username]
-        ]);
-
-        return this.database.Get(parameters).then(user => {
-            if (user === null) {
-                return this.sendError(404, res, "User could not be found.");
-            }
-
-            return this.encryptor.compare(userCredentials.password, user.password).then(result => {
-                if (!result) {
-                    return this.sendError(403, res, `User credentials are incorrect.`);
+        return this.verifySchema(userCredentials, res).then(userCredentials => {
+            let parameters = new Map([
+                ["username", userCredentials.username]
+            ]);
+    
+            return this.database.Get(parameters).then(user => {
+                if (user === null) {
+                    return this.sendError(404, res, "User could not be found.");
                 }
-
-                let identification: IIdentification = {
-                    username: user.username
-                };
-
-                let token = this.tokenCreator.sign(identification, 30 * 60);
-
-                return this.sendSuccess(200, res, { accessToken: token });
+    
+                return this.encryptor.compare(userCredentials.password, user.password).then(result => {
+                    if (!result) {
+                        return this.sendError(403, res, `User credentials are incorrect.`);
+                    }
+    
+                    let identification: IIdentification = {
+                        username: user.username
+                    };
+    
+                    let token = this.tokenCreator.sign(identification, 30 * 60);
+    
+                    return this.sendSuccess(200, res, { accessToken: token });
+                }, (error) => this.sendError(400, res, this.getException(error)));
             }, (error) => this.sendError(400, res, this.getException(error)));
-        }, (error) => this.sendError(400, res, this.getException(error)));
+        }, (response) => response);
     }
 
     /**
@@ -97,31 +93,28 @@ export default class AuthenticationController extends BaseController {
             req.body?.password
         );
 
-        let logs = await userCredentials.validate();
-
-        if (logs.length > 0) {
-            return this.sendError(400, res, logs);
-        }
-
-        let parameters = new Map([
-            ["username", userCredentials.username]
-        ]);
-
-        return this.database.Get(parameters).then(async user => {
-            if (user !== null) {
-                return this.sendError(400, res, `User with such username already exists.`);
-            }
-
-            let internalUser = this.convertToUser(userCredentials);
-            internalUser.password = await this.encryptor.encrypt(internalUser.password);
-
-            return this.database.Create(internalUser).then(createdUser => {
-                if (createdUser === null) {
-                    return this.sendError(400, res, `User could not be created.`);
+        
+        return this.verifySchema(userCredentials, res).then(userCredentials => {
+            let parameters = new Map([
+                ["username", userCredentials.username]
+            ]);
+    
+            return this.database.Get(parameters).then(async user => {
+                if (user !== null) {
+                    return this.sendError(400, res, `User with such username already exists.`);
                 }
-
-                return this.sendSuccess(200, res);
+    
+                let internalUser = this.convertToUser(userCredentials);
+                internalUser.password = await this.encryptor.encrypt(internalUser.password);
+    
+                return this.database.Create(internalUser).then(createdUser => {
+                    if (createdUser === null) {
+                        return this.sendError(400, res, `User could not be created.`);
+                    }
+    
+                    return this.sendSuccess(200, res);
+                }, (error) => this.sendError(400, res, this.getException(error)));
             }, (error) => this.sendError(400, res, this.getException(error)));
-        }, (error) => this.sendError(400, res, this.getException(error)))
+        }, (response) => response);
     }
 }

@@ -1,6 +1,7 @@
 import { Response } from "express";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
+import ISchema from "../model/ISchema";
 
 export default class BaseController {
     protected getException(error: unknown): string {
