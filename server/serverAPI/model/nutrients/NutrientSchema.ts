@@ -8,17 +8,17 @@ import INutrient from "./INutrient";
 export default class NutrientSchema implements INutrient {
     @IsString()
     @IsNotEmpty()
-    readonly name: string;
+    name: string;
 
     @IsObject()
     @IsNotEmpty()
     @ValidateNested()
-    readonly unit: IUnit;
+    unit: IUnit;
 
     @IsNumber()
     @IsPositive()
     @IsNotEmpty()
-    readonly percentOfDaily: number;
+    percentOfDaily: number;
 
     constructor(
         name: string,

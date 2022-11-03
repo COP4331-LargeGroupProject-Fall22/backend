@@ -9,7 +9,7 @@ export default interface IIngredient extends IBaseIngredient {
     /**
      * Collection of nutrients that food contains.
      */
-    readonly nutrients: INutrient[];
+    nutrients: INutrient[];
 
-    readonly quantity?: IUnit;
+    quantity?: IUnit;
 }

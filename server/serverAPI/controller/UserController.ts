@@ -24,23 +24,18 @@ export default class UserController extends BaseUserController {
             user.lastSeen,
         );
 
-        let logs = await userSchema.validate();
+        return this.verifySchema(userSchema, res).then(userSchema => {
+            let newUser: IUser = {
+                inventory: user.inventory,
+                firstName: userSchema.firstName,
+                lastName: userSchema.lastName,
+                lastSeen: user.lastSeen,
+                password: userSchema.password,
+                username: userSchema.username
+            };
 
-        if (logs.length > 0) {
-            return Promise.reject(res.status(400)
-                .json(ResponseFormatter.formatAsJSON(ResponseTypes.ERROR, logs)));
-        }
-
-        let newUser: IUser = {
-            inventory: user.inventory,
-            firstName: userSchema.firstName,
-            lastName: userSchema.lastName,
-            lastSeen: user.lastSeen,
-            password: userSchema.password,
-            username: userSchema.username
-        };
-
-        return newUser;
+            return newUser;
+        }, (response) => Promise.reject(response));
     }
 
     /**

@@ -8,12 +8,12 @@ import IUnit from "./IUnit";
 export default class UnitSchema implements IUnit, ISchema {
     @IsNotEmpty()
     @IsString()
-    readonly unit: string;
+    unit: string;
 
     @IsNotEmpty()
     @IsPositive()
     @IsNumber()
-    readonly value: number;
+    value: number;
     
     constructor(
         unit: string,

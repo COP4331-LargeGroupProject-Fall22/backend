@@ -2,17 +2,17 @@ export default interface IBaseIngredient {
     /**
      * Unique food identifier.
      */
-    readonly id: number;
+    id: number;
 
     /**
      * Food name.
      */
-    readonly name: string;
+    name: string;
 
     /**
      * Food category.
      */
-    readonly category: string;
+    category: string;
 
-    readonly quantityUnits: string[];
+    quantityUnits: string[];
 }

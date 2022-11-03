@@ -16,7 +16,7 @@ export default class BaseController {
         let logs = await object.validate()
 
         if (logs.length > 0) {
-            return Promise.reject(this.sendError(400, res, "Incorrect schema."));
+            return Promise.reject(this.sendError(400, res, logs));
         }
 
         return object;
