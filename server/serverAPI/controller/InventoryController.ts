@@ -197,8 +197,7 @@ export default class InventoryController extends BaseUserController {
             for (let i = 0; i < user.inventory.length; i++) {
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
-                }
-                else {
+                } else {
                     newInventory.push(user.inventory[i]);
                 }
             }

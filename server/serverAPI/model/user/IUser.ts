@@ -10,5 +10,5 @@ export default interface IUser extends IBaseUser, ICredentials, IContactInformat
     
     shopingList?: IIngredient[];
 
-    favouriteRecipes?: IBaseRecipe[];
+    favoriteRecipes?: IBaseRecipe[];
 }

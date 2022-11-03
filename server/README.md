@@ -39,6 +39,11 @@ Environment variable names should be the same, the only parts that change are va
 Aside from environment variables for MongoDB we also utilize several other variables that should be initialized in .env file.
 
 `PORT` should be defined with a port number for the server
+`NODE_ENV` if `dev` is assigned, server will use `LOCAL_MONGODB_CONNECTION_STRING`, otherwise 
+`MONGODB_CONNECTION_STRING` is chosen for database connection.
+
+`MONGODB_CONNECTION_STRING` defines connection string to the MongoDB account
+`LOCAL_MONGODB_CONNECTION_STRING` defines connection string to the local MongoDB account
 
 `PRIVATE_KEY_FOR_USER_TOKEN` shoud be defined with the random string that will act as unique private key for bcrypt encryption
 

@@ -17,6 +17,9 @@ export default class AuthenticationController extends BaseController {
     private tokenCreator: TokenCreator<IIdentification>;
     private database: IDatabase<IUser>;
 
+    // 30 minutes in seconds.
+    protected timeoutTimeInSeconds = 30 * 60;
+
     constructor(
         database: IDatabase<IUser>,
         encryptor: Encryptor,

@@ -82,7 +82,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Retrieves general information about all user objects stored in the database. 
      * 
      * @param parameters query parameters used for searching.
-     * @returns Promise filled with IBaseUser or null if useres weren't found.
+     * @returns Promise filled with IBaseUser or null if users weren't found.
      */
     async GetAll(parameters?: Map<String, any>): Promise<IUser[] | null> {
         return this.collection.find().toArray().then(users => {
@@ -119,13 +119,13 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Retrieves complete information about specific user defined by user's _id.
      * 
      * @param parameters query parameters used for searching.
-     *  One of two parameters required.
+     *  One of two parameters required. If both provided, the result will have to satisfy both parameters
      * - _id - required parameter that defines user's _id.
-     * - username - required parameter that definies unique user's username.
+     * - username - required parameter that defines unique user's username.
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
-     * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
+     * @returns Promise filled with IUser object or null if user wasn't found.
      */
     async Get(parameters: Map<String, any>): Promise<IUser | null> {
         let filter: Filter<any> = Object.fromEntries(parameters);
@@ -148,7 +148,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * 
      * @param id unique identifier of the user that is used internally in the database.
      * 
-     * @returns Promise filled with ISensitiveUser object or null if user wasn't found.
+     * @returns Promise filled with IUser object or null if user wasn't found.
      */
     private async GetUserByObjectId(id: ObjectId): Promise<IUser | null> {
         return this.collection.findOne({ "_id": id }).then(user => {
@@ -174,8 +174,8 @@ export default class UserDatabase implements IDatabase<IUser> {
      * Creates user object in the database.
      * 
      * @param user IUser object filled with information about user.
-     * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
-     * @returns Promise filled with ISensitiveUser object or null if user wasn't created.
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
+     * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async Create(user: IUser): Promise<IUser | null> {
         let newUser = {
@@ -197,10 +197,10 @@ export default class UserDatabase implements IDatabase<IUser> {
      * 
      * @param id unique identifier of the user that is used internally in the database.
      * @param user IUser object filled with information about user.
-     * @throws IncorrectSchema exception when ISensitiveUser doesn't have correct format.
+     * @throws IncorrectSchema exception when IUser doesn't have correct format.
      * @throws EmptyID exception when id is empty.
      * @throws IncorrectIDFormat exception when id has incorrect format.
-     * @returns Promise filled with updated ISensitiveUser object or null if user wasn't updated.
+     * @returns Promise filled with updated IUser object or null if user wasn't updated.
      */
     async Update(username: string, user: IUser): Promise<IUser | null> {
         return this.GetUserByUsername(username).then(async () => {

@@ -59,11 +59,7 @@ export default class UserController extends BaseUserController {
 
     private async isUnique(username: string): Promise<boolean> {
         return this.database.Get(new Map([["username", username]])).then(user => {
-            if (user === null) {
-                return true;
-            }
-
-            return false;
+            return user === null;
         });
     }
 
