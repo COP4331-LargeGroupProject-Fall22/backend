@@ -26,7 +26,7 @@ app.use(express.static(path.resolve(__dirname, '../frontend/html/public')));
 const cors = require("cors");
 
 var corsOptions = {
-  origin: "http://localhost:8081"
+    origin: true
 };
 
 app.use(cors(corsOptions));
