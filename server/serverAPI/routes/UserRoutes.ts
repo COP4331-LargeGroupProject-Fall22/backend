@@ -13,6 +13,7 @@ import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 import TokenCreator from '../../utils/TokenCreator';
 import IIdentification from '../model/user/IIdentification';
 import SpoonacularFoodAPI from '../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI';
+import ShoppingListController from '../controller/ShoppingListController';
 
 export const userRoute = express.Router();
 
@@ -34,6 +35,10 @@ const inventoryController = new InventoryController(
     database,
     new SpoonacularFoodAPI(apiKey, apiHost)
 );
+const shoppingCartController = new ShoppingListController(
+    database,
+    new SpoonacularFoodAPI(apiKey, apiHost)
+);
 
 let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
@@ -49,3 +54,9 @@ userRoute.post('/inventory', express.json(), inventoryController.add);
 userRoute.get('/inventory/:foodID', inventoryController.get);
 userRoute.put('/inventory/:foodID', express.json(), inventoryController.update);
 userRoute.delete('/inventory/:foodID', inventoryController.delete);
+
+userRoute.get('/shopping-cart', shoppingCartController.getAll);
+userRoute.post('/shopping-cart', express.json(), shoppingCartController.add);
+userRoute.get('/shopping-cart/:itemID', shoppingCartController.get);
+userRoute.put('/shopping-cart/:itemID', express.json(), shoppingCartController.update);
+userRoute.put('/shopping-cart/:itemID', shoppingCartController.delete);
