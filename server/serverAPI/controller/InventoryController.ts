@@ -56,7 +56,7 @@ export default class InventoryController extends BaseUserController {
     }
 
     private async parseAddRequest(req: Request, res: Response)
-    : Promise<IInventoryIngredient> {
+        : Promise<IInventoryIngredient> {
         let jsonPayload = req.body;
         let ingredientSchema = new InventoryIngredientSchema(
             Number.parseInt(jsonPayload.id),
@@ -178,7 +178,8 @@ export default class InventoryController extends BaseUserController {
                                 ["id", existingIngredient.id],
                                 ["quantity", user.inventory[i].quantity!.value],
                                 ["unit", user.inventory[i].quantity!.unit]
-                            ]));
+                            ])
+                        );
 
                         if (updatedIngredient !== null) {
                             user.inventory[i] = {

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
+import Encryptor from "../../utils/Encryptor";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import IUser from "../model/user/IUser";
@@ -81,6 +82,10 @@ export default class UserController extends BaseUserController {
             }
 
             let validatedUser = await this.getUserFromRequest(req, res, user);
+
+            if (validatedUser.password !== user.password) {
+                validatedUser.password = await new Encryptor().encrypt(validatedUser.password);
+            }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, validatedUser, res);
 
