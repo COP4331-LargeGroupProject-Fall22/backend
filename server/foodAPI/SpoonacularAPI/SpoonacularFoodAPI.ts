@@ -198,11 +198,11 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         let hasAmount = searchParams.has("amount");
         let hasUnit = searchParams.has("unit");
 
-        if (hasAmount != hasUnit) {
+        if (hasAmount !== hasUnit) {
             searchParams.delete("amount");
             searchParams.delete("unit");
-        }
-        else {
+
+
             searchParams.set("amount", "1");
             searchParams.set("unit", "serving");
         }

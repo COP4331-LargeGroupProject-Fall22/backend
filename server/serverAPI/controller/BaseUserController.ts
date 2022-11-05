@@ -1,6 +1,5 @@
 import { Response } from "express";
 import IDatabase from "../../database/IDatabase";
-import ISchema from "../model/ISchema";
 import IUser from "../model/user/IUser";
 import IUserResponse from "../model/user/responseSchema/IUserResponse";
 import BaseController from "./BaseController";

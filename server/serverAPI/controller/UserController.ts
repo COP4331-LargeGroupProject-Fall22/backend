@@ -67,21 +67,27 @@ export default class UserController extends BaseUserController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(async user => {
+        try {
+            let user = await this.requestGet(parameters, res);
+
             if (req.body.username !== undefined) {
+                console.log("Username check");
                 let result = await this.isUnique(req.body.username);
 
                 if (!result) {
+                    console.log("Username is not unique check");
                     return this.sendError(404, res, "Username already exists.");
                 }
             }
 
-            return this.getUserFromRequest(req, res, user).then(validatedUser => {
-                return this.requestUpdate(req.serverUser.username, validatedUser, res)
-                    .then(updatedUser =>
-                        this.sendSuccess(200, res, this.convertToUserResponse(updatedUser)), (response) => response);
-            }, (response) => response);
-        }, (response) => response);
+            let validatedUser = await this.getUserFromRequest(req, res, user);
+
+            let updatedUser = await this.requestUpdate(req.serverUser.username, validatedUser, res);
+
+            return this.sendSuccess(200, res, this.convertToUserResponse(updatedUser));
+        } catch (e) {
+            return e;
+        }
     }
 
     /**
@@ -93,14 +99,17 @@ export default class UserController extends BaseUserController {
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(() => {
-            return this.requestDelete(req.serverUser.username, res).then(result => {
-                if (!result) {
-                    return this.sendError(400, res, "User could not be deleted.");
-                }
+        try {
+            await this.requestGet(parameters, res);
 
-                return this.sendSuccess(200, res);
-            }, (response) => response);
-        }, (response) => response);
+            let result = await this.requestDelete(req.serverUser.username, res)
+            if (!result) {
+                return this.sendError(400, res, "User could not be deleted.");
+            }
+
+            return this.sendSuccess(200, res);
+        } catch (e) {
+            return e;
+        }
     }
 }
