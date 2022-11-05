@@ -1,14 +1,27 @@
-import { IsNumber, IsPositive, validate } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsObject, IsPositive, IsString, validate, ValidateNested } from "class-validator";
+import ISchema from "../../ISchema";
 import INutrient from "../../nutrients/INutrient";
 import IUnit from "../../unit/IUnit";
-import IngredientSchema from "./IngredientSchema";
+import IIngredient from "../IIngredient";
 
-export default class InventoryIngredientSchema extends IngredientSchema {
+export default class IngredientSchema implements IIngredient, ISchema {
+    @ValidateNested()
+    nutrients: INutrient[];
+
     @IsNumber()
     @IsPositive()
-    expirationDate: number;
+    id: number;
 
-    quantity?: IUnit | undefined;
+    @IsNotEmpty()
+    @IsString()
+    name: string;
+
+    @IsNotEmpty()
+    @IsString()
+    category: string;
+
+    @IsArray()
+    quantityUnits: string[];
 
     constructor(
         id: number,
@@ -16,11 +29,12 @@ export default class InventoryIngredientSchema extends IngredientSchema {
         category: string,
         nutrients: INutrient[],
         quantityUnits: string[],
-        expirationDate: number
     ) {
-        super(id, name, category, nutrients, quantityUnits);
-
-        this.expirationDate = expirationDate;
+        this.id = id;
+        this.name = name;
+        this.category = category;
+        this.nutrients = nutrients;
+        this.quantityUnits = quantityUnits;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

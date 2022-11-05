@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import Encryptor from "../../utils/Encryptor";
-import ResponseFormatter from "../../utils/ResponseFormatter";
-import { ResponseTypes } from "../../utils/ResponseTypes";
 import IUser from "../model/user/IUser";
 import UserSchema from "../model/user/requestSchema/UserSchema";
 import BaseUserController from "./BaseUserController";
@@ -28,6 +26,7 @@ export default class UserController extends BaseUserController {
         return this.verifySchema(userSchema, res).then(userSchema => {
             let newUser: IUser = {
                 inventory: user.inventory,
+                shoppingList: user.shoppingList,
                 firstName: userSchema.firstName,
                 lastName: userSchema.lastName,
                 lastSeen: user.lastSeen,

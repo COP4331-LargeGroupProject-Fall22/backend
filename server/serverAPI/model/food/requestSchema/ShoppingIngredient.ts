@@ -1,14 +1,14 @@
-import { IsNumber, IsPositive, validate } from "class-validator";
+import { validate, ValidateNested } from "class-validator";
 import INutrient from "../../nutrients/INutrient";
 import IUnit from "../../unit/IUnit";
 import IngredientSchema from "./IngredientSchema";
+import IShoppingIngredient from "../IShoppingIngredient";
 
-export default class InventoryIngredientSchema extends IngredientSchema {
-    @IsNumber()
-    @IsPositive()
-    expirationDate: number;
+export default class ShoppingIngredientSchema extends IngredientSchema implements IShoppingIngredient {
+    @ValidateNested()
+    quantity: IUnit;
 
-    quantity?: IUnit | undefined;
+    recipeID?: number;
 
     constructor(
         id: number,
@@ -16,11 +16,13 @@ export default class InventoryIngredientSchema extends IngredientSchema {
         category: string,
         nutrients: INutrient[],
         quantityUnits: string[],
-        expirationDate: number
+        quantity: IUnit,
+        recipeID?: number
     ) {
         super(id, name, category, nutrients, quantityUnits);
-
-        this.expirationDate = expirationDate;
+        
+        this.quantity = quantity;
+        this.recipeID = recipeID;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {
