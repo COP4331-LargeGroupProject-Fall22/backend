@@ -9,7 +9,7 @@ import ICredentials from "./ICredentials";
 export default interface IUser extends IBaseUser, ICredentials, IContactInformation {
     inventory: IInventoryIngredient[];
     
-    shoppingList: IShoppingIngredient[];
+    shoppingCart: IShoppingIngredient[];
 
     favoriteRecipes?: IBaseRecipe[];
 }

@@ -14,7 +14,7 @@ import BaseUserController from "./BaseUserController";
  * This class creates several properties responsible for inventory actions 
  * provided to the user.
  */
-export default class ShoppingListController extends BaseUserController {
+export default class ShoppingCartController extends BaseUserController {
     private foodAPI: IFoodAPI;
 
     constructor(database: IDatabase<IUser>, foodAPI: IFoodAPI) {
@@ -86,7 +86,7 @@ export default class ShoppingListController extends BaseUserController {
 
         try {
             let user = await this.requestGet(parameters, res)
-            return this.sendSuccess(200, res, user.shoppingList);
+            return this.sendSuccess(200, res, user.shoppingCart);
         } catch (e) {
             return e;
         }
@@ -106,7 +106,7 @@ export default class ShoppingListController extends BaseUserController {
 
             let ingredientSchema = await this.parseAddRequest(req, res);
 
-            let duplicateFood = user.shoppingList.find((foodItem: IShoppingIngredient) =>
+            let duplicateFood = user.shoppingCart.find((foodItem: IShoppingIngredient) =>
                 foodItem.id === ingredientSchema.id && foodItem.recipeID === ingredientSchema.recipeID
             );
 
@@ -114,10 +114,10 @@ export default class ShoppingListController extends BaseUserController {
                 return this.sendError(400, res, "Ingredient already exists in shopping list.");
             }
 
-            user.shoppingList.push(ingredientSchema);
+            user.shoppingCart.push(ingredientSchema);
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.shoppingList);
+            return this.sendSuccess(200, res, updatedUser.shoppingCart);
         } catch (e) {
             return e;
         }
@@ -134,7 +134,7 @@ export default class ShoppingListController extends BaseUserController {
 
         try {
             let user = await this.requestGet(parameters, res)
-            let ingredient = user.shoppingList
+            let ingredient = user.shoppingCart
                 .find((foodItem: IShoppingIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
             if (ingredient === undefined) {
@@ -162,26 +162,26 @@ export default class ShoppingListController extends BaseUserController {
             let isFound: boolean = false;
 
             for (let i = 0; i < user.inventory.length; i++) {
-                let existingIngredient = user.shoppingList[i];
+                let existingIngredient = user.shoppingCart[i];
 
-                if (user.shoppingList[i].id === Number.parseInt(req.params.foodID)) {
+                if (user.shoppingCart[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
 
-                    user.shoppingList[i] = await this.parseUpdateRequest(req, res, existingIngredient);
+                    user.shoppingCart[i] = await this.parseUpdateRequest(req, res, existingIngredient);
 
-                    if (user.shoppingList[i].quantity?.unit !== existingIngredient.quantity?.unit ||
-                        user.shoppingList[i].quantity?.value !== existingIngredient.quantity?.value) {
+                    if (user.shoppingCart[i].quantity?.unit !== existingIngredient.quantity?.unit ||
+                        user.shoppingCart[i].quantity?.value !== existingIngredient.quantity?.value) {
 
                         let updatedIngredient = await this.foodAPI.Get(
                             new Map<string, any>([
                                 ["id", existingIngredient.id],
-                                ["quantity", user.shoppingList[i].quantity.value],
-                                ["unit", user.shoppingList[i].quantity.unit]
+                                ["quantity", user.shoppingCart[i].quantity.value],
+                                ["unit", user.shoppingCart[i].quantity.unit]
                             ])
                         );
 
                         if (updatedIngredient !== null) {
-                            user.shoppingList[i] = {
+                            user.shoppingCart[i] = {
                                 nutrients: updatedIngredient.nutrients,
                                 id: updatedIngredient.id,
                                 name: updatedIngredient.name,
@@ -221,10 +221,10 @@ export default class ShoppingListController extends BaseUserController {
             let shopingList: IShoppingIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
-                if (user.shoppingList[i].id === Number.parseInt(req.params.foodID)) {
+                if (user.shoppingCart[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
                 } else {
-                    shopingList.push(user.shoppingList[i]);
+                    shopingList.push(user.shoppingCart[i]);
                 }
             }
 
@@ -232,10 +232,10 @@ export default class ShoppingListController extends BaseUserController {
                 return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
             }
 
-            user.shoppingList = shopingList;
+            user.shoppingCart = shopingList;
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.sendSuccess(200, res, updatedUser.shoppingList);
+            return this.sendSuccess(200, res, updatedUser.shoppingCart);
         } catch (e) {
             return e;
         }

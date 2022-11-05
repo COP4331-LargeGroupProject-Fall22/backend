@@ -26,7 +26,7 @@ export default class UserController extends BaseUserController {
         return this.verifySchema(userSchema, res).then(userSchema => {
             let newUser: IUser = {
                 inventory: user.inventory,
-                shoppingList: user.shoppingList,
+                shoppingCart: user.shoppingCart,
                 firstName: userSchema.firstName,
                 lastName: userSchema.lastName,
                 lastSeen: user.lastSeen,

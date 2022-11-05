@@ -13,7 +13,7 @@ import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 import TokenCreator from '../../utils/TokenCreator';
 import IIdentification from '../model/user/IIdentification';
 import SpoonacularFoodAPI from '../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI';
-import ShoppingListController from '../controller/ShoppingListController';
+import ShoppingCartController from '../controller/ShoppingCartController';
 
 export const userRoute = express.Router();
 
@@ -35,7 +35,7 @@ const inventoryController = new InventoryController(
     database,
     new SpoonacularFoodAPI(apiKey, apiHost)
 );
-const shoppingCartController = new ShoppingListController(
+const shoppingCartController = new ShoppingCartController(
     database,
     new SpoonacularFoodAPI(apiKey, apiHost)
 );

@@ -184,7 +184,7 @@ export default class UserDatabase implements IDatabase<IUser> {
             username: user.username,
             password: user.password,
             inventory: user.inventory,
-            shoppingList: user.shoppingList,
+            shoppingCart: user.shoppingCart,
             lastSeen: user.lastSeen
         };
 
