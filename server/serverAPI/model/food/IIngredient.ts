@@ -11,5 +11,8 @@ export default interface IIngredient extends IBaseIngredient {
      */
     nutrients: INutrient[];
 
+    /**
+     * Quantity of the food.
+     */
     quantity?: IUnit;
 }

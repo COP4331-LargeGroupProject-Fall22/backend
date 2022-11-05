@@ -171,8 +171,8 @@ export default class InventoryController extends BaseUserController {
                     user.inventory[i] = await this.parseUpdateRequest(req, res, existingIngredient);
 
                     if (user.inventory[i].quantity?.unit !== existingIngredient.quantity?.unit ||
-                        user.inventory[i].quantity?.value !== existingIngredient.quantity?.value) {
-
+                        user.inventory[i].quantity?.value !== existingIngredient.quantity?.value
+                    ) {
                         let updatedIngredient = await this.foodAPI.Get(
                             new Map<string, any>([
                                 ["id", existingIngredient.id],
