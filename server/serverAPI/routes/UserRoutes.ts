@@ -51,12 +51,12 @@ userRoute.route('/')
 
 userRoute.get('/inventory', inventoryController.getAll);
 userRoute.post('/inventory', express.json(), inventoryController.add);
-userRoute.get('/inventory/:foodID', inventoryController.get);
-userRoute.put('/inventory/:foodID', express.json(), inventoryController.update);
-userRoute.delete('/inventory/:foodID', inventoryController.delete);
+userRoute.get('/inventory/:ingredientID', inventoryController.get);
+userRoute.put('/inventory/:ingredientID', express.json(), inventoryController.update);
+userRoute.delete('/inventory/:ingredientID', inventoryController.delete);
 
 userRoute.get('/shopping-cart', shoppingCartController.getAll);
 userRoute.post('/shopping-cart', express.json(), shoppingCartController.add);
-userRoute.get('/shopping-cart/:itemID', shoppingCartController.get);
-userRoute.put('/shopping-cart/:itemID', express.json(), shoppingCartController.update);
-userRoute.put('/shopping-cart/:itemID', shoppingCartController.delete);
+userRoute.get('/shopping-cart/:ingredientID', shoppingCartController.get);
+userRoute.put('/shopping-cart/:ingredientID', express.json(), shoppingCartController.update);
+userRoute.put('/shopping-cart/:ingredientID', shoppingCartController.delete);

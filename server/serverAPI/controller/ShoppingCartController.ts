@@ -111,7 +111,7 @@ export default class ShoppingCartController extends BaseUserController {
             );
 
             if (duplicateFood !== undefined) {
-                return this.sendError(400, res, "Ingredient already exists in shopping list.");
+                return this.sendError(400, res, "Ingredient already exists in shopping cart.");
             }
 
             user.shoppingCart.push(ingredientSchema);
@@ -135,10 +135,10 @@ export default class ShoppingCartController extends BaseUserController {
         try {
             let user = await this.requestGet(parameters, res)
             let ingredient = user.shoppingCart
-                .find((foodItem: IShoppingIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
+                .find((foodItem: IShoppingIngredient) => foodItem.id === Number.parseInt(req.params.ingredientID));
 
             if (ingredient === undefined) {
-                return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
+                return this.sendError(404, res, "Ingredient doesn't exist in shopping cart.");
             }
 
             return this.sendSuccess(200, res, ingredient);
@@ -164,7 +164,7 @@ export default class ShoppingCartController extends BaseUserController {
             for (let i = 0; i < user.inventory.length; i++) {
                 let existingIngredient = user.shoppingCart[i];
 
-                if (user.shoppingCart[i].id === Number.parseInt(req.params.foodID)) {
+                if (user.shoppingCart[i].id === Number.parseInt(req.params.ingredientID)) {
                     isFound = true;
 
                     user.shoppingCart[i] = await this.parseUpdateRequest(req, res, existingIngredient);
@@ -221,7 +221,7 @@ export default class ShoppingCartController extends BaseUserController {
             let shopingList: IShoppingIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
-                if (user.shoppingCart[i].id === Number.parseInt(req.params.foodID)) {
+                if (user.shoppingCart[i].id === Number.parseInt(req.params.ingredientID)) {
                     isFound = true;
                 } else {
                     shopingList.push(user.shoppingCart[i]);
@@ -229,7 +229,7 @@ export default class ShoppingCartController extends BaseUserController {
             }
 
             if (!isFound) {
-                return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
+                return this.sendError(404, res, "Ingredient doesn't exist in shopping cart.");
             }
 
             user.shoppingCart = shopingList;
