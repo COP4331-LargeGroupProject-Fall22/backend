@@ -26,28 +26,9 @@ export default class InventoryController extends BaseUserController {
             existingIngredient.id,
             existingIngredient.name,
             existingIngredient.category,
-            existingIngredient.nutrients,
             existingIngredient.quantityUnits,
             existingIngredient.expirationDate
         );
-
-        ingredientSchema.quantity = existingIngredient.quantity
-
-        if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
-            let quantityObject = req.body.quantity;
-
-            let quantitySchema = new UnitSchema(
-                quantityObject.unit,
-                Number.parseFloat(quantityObject.value)
-            );
-
-            try {
-                await this.verifySchema(quantitySchema, res);
-                ingredientSchema.quantity = quantitySchema;
-            } catch (e) {
-                return Promise.reject(e);
-            }
-        }
 
         ingredientSchema.expirationDate = this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
             existingIngredient.expirationDate : Number.parseFloat(req.body.expirationDate);
@@ -62,12 +43,9 @@ export default class InventoryController extends BaseUserController {
             Number.parseInt(jsonPayload.id),
             jsonPayload.name,
             jsonPayload.category,
-            jsonPayload.nutrients,
             jsonPayload.quantityUnits,
             Number.parseInt(jsonPayload.expirationDate)
         );
-
-        ingredientSchema.quantity = jsonPayload.quantity;
 
         try {
             ingredientSchema = await this.verifySchema(ingredientSchema, res);
@@ -167,32 +145,7 @@ export default class InventoryController extends BaseUserController {
 
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
-
                     user.inventory[i] = await this.parseUpdateRequest(req, res, existingIngredient);
-
-                    if (user.inventory[i].quantity?.unit !== existingIngredient.quantity?.unit ||
-                        user.inventory[i].quantity?.value !== existingIngredient.quantity?.value
-                    ) {
-                        let updatedIngredient = await this.foodAPI.Get(
-                            new Map<string, any>([
-                                ["id", existingIngredient.id],
-                                ["quantity", user.inventory[i].quantity!.value],
-                                ["unit", user.inventory[i].quantity!.unit]
-                            ])
-                        );
-
-                        if (updatedIngredient !== null) {
-                            user.inventory[i] = {
-                                expirationDate: user.inventory[i].expirationDate,
-                                nutrients: updatedIngredient.nutrients,
-                                id: updatedIngredient.id,
-                                name: updatedIngredient.name,
-                                category: updatedIngredient.category,
-                                quantity: updatedIngredient.quantity,
-                                quantityUnits: updatedIngredient.quantityUnits
-                            };
-                        }
-                    }
                 }
             }
 
