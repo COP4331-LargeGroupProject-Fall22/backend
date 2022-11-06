@@ -18,7 +18,7 @@ export default class AuthenticationController extends BaseController {
     private database: IDatabase<IUser>;
 
     // 30 minutes in seconds.
-    protected timeoutTimeInSeconds = 3000 * 60;
+    protected timeoutTimeInSeconds = 30 * 60;
 
     constructor(
         database: IDatabase<IUser>,
@@ -58,11 +58,8 @@ export default class AuthenticationController extends BaseController {
 
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
-            let parameters = new Map([
-                ["username", userCredentials.username]
-            ]);
 
-            let user = await this.database.Get(parameters);
+            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
 
             if (user === null) {
                 return this.sendError(404, res, "User could not be found.");
@@ -77,7 +74,7 @@ export default class AuthenticationController extends BaseController {
                 username: user.username
             };
 
-            let token = this.tokenCreator.sign(identification, 30 * 60);
+            let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
 
             return this.sendSuccess(200, res, { accessToken: token });
         } catch (e) {
@@ -101,11 +98,8 @@ export default class AuthenticationController extends BaseController {
 
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
-            let parameters = new Map([
-                ["username", userCredentials.username]
-            ]);
 
-            let user = await this.database.Get(parameters);
+            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
             if (user !== null) {
                 return this.sendError(400, res, `User with such username already exists.`);
             }

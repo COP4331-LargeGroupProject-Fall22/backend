@@ -1,22 +1,16 @@
-import { IsArray, IsNotEmpty, IsNumber, IsObject, IsPositive, IsString, validate, ValidateNested } from "class-validator";
+import { IsArray, IsInt, IsNotEmpty, IsPositive, IsString, validate, ValidateNested } from "class-validator";
 import ISchema from "../../ISchema";
-import INutrient from "../../nutrients/INutrient";
-import IUnit from "../../unit/IUnit";
-import IIngredient from "../IIngredient";
+import IBaseIngredient from "../IBaseIngredient";
 
-export default class IngredientSchema implements IIngredient, ISchema {
-    @ValidateNested()
-    nutrients: INutrient[];
-
-    @IsNumber()
+export default class BaseIngredientSchema implements IBaseIngredient, ISchema {
+    @IsInt()
     @IsPositive()
     id: number;
 
-    @IsNotEmpty()
     @IsString()
+    @IsNotEmpty()
     name: string;
 
-    @IsNotEmpty()
     @IsString()
     category: string;
 
@@ -27,13 +21,11 @@ export default class IngredientSchema implements IIngredient, ISchema {
         id: number,
         name: string,
         category: string,
-        nutrients: INutrient[],
-        quantityUnits: string[],
+        quantityUnits: string[]
     ) {
         this.id = id;
         this.name = name;
         this.category = category;
-        this.nutrients = nutrients;
         this.quantityUnits = quantityUnits;
     }
 

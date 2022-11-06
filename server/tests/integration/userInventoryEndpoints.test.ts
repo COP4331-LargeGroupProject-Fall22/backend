@@ -50,6 +50,7 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 let mockFood: IInventoryIngredient;
 let mockUpdatedFood: IInventoryIngredient;
+let mockUpdatedFoodResponse: IInventoryIngredient;
 
 describe(`User inventory endpoints`, () => {
     beforeAll(() => {
@@ -62,16 +63,6 @@ describe(`User inventory endpoints`, () => {
             name: "FoodItemA",
             category: "CatA",
             quantityUnits: ['g'],
-            nutrients: [
-                {
-                    name: "nutrientC",
-                    unit: {
-                        unit: "g",
-                        value: 20
-                    },
-                    percentOfDaily: 10.4
-                }
-            ]
         };
 
         mockUpdatedFood = {
@@ -80,16 +71,14 @@ describe(`User inventory endpoints`, () => {
             name: "FoodItemB",
             category: "CatB",
             quantityUnits: ['g'],
-            nutrients: [
-                {
-                    name: "nutrientA",
-                    unit: {
-                        unit: "grams",
-                        value: 123
-                    },
-                    percentOfDaily: 12.4
-                }
-            ]
+        };
+
+        mockUpdatedFoodResponse = {
+            expirationDate: 77777,
+            id: mockFoodID,
+            name: "FoodItemA",
+            category: "CatA",
+            quantityUnits: ['g'],
         };
     });
 
@@ -99,11 +88,7 @@ describe(`User inventory endpoints`, () => {
 
             let response = await supertest(app)
                 .post(`/user/inventory`)
-                .send(`name=${mockFood.name}`)
-                .send(`category=${mockFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
-                .send(`expirationDate=${mockFood.expirationDate}`)
-                .send(`id=${mockFood.id}`);
+                .send(mockFood)
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject([mockFood]);
@@ -112,11 +97,7 @@ describe(`User inventory endpoints`, () => {
         it(`Create Food Item in user's inventory (food item is not unique)`, async () => {
             let response = await supertest(app)
                 .post(`/user/inventory`)
-                .send(`name=${mockFood.name}`)
-                .send(`category=${mockFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
-                .send(`expirationDate=${mockFood.expirationDate}`)
-                .send(`id=${mockFood.id}`);
+                .send(mockFood);
 
             expect(response.statusCode).toBe(400);
         });
@@ -151,11 +132,7 @@ describe(`User inventory endpoints`, () => {
         it(`Update Food Item from user's inventory (food item doesn't exist)`, async () => {
             let response = await supertest(app)
                 .put(`/user/inventory/${mockFakeFoodID}`)
-                .send(`id=${mockFood.id}`)
-                .send(`name=${mockFood.name}`)
-                .send(`category=${mockFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockFood.nutrients)}`)
-                .send(`expirationDate=${mockFood.expirationDate}`);
+                .send(mockUpdatedFood);
 
             expect(response.statusCode).toBe(404);
         });
@@ -163,14 +140,10 @@ describe(`User inventory endpoints`, () => {
         it(`Update Food Item from user's inventory`, async () => {
             let response = await supertest(app)
                 .put(`/user/inventory/${mockFoodID}`)
-                .send(`id=${mockUpdatedFood.id}`)
-                .send(`name=${mockUpdatedFood.name}`)
-                .send(`category=${mockUpdatedFood.category}`)
-                .send(`nutrients=${JSON.stringify(mockUpdatedFood.nutrients)}`)
-                .send(`expirationDate=${mockUpdatedFood.expirationDate}`);
+                .send(mockUpdatedFood);
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.data).toMatchObject([mockUpdatedFood]);
+            expect(response.body.data).toMatchObject([mockUpdatedFoodResponse]);
         });
     });
 

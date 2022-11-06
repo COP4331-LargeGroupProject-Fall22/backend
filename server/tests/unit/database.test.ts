@@ -18,16 +18,7 @@ describe('User database functionality', () => {
             name: "Test",
             id: 234,
             category: "testCategory",
-            nutrients: [
-                {
-                    name: "nutrientA",
-                    unit: {
-                        unit: "g",
-                        value: 10
-                    },
-                    percentOfDaily: 10.4
-                }
-            ]
+            quantityUnits: ["g", "kg", "oz"]
         }],
         firstName: 'Mikhail',
         lastName: 'Plekunov',
@@ -45,16 +36,7 @@ describe('User database functionality', () => {
             name: "Test",
             id: 234,
             category: "testCategory",
-            nutrients: [
-                {
-                    name: "nutrientB",
-                    unit: {
-                        unit: "g",
-                        value: 10
-                    },
-                    percentOfDaily: 10.4
-                }
-            ]
+            quantityUnits: ["g", "kg", "oz"]
         }],
         password: 'Mekromic',
         username: 'password'

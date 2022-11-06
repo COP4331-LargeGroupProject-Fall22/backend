@@ -151,7 +151,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         }
 
         let nutrients: INutrient[] = [];
-        
+
         data?.nutrition?.nutrients.forEach((nutrient: any) => {
             nutrients.push({
                 name: nutrient.name,
@@ -201,7 +201,6 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         if (hasAmount !== hasUnit) {
             searchParams.delete("amount");
             searchParams.delete("unit");
-
 
             searchParams.set("amount", "1");
             searchParams.set("unit", "serving");

@@ -23,6 +23,14 @@ app.use(Logger.consoleLog);
 
 app.use(express.static(path.resolve(__dirname, '../frontend/html/public')));
 
+const cors = require("cors");
+
+var corsOptions = {
+    origin: true
+};
+
+app.use(cors(corsOptions));
+
 app.use('/user', userRoute);
 app.use('/recipes', recipeRoute)
 app.use('/foods', foodRoute);
