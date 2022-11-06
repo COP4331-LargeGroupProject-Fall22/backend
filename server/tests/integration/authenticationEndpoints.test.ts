@@ -14,10 +14,6 @@ let mockUser: IUser = {
     username: 'Mekromic'
 };
 
-let mockServerUser: IIdentification = {
-    username: mockUser.username
-}
-
 jest.mock('../../serverAPI/middleware/logger/Logger', () => {
     return {
         consoleLog: (req: Request, res: Response, next: NextFunction) => { next(); }
@@ -39,8 +35,12 @@ describe('Authentication endpoints', () => {
         it('Register with incorrect field formats', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .send(`firstName=`)
-                .send(`lastName=`);
+                .send({
+                    firstName: "",
+                    lastName: "",
+                    username: "",
+                    password: ""
+                });
 
             expect(response.statusCode).toBe(400);
         });
@@ -48,10 +48,12 @@ describe('Authentication endpoints', () => {
         it('Register with correct information', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .send(`firstName=${mockUser.firstName}`)
-                .send(`lastName=${mockUser.lastName}`)
-                .send(`username=${mockUser.username}`)
-                .send(`password=${mockUser.password}`);
+                .send({
+                    firstName: mockUser.firstName,
+                    lastName: mockUser.lastName,
+                    username: mockUser.username,
+                    password: mockUser.password
+                });
 
             expect(response.statusCode).toBe(200);
         });
@@ -59,10 +61,12 @@ describe('Authentication endpoints', () => {
         it(`Register with already existing username`, async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .send(`firstName=${mockUser.firstName}`)
-                .send(`lastName=${mockUser.lastName}`)
-                .send(`username=${mockUser.username}`)
-                .send(`password=${mockUser.password}`);
+                .send({
+                    firstName: mockUser.firstName,
+                    lastName: mockUser.lastName,
+                    username: mockUser.username,
+                    password: mockUser.password
+                });
 
             expect(response.statusCode).toBe(400);
         });
@@ -72,8 +76,10 @@ describe('Authentication endpoints', () => {
         it('Login with correct credentials', async () => {
             let response = await supertest(app)
                 .post('/auth/login')
-                .send(`username=${mockUser.username}`)
-                .send(`password=${mockUser.password}`);
+                .send({
+                    username: mockUser.username,
+                    password: mockUser.password
+                });
 
             expect(response.statusCode).toBe(200);
         });
@@ -82,8 +88,10 @@ describe('Authentication endpoints', () => {
             let response = await supertest(app)
                 .post('/auth/login')
                 .set('Authorization', 'accessToken')
-                .send(`username=Hey`)
-                .send(`password=${mockUser.password}`);
+                .send({
+                    username: "pff",
+                    password: mockUser.password
+                });
 
             expect(response.statusCode).toBe(404);
         });
@@ -92,8 +100,10 @@ describe('Authentication endpoints', () => {
             let response = await supertest(app)
                 .post('/auth/login')
                 .set('Authorization', 'accessToken')
-                .send(`username=${mockUser.username}`)
-                .send(`password=IOnlySeeYouWhenYouAreWalking`);
+                .send({
+                    username: mockUser.username,
+                    password: "pff"
+                });
 
             expect(response.statusCode).toBe(403);
         });
@@ -103,8 +113,10 @@ describe('Authentication endpoints', () => {
             let response = await supertest(app)
                 .post('/auth/login')
                 .set('Authorization', 'accessToken')
-                .send(`username=IOnlySeeYouWhenYouAreWalking`)
-                .send(`password=WalkingToSomewhere`);
+                .send({
+                    username: "pff",
+                    password: "pff"
+                });
 
             expect(response.statusCode).toBe(404);
         });

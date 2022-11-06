@@ -64,9 +64,17 @@ export default class FoodController extends BaseController {
      * @param res Response parameter that holds information about response
      */
     get = async (req: Request, res: Response) => {
-        let parameters = new Map<string, any>([
-            ["id", req.params.foodID]
-        ]);
+        let parameters = new Map<string, any>();
+
+        parameters.set("id", req.params.foodID);
+
+        if (req.query?.quantity !== undefined) {
+            parameters.set("quantity", req.query.quantity);
+        }
+
+        if (req.query?.unit !== undefined) {
+            parameters.set("unit", req.query.unit);
+        }
 
         return this.foodAPI.Get(parameters).then(food => {
             if (food === null) {

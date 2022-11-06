@@ -25,7 +25,7 @@ const authenticationController = new AuthenticationController(
     new TokenCreator(privateKey)
 );
 
-authenticationRoute.use(express.urlencoded({ extended: true }));
+authenticationRoute.use(express.json());
 
 authenticationRoute.post("/login", authenticationController.login);
 authenticationRoute.post("/register", authenticationController.register);

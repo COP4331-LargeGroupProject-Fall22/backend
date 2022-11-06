@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import Encryptor from "../../utils/Encryptor";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
@@ -55,35 +55,30 @@ export default class AuthenticationController extends BaseController {
             req.body?.password
         );
 
-        let logs = await userCredentials.validate();
+        try {
+            userCredentials = await this.verifySchema(userCredentials, res);
 
-        if (logs.length > 0) {
-            return this.sendError(400, res, logs);
-        }
+            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
 
-        let parameters = new Map([
-            ["username", userCredentials.username]
-        ]);
-
-        return this.database.Get(parameters).then(user => {
             if (user === null) {
                 return this.sendError(404, res, "User could not be found.");
             }
 
-            return this.encryptor.compare(userCredentials.password, user.password).then(result => {
-                if (!result) {
-                    return this.sendError(403, res, `User credentials are incorrect.`);
-                }
+            let result = await this.encryptor.compare(userCredentials.password, user.password);
+            if (!result) {
+                return this.sendError(403, res, `User credentials are incorrect.`);
+            }
 
-                let identification: IIdentification = {
-                    username: user.username
-                };
+            let identification: IIdentification = {
+                username: user.username
+            };
 
-                let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
+            let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
 
-                return this.sendSuccess(200, res, { accessToken: token });
-            }, (error) => this.sendError(400, res, this.getException(error)));
-        }, (error) => this.sendError(400, res, this.getException(error)));
+            return this.sendSuccess(200, res, { accessToken: token });
+        } catch (e) {
+            return e;
+        }
     }
 
     /**
@@ -100,17 +95,10 @@ export default class AuthenticationController extends BaseController {
             req.body?.password
         );
 
-        let logs = await userCredentials.validate();
+        try {
+            userCredentials = await this.verifySchema(userCredentials, res);
 
-        if (logs.length > 0) {
-            return this.sendError(400, res, logs);
-        }
-
-        let parameters = new Map([
-            ["username", userCredentials.username]
-        ]);
-
-        return this.database.Get(parameters).then(async user => {
+            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
             if (user !== null) {
                 return this.sendError(400, res, `User with such username already exists.`);
             }
@@ -118,13 +106,14 @@ export default class AuthenticationController extends BaseController {
             let internalUser = this.convertToUser(userCredentials);
             internalUser.password = await this.encryptor.encrypt(internalUser.password);
 
-            return this.database.Create(internalUser).then(createdUser => {
-                if (createdUser === null) {
-                    return this.sendError(400, res, `User could not be created.`);
-                }
+            let createdUser = await this.database.Create(internalUser);
+            if (createdUser === null) {
+                return this.sendError(400, res, `User could not be created.`);
+            }
 
-                return this.sendSuccess(200, res);
-            }, (error) => this.sendError(400, res, this.getException(error)));
-        }, (error) => this.sendError(400, res, this.getException(error)))
+            return this.sendSuccess(200, res);
+        } catch (e) {
+            return e;
+        }
     }
 }

@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
-import ResponseFormatter from "../../utils/ResponseFormatter";
-import { ResponseTypes } from "../../utils/ResponseTypes";
 import BaseController from "./BaseController";
 
 /**

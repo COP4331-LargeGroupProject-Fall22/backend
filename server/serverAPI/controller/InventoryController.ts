@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
+import IFoodAPI from "../../foodAPI/IFoodAPI";
+
 import IInventoryIngredient from "../model/food/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
-import INutrient from "../model/nutrients/INutrient";
+import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 
@@ -11,18 +13,47 @@ import BaseUserController from "./BaseUserController";
  * provided to the user.
  */
 export default class InventoryController extends BaseUserController {
-    constructor(database: IDatabase<IUser>) {
+    private foodAPI: IFoodAPI;
+
+    constructor(database: IDatabase<IUser>, foodAPI: IFoodAPI) {
         super(database);
+        this.foodAPI = foodAPI;
     }
 
-    private parseNutrients(data: any): INutrient[] {
-        let nutrients: string = data === undefined ? "[]" : data;
+    private async parseUpdateRequest(req: Request, res: Response, existingIngredient: IInventoryIngredient)
+        : Promise<IInventoryIngredient> {
+        let ingredientSchema = new InventoryIngredientSchema(
+            existingIngredient.id,
+            existingIngredient.name,
+            existingIngredient.category,
+            existingIngredient.quantityUnits,
+            existingIngredient.expirationDate
+        );
 
-        if (nutrients.charAt(0) !== '[') {
-            nutrients = "[" + nutrients + "]";
+        ingredientSchema.expirationDate = this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
+            existingIngredient.expirationDate : Number.parseFloat(req.body.expirationDate);
+
+        return ingredientSchema;
+    }
+
+    private async parseAddRequest(req: Request, res: Response)
+        : Promise<IInventoryIngredient> {
+        let jsonPayload = req.body;
+        let ingredientSchema = new InventoryIngredientSchema(
+            Number.parseInt(jsonPayload.id),
+            jsonPayload.name,
+            jsonPayload.category,
+            jsonPayload.quantityUnits,
+            Number.parseInt(jsonPayload.expirationDate)
+        );
+
+        try {
+            ingredientSchema = await this.verifySchema(ingredientSchema, res);
+        } catch (e) {
+            return Promise.reject(e);
         }
 
-        return JSON.parse(nutrients);
+        return ingredientSchema;
     }
 
     /**
@@ -34,9 +65,12 @@ export default class InventoryController extends BaseUserController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(user => {
+        try {
+            let user = await this.requestGet(parameters, res)
             return this.sendSuccess(200, res, user.inventory);
-        }, (response) => response);
+        } catch (e) {
+            return e;
+        }
     }
 
     /**
@@ -48,22 +82,10 @@ export default class InventoryController extends BaseUserController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(async user => {
-            let nutrients = this.parseNutrients(req.body.nutrients);
+        try {
+            let user = await this.requestGet(parameters, res);
 
-            let ingredientSchema = new InventoryIngredientSchema(
-                Number.parseInt(req.body?.id),
-                req.body?.name,
-                req.body?.category,
-                nutrients,
-                Number.parseFloat(req.body?.expirationDate)
-            );
-
-            let logs = await ingredientSchema.validate();
-
-            if (logs.length > 0) {
-                return Promise.reject(this.sendError(400, res, logs));
-            }
+            let ingredientSchema = await this.parseAddRequest(req, res);
 
             let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredientSchema.id);
 
@@ -73,10 +95,11 @@ export default class InventoryController extends BaseUserController {
 
             user.inventory.push(ingredientSchema);
 
-            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                return this.sendSuccess(200, res, updatedUser.inventory);
-            }, (response) => response);
-        }, (response) => response);
+            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+            return this.sendSuccess(200, res, updatedUser.inventory);
+        } catch (e) {
+            return e;
+        }
     }
 
     /**
@@ -88,7 +111,8 @@ export default class InventoryController extends BaseUserController {
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(user => {
+        try {
+            let user = await this.requestGet(parameters, res)
             let ingredient = user.inventory
                 .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
 
@@ -97,7 +121,9 @@ export default class InventoryController extends BaseUserController {
             }
 
             return this.sendSuccess(200, res, ingredient);
-        }, (response) => response);
+        } catch (e) {
+            return e;
+        }
     }
 
     /**
@@ -109,41 +135,29 @@ export default class InventoryController extends BaseUserController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(user => {
+        try {
+            let user = await this.requestGet(parameters, res);
+
             let isFound: boolean = false;
 
-            let newInventory: IInventoryIngredient[] = [];
-
             for (let i = 0; i < user.inventory.length; i++) {
-                let ingredientToAdd = user.inventory[i];
+                let existingIngredient = user.inventory[i];
 
                 if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
                     isFound = true;
-
-                    ingredientToAdd = {
-                        id: Number.parseInt(req.params.foodID),
-                        name: this.isStringUndefinedOrEmpty(req.body.name) ? ingredientToAdd.name : req.body.name,
-                        category: this.isStringUndefinedOrEmpty(req.body.category) ? ingredientToAdd.category : req.body.category,
-                        nutrients: this.isStringUndefinedOrEmpty(req.body.nutrients) ?
-                            ingredientToAdd.nutrients : this.parseNutrients(req.body.nutrients),
-                        expirationDate: this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
-                            ingredientToAdd.expirationDate : Number.parseFloat(req.body.expirationDate)
-                    };
+                    user.inventory[i] = await this.parseUpdateRequest(req, res, existingIngredient);
                 }
-
-                newInventory.push(ingredientToAdd);
             }
 
             if (!isFound) {
                 return this.sendError(404, res, "Ingredient could not be found.");
             }
 
-            user.inventory = newInventory;
-
-            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                return this.sendSuccess(200, res, updatedUser.inventory);
-            }, (response) => response);
-        }, (response) => response);
+            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+            return this.sendSuccess(200, res, updatedUser.inventory);
+        } catch (e) {
+            return e;
+        }
     }
 
     /**
@@ -155,7 +169,8 @@ export default class InventoryController extends BaseUserController {
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        return this.requestGet(parameters, res).then(user => {
+        try {
+            let user = await this.requestGet(parameters, res)
             let isFound: boolean = false;
 
             let newInventory: IInventoryIngredient[] = [];
@@ -174,9 +189,10 @@ export default class InventoryController extends BaseUserController {
 
             user.inventory = newInventory;
 
-            return this.requestUpdate(req.serverUser.username, user, res).then(updatedUser => {
-                return this.sendSuccess(200, res, updatedUser.inventory);
-            }, (response) => response);
-        }, (response) => response);
+            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
+            return this.sendSuccess(200, res, updatedUser.inventory);
+        } catch (e) {
+            return e;
+        }
     }
 }
