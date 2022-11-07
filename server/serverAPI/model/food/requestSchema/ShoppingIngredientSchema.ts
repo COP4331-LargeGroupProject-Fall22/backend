@@ -1,5 +1,4 @@
-import { validate, ValidateNested } from "class-validator";
-import INutrient from "../../nutrients/INutrient";
+import { ValidateNested } from "class-validator";
 import IUnit from "../../unit/IUnit";
 import IShoppingIngredient from "../IShoppingIngredient";
 import BaseIngredientSchema from "./BaseIngredientSchema";

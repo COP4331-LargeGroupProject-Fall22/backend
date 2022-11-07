@@ -7,18 +7,22 @@ interface IBaseRecipe {
 
 interface IRecipe extends IBaseRecipe {
     + cuisines: string[]
+
     + diets: string[] 
+    
     + mealTypes: string[]
-
+    
     + intolerances: string[]
-
+    
+    + nutritionFacts: INutrient[]
+    
     + instruction: IInstruction
     + instructionSteps: IInstruction[]
     
     + servings: number
     
     + cookingTimeInMinutes: number
-    + preparationInMinutes: number
+    + preparationInMinutes: numbe
     
     + totalCost: number
     + costPerServing: number
@@ -64,9 +68,19 @@ interface IIngredient extends IBaseIngredient {
 
 IUnit o-- IIngredient
 
-interface IInventoryIngredient extends IIngredient {
+interface IInventoryIngredient extends IBaseIngredient {
     + expirationDate: number
 }
+
+interface IShoppingIngredient extends IBaseIngredient {
+    + itemID?: string
+
+    + recipeID?: number
+    
+    + quantity: IUnit
+}
+
+IUnit o-- IShoppingIngredient
 
 interface INutrient {
     + name: string
@@ -81,18 +95,23 @@ interface IUnit {
 
 interface IUser extends IBaseUser, ICredentials, IContactInformation {
     + inventory: IInventoryIngredient[]
+    + shoppingCart: IShoppingIngredient[]
 }
 
 interface ISchema {
     + validate: any[]
 }
 
+class BaseIngredientSchema implements IBaseIngredient, ISchema {}
+class InventoryIngredientSchema extends BaseIngredientSchema implements IInventoryIngredient {}
+class ShoppingIngredientSchema extends BaseIngredientSchema implements IShoppingIngredient {}
+class UnitSchema implements IUnit {}
 class UserLoginSchema implements ICredentials, ISchema {}
 class UserRegistrationSchema extends UserSchema {}
-class UserSchema implements ICredentials, IBaseUser, ISchema {}
-class InventoryIngredientSchema implements IInventoryIngredient {}
+class UserSchema implements ISchema, IBaseUser, ICredentials {}
 
 IInventoryIngredient o-- IUser
+IShoppingIngredient o-- IUser
 INutrient o-- IIngredient
 IUnit o-- INutrient
 
