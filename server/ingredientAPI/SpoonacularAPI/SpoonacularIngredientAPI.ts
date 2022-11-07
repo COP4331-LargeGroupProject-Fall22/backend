@@ -265,7 +265,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         if (!this.isInteger(String(parameters.get("id"))) || 
             Number.parseInt(String(parameters.get("id"))) <= 0) {
-            throw new IncorrectIDFormat("FoodID has incorrect format.");
+            throw new IncorrectIDFormat("IngredientID has incorrect format.");
         }
 
         let foodID = Number.parseInt(parameters.get("id"));

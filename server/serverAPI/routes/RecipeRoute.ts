@@ -3,7 +3,7 @@
  */
 
 import express from "express";
-import SpoonacularIngredientAPI from "../../ingredientAPI/SpoonacularAPI/SpoonacularFoodAPI";
+import SpoonacularIngredientAPI from "../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI";
 import SpoonacularRecipeAPI from "../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI";
 import RecipeController from "../controller/RecipeController";
 

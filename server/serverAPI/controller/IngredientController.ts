@@ -5,20 +5,20 @@ import { ResponseTypes } from "../../utils/ResponseTypes";
 import BaseController from "./BaseController";
 
 /**
- * This class creates several properties responsible for food actions 
+ * This class creates several properties responsible for ingredient actions 
  * provided to the user.
  */
 export default class IngredientController extends BaseController {
-    private foodAPI: IIngredientAPI;
+    private ingredientAPI: IIngredientAPI;
 
-    constructor(foodAPI: IIngredientAPI) {
+    constructor(ingredientAPI: IIngredientAPI) {
         super();
-        this.foodAPI = foodAPI;
+        this.ingredientAPI = ingredientAPI;
     }
 
-    // TODO(#57): Add support for finding food items by UPC
+    // TODO(#57): Add support for finding ingredient items by UPC
     /**
-     * Gets information about specific food defined by UPC parameter provided in the URL.
+     * Gets information about specific ingredient defined by UPC parameter provided in the URL.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -28,7 +28,7 @@ export default class IngredientController extends BaseController {
     }
 
     /**
-     * Searches for foods using query.
+     * Searches for ingredients using query.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -52,13 +52,13 @@ export default class IngredientController extends BaseController {
             parameters.set("intolerance", req.query.intolerance);
         }
 
-        return this.foodAPI.GetAll(parameters)
-            .then(foods => this.sendSuccess(200, res, foods),
+        return this.ingredientAPI.GetAll(parameters)
+            .then(ingredients => this.sendSuccess(200, res, ingredients),
                 (error) => this.sendSuccess(400, res, this.getException(error)));
     }
 
     /**
-     * Gets information about specific food defined by foodID parameter provided in the URL.
+     * Gets information about specific ingredient defined by ingredientID parameter provided in the URL.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -66,7 +66,7 @@ export default class IngredientController extends BaseController {
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
 
-        parameters.set("id", req.params.foodID);
+        parameters.set("id", req.params.ingredientID);
 
         if (req.query?.quantity !== undefined) {
             parameters.set("quantity", req.query.quantity);
@@ -76,12 +76,12 @@ export default class IngredientController extends BaseController {
             parameters.set("unit", req.query.unit);
         }
 
-        return this.foodAPI.Get(parameters).then(food => {
-            if (food === null) {
+        return this.ingredientAPI.Get(parameters).then(ingredient => {
+            if (ingredient === null) {
                 return this.sendSuccess(404, res, "Ingredient could not be found");
             }
 
-            return this.sendSuccess(200, res, food);
+            return this.sendSuccess(200, res, ingredient);
         }, (error) => this.sendError(400, res, this.getException(error)));
     }
 }
