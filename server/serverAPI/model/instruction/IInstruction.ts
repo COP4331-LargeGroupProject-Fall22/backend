@@ -1,4 +1,4 @@
-import IIngredient from "../food/IIngredient";
+import IIngredient from "../ingredient/IIngredient";
 
 /**
  * Instruction interface.

@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
-import IFoodAPI from "../../foodAPI/IFoodAPI";
+import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 
-import IInventoryIngredient from "../model/food/IInventoryIngredient";
-import InventoryIngredientSchema from "../model/food/requestSchema/InventoryIngredientSchema";
+import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
+import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
 import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
@@ -13,11 +13,11 @@ import BaseUserController from "./BaseUserController";
  * provided to the user.
  */
 export default class InventoryController extends BaseUserController {
-    private foodAPI: IFoodAPI;
+    private ingredientAPI: IIngredientAPI;
 
-    constructor(database: IDatabase<IUser>, foodAPI: IFoodAPI) {
+    constructor(database: IDatabase<IUser>, ingredientAPI: IIngredientAPI) {
         super(database);
-        this.foodAPI = foodAPI;
+        this.ingredientAPI = ingredientAPI;
     }
 
     private async parseUpdateRequest(req: Request, res: Response, existingIngredient: IInventoryIngredient)
@@ -57,7 +57,7 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-     * Returns all food in user inventory.
+     * Returns all ingredient in user inventory.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -74,7 +74,7 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-     * Adds food to user's inventory.
+     * Adds ingredient to user's inventory.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -87,9 +87,9 @@ export default class InventoryController extends BaseUserController {
 
             let ingredientSchema = await this.parseAddRequest(req, res);
 
-            let duplicateFood = user.inventory.find((foodItem: IInventoryIngredient) => foodItem.id === ingredientSchema.id);
+            let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === ingredientSchema.id);
 
-            if (duplicateFood !== undefined) {
+            if (duplicateingredient !== undefined) {
                 return this.sendError(400, res, "Ingredient already exists in inventory.");
             }
 
@@ -103,7 +103,7 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-     * Gets complete informations of the food item from user's inventory.
+     * Gets complete informations of the ingredient item from user's inventory.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -114,7 +114,7 @@ export default class InventoryController extends BaseUserController {
         try {
             let user = await this.requestGet(parameters, res)
             let ingredient = user.inventory
-                .find((foodItem: IInventoryIngredient) => foodItem.id === Number.parseInt(req.params.foodID));
+                .find((ingredientItem: IInventoryIngredient) => ingredientItem.id === Number.parseInt(req.params.ingredientID));
 
             if (ingredient === undefined) {
                 return this.sendError(404, res, "Ingredient doesn't exist in inventory.");
@@ -127,7 +127,7 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-     * Updates information of the food item from user's inventory.
+     * Updates information of the ingredient item from user's inventory.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -143,7 +143,7 @@ export default class InventoryController extends BaseUserController {
             for (let i = 0; i < user.inventory.length; i++) {
                 let existingIngredient = user.inventory[i];
 
-                if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
+                if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
                     isFound = true;
                     user.inventory[i] = await this.parseUpdateRequest(req, res, existingIngredient);
                 }
@@ -161,7 +161,7 @@ export default class InventoryController extends BaseUserController {
     }
 
     /**
-     * Deletes food item from item from user's inventory.
+     * Deletes ingredient item from item from user's inventory.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -176,7 +176,7 @@ export default class InventoryController extends BaseUserController {
             let newInventory: IInventoryIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
-                if (user.inventory[i].id === Number.parseInt(req.params.foodID)) {
+                if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
                     isFound = true;
                 } else {
                     newInventory.push(user.inventory[i]);

@@ -12,7 +12,7 @@ import InventoryController from '../controller/InventoryController';
 import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 import TokenCreator from '../../utils/TokenCreator';
 import IIdentification from '../model/user/IIdentification';
-import SpoonacularFoodAPI from '../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI';
+import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularFoodAPI';
 import ShoppingCartController from '../controller/ShoppingCartController';
 
 export const userRoute = express.Router();
@@ -33,11 +33,11 @@ const database = UserDatabase.connect(
 const userController = new UserController(database);
 const inventoryController = new InventoryController(
     database,
-    new SpoonacularFoodAPI(apiKey, apiHost)
+    new SpoonacularIngredientAPI(apiKey, apiHost)
 );
 const shoppingCartController = new ShoppingCartController(
     database,
-    new SpoonacularFoodAPI(apiKey, apiHost)
+    new SpoonacularIngredientAPI(apiKey, apiHost)
 );
 
 let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;

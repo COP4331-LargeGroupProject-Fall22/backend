@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import IFoodAPI from "../../foodAPI/IFoodAPI";
+import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 import ResponseFormatter from "../../utils/ResponseFormatter";
 import { ResponseTypes } from "../../utils/ResponseTypes";
 import BaseController from "./BaseController";
@@ -8,10 +8,10 @@ import BaseController from "./BaseController";
  * This class creates several properties responsible for food actions 
  * provided to the user.
  */
-export default class FoodController extends BaseController {
-    private foodAPI: IFoodAPI;
+export default class IngredientController extends BaseController {
+    private foodAPI: IIngredientAPI;
 
-    constructor(foodAPI: IFoodAPI) {
+    constructor(foodAPI: IIngredientAPI) {
         super();
         this.foodAPI = foodAPI;
     }
@@ -36,8 +36,8 @@ export default class FoodController extends BaseController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
 
-        if (req.query?.query !== undefined) {
-            parameters.set("query", req.query.query);
+        if (req.query?.ingredientName !== undefined) {
+            parameters.set("ingredientName", req.query.ingredientName);
         }
 
         if (req.query?.page !== undefined) {

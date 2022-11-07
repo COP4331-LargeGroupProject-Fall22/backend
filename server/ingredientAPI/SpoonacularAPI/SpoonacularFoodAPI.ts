@@ -1,17 +1,17 @@
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import ParameterIsNotAllowed from "../../exceptions/ParameterIsNotAllowed";
-import IBaseIngredient from "../../serverAPI/model/food/IBaseIngredient";
-import IIngredient from "../../serverAPI/model/food/IIngredient";
+import IBaseIngredient from "../../serverAPI/model/ingredient/IBaseIngredient";
+import IIngredient from "../../serverAPI/model/ingredient/IIngredient";
 import INutrient from "../../serverAPI/model/nutrients/INutrient";
 import IUnit from "../../serverAPI/model/unit/IUnit";
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
-import IFoodAPI from "../IFoodAPI";
+import IIngredientAPI from "../IIngredientAPI";
 
 /**
  * This class implements IFoodAPI interface using Spoonacular API.
  */
-export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodAPI {
+export default class SpoonacularIngredientAPI extends SpoonacularAPI implements IIngredientAPI {
     // https://spoonacular.com/food-api/docs#Ingredient-Search
     private foodSearchParameters: Map<string, string>;
 
@@ -24,7 +24,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         super(apiKey, apiHost);
 
         this.foodSearchParameters = new Map([
-            ['query', 'query'],
+            ['ingredientName', 'query'],
             ['resultsPerPage', 'resultsPerPage'],
             ['page', 'page'],
             ['language', 'language'],
@@ -55,8 +55,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
 
         let searchParams = new URLSearchParams();
 
-        if (!parameters.has("query")) {
-            throw new NoParameterFound("Query parameter is missing.");
+        if (!parameters.has("ingredientName")) {
+            throw new NoParameterFound("ingredientName parameter is missing.");
         }
 
         keys.forEach(key => {

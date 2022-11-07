@@ -5,8 +5,8 @@ import { URLSearchParams } from 'url';
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
 import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
-import IFoodAPI from '../../foodAPI/IFoodAPI';
-import IIngredient from '../../serverAPI/model/food/IIngredient';
+import IIngredientAPI from '../../ingredientAPI/IIngredientAPI';
+import IIngredient from '../../serverAPI/model/ingredient/IIngredient';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
 import INutrient from '../../serverAPI/model/nutrients/INutrient';
 import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
@@ -16,7 +16,7 @@ import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 import IRecipeAPI from "../IRecipeAPI";
 
 export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
-    protected foodAPI: IFoodAPI;
+    protected ingredientAPI: IIngredientAPI;
 
     // https://spoonacular.com/food-api/docs#Search-Recipes-Complex
     protected recipeSearchParameters: Map<string, string>;
@@ -24,10 +24,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     // https://spoonacular.com/food-api/docs#Meal-Types
     protected mealTypes: Set<string>;
 
-    constructor(apiKey: string, apiHost: string, foodAPI: IFoodAPI) {
+    constructor(apiKey: string, apiHost: string, ingredientAPI: IIngredientAPI) {
         super(apiKey, apiHost);
 
-        this.foodAPI = foodAPI;
+        this.ingredientAPI = ingredientAPI;
 
         this.mealTypes = new Set([
             "main course",
@@ -45,7 +45,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         // Map ServerAPI parameters to spoonacularAPI parameters 
         this.recipeSearchParameters = new Map([
-            ['query', 'query'],
+            ['recipeName', 'query'],
             ['cuisines', 'cuisine'],
             ['diets', 'diet'],
             ['intolerances', 'intolerances'],
@@ -59,7 +59,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * Retrieves collection of partially filled Recipe items that satisfy searching parameters.
      * 
      * @param parameters parameters used for searching.
-     * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
+     * - recipeName - required parameter that defines the name of the Recipe item (partial names are accepted).
      * - resultsPerPage - optional parameter that defines max number of the results to be returned.
      * - page - optional parameter that defines page number.
      * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
@@ -93,7 +93,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * Converts search recipe parameters to URLSearchParams.
      * 
      * @param parameters parameters used for searching.
-     * - query - required parameter that defines the name of the Recipe item (partial names are accepted).
+     * - recipeName - required parameter that defines the name of the Recipe item (partial names are accepted).
      * - resultsPerPage - optional parameter that defines max number of the results to be returned.
      * - page - optional parameter that definds page number.     
      * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
@@ -109,8 +109,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let searchParameters = new URLSearchParams();
 
-        if (!parameters.has("query")) {
-            throw new NoParameterFound("Query parameter is missing.");
+        if (!parameters.has("recipeName")) {
+            throw new NoParameterFound("recipeName parameter is missing.");
         }
 
         keys.forEach(key => {
@@ -263,10 +263,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
 
     /**
-     * Looks for an ingredient through foodAPI.
+     * Looks for an ingredient through ingredientAPI.
      * 
      * @param ingredientObject json object that represents ingredient in the API.
-     * @returns Promise filled with IFood object.
+     * @returns Promise filled with Iingredient object.
      */
     protected parseIngredient(ingredientObject: any): IIngredient {
         let id = ingredientObject.id;
