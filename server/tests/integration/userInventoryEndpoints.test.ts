@@ -91,6 +91,8 @@ describe(`User inventory endpoints`, () => {
                 .post(`/user/inventory`)
                 .send(mockFood)
 
+            console.log(response.body);
+
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject([mockFood]);
         });

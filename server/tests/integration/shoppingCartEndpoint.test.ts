@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { NextFunction, Request, Response } from "express";
+import { MongoClient } from 'mongodb';
 import supertest from "supertest";
 import { app } from "../../App";
 import UserDatabase from "../../database/UserDatabase";
@@ -16,7 +17,7 @@ let mockUser: IUser = {
     lastName: 'Plekunov',
     lastSeen: Date.now(),
     password: '123',
-    username: 'Mekromicq',
+    username: 'Mekromic',
     shoppingCart: []
 };
 

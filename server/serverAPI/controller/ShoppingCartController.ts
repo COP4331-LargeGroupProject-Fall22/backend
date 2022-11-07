@@ -30,7 +30,7 @@ export default class ShoppingCartController extends BaseUserController {
             jsonPayload.category,
             jsonPayload.quantityUnits,
             jsonPayload.quantity,
-            jsonPayload?.recipeID
+            jsonPayload.recipeID === undefined ? null : jsonPayload.recipeID
         );
 
         try {
@@ -105,16 +105,20 @@ export default class ShoppingCartController extends BaseUserController {
 
             let ingredientSchema = await this.parseAddRequest(req, res);
 
+            console.log(ingredientSchema);
+
             let exists: boolean = false;
 
             for (let i = 0; i < user.shoppingCart.length; i++) {
                 let existingItem = user.shoppingCart[i];
+                console.log(existingItem);
 
                 if (existingItem.id === ingredientSchema.id &&
                     existingItem.recipeID === ingredientSchema.recipeID
                 ) {
                     exists = true;
-                    if (existingItem.recipeID !== undefined) {
+                    
+                    if (existingItem.recipeID !== null) {
                         return this.sendError(400, res, "Ingredient already exists in shopping cart.");
                     }
 
