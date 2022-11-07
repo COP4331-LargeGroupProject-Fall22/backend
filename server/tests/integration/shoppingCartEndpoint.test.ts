@@ -142,67 +142,6 @@ describe(`User shopping cart endpoints`, () => {
             expect(response.body.data.quantity.value).toBe(ingredientA.quantity.value * 2);
         });
     });
-
-    // describe('Get Food Requests', () => {
-    //     it(`Get Food Item from user's inventory (food item doesn't exist)`, async () => {
-    //         let response = await supertest(app)
-    //             .get(`/user/inventory/${mockFakeFoodID}`);
-
-    //         expect(response.statusCode).toBe(404);
-    //     });
-
-    //     it(`Get Food Item from user's inventory`, async () => {
-    //         let response = await supertest(app)
-    //             .get(`/user/inventory/${mockFoodID}`);
-
-    //         expect(response.statusCode).toBe(200);
-    //         expect(response.body.data).toMatchObject(mockFood);
-    //     });
-
-    //     it(`Get all Food Items from user's inventory`, async () => {
-    //         let response = await supertest(app)
-    //             .get(`/user/inventory`);
-
-    //         expect(response.statusCode).toBe(200);
-    //         expect(response.body.data).toMatchObject([mockFood]);
-    //     });
-    // });
-
-    // describe(`Update Food Requests`, () => {
-    //     it(`Update Food Item from user's inventory (food item doesn't exist)`, async () => {
-    //         let response = await supertest(app)
-    //             .put(`/user/inventory/${mockFakeFoodID}`)
-    //             .send(mockUpdatedFood);
-
-    //         expect(response.statusCode).toBe(404);
-    //     });
-
-    //     it(`Update Food Item from user's inventory`, async () => {
-    //         let response = await supertest(app)
-    //             .put(`/user/inventory/${mockFoodID}`)
-    //             .send(mockUpdatedFood);
-
-    //         expect(response.statusCode).toBe(200);
-    //         expect(response.body.data).toMatchObject([mockUpdatedFoodResponse]);
-    //     });
-    // });
-
-    // describe(`Delete Food Requests`, () => {
-    //     it(`Delete Food Item from user's inventory (food item doesn't exist)`, async () => {
-    //         let response = await supertest(app)
-    //             .delete(`/user/inventory/${mockFakeFoodID}`);
-
-    //         expect(response.statusCode).toBe(404);
-    //     });
-
-    //     it(`Delete Food Item from user's inventory`, async () => {
-    //         let response = await supertest(app)
-    //             .delete(`/user/inventory/${mockFoodID}`);
-
-    //         expect(response.statusCode).toBe(200);
-    //         expect(response.body.data).toStrictEqual([]);
-    //     });
-    // });
 });
 
 afterAll(async () => {

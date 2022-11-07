@@ -37,8 +37,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         ]);
 
         this.foodUnits = new Set(
-            ["kg", "g", "oz", "piece", "serving", "slice", "cup", "fruit", "container", "teaspoon", "tablespoon"]
-        )
+            ["kg", "g", "oz", "piece", "serving", "slice", "cup", "fruit", "container", "teaspoon", "tablespoon", "ounces", "cloves"]
+        );
     }
 
     /**
