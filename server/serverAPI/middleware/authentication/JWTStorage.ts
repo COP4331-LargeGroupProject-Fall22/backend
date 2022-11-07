@@ -1,10 +1,9 @@
-import { refreshToken } from "firebase-admin/app";
-import ICredentials from "../../model/user/ICredentials";
+import Token from "../../model/token/Token";
 
 export default class JWTStorage {
     private static instance?: JWTStorage;
 
-    private map: Map<string, { accessToken: string, refreshToken: string }>;
+    private map: Map<string, Token>;
 
     private constructor() {
         this.map = new Map();
@@ -27,7 +26,7 @@ export default class JWTStorage {
         return this.map.has(key);
     }
 
-    getJWT(key: string): { accessToken: string, refreshToken: string } | undefined {
+    getJWT(key: string): Token | undefined {
         return this.map.get(key);
     }
 
@@ -35,7 +34,7 @@ export default class JWTStorage {
         return this.map.delete(key);
     }
 
-    addJWT(key:string, token: { accessToken: string, refreshToken: string }) {
+    addJWT(key:string, token: Token) {
         this.map.set(key, token);
     }
 }

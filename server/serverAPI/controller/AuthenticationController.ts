@@ -8,6 +8,7 @@ import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 import JWTStorage from "../middleware/authentication/JWTStorage";
+import Token from "../model/token/Token";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -81,10 +82,7 @@ export default class AuthenticationController extends BaseUserController {
 
             JWTStorage.getInstance().addJWT(
                 userCredentials.username,
-                {
-                    accessToken: accessToken,
-                    refreshToken: refreshToken
-                }
+                new Token(accessToken, refreshToken)
             );
 
             if (req.query.includeInfo === 'true') {
@@ -112,10 +110,7 @@ export default class AuthenticationController extends BaseUserController {
 
             JWTStorage.getInstance().addJWT(
                 identification.username,
-                {
-                    accessToken: accessToken,
-                    refreshToken: req.body.refreshToken
-                }
+                new Token(accessToken, req.body.refreshToken)
             );
 
             return this.sendSuccess(200, res, {
