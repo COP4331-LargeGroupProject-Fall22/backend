@@ -7,6 +7,7 @@ import TokenCreator from "../../utils/TokenCreator";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
+import JWTStorage from "../middleware/authentication/JWTStorage";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -74,8 +75,17 @@ export default class AuthenticationController extends BaseUserController {
                 username: user.username
             };
 
+
             let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
             let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
+
+            JWTStorage.getInstance().addJWT(
+                userCredentials.username,
+                {
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                }
+            );
 
             if (req.query.includeInfo === 'true') {
                 return this.sendSuccess(200, res, {
@@ -99,12 +109,19 @@ export default class AuthenticationController extends BaseUserController {
             let identification = this.tokenCreator.verify(req.body.refreshToken);
 
             let accessToken = this.tokenCreator.sign({ username: identification.username }, this.accessTokenTimeoutInSeconds);
-            
+
+            JWTStorage.getInstance().addJWT(
+                identification.username,
+                {
+                    accessToken: accessToken,
+                    refreshToken: req.body.refreshToken
+                }
+            );
+
             return this.sendSuccess(200, res, {
                 accessToken: accessToken
             });
-        } catch(e) {
-            console.log(e);
+        } catch (e) {
             return this.sendError(401, res, "Refresh token is invalid.");
         }
     }
