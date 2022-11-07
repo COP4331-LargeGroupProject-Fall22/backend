@@ -150,6 +150,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
             mealTypes: recipeObject.dishTypes,
+            nutritionFacts: this.parseNutrients(recipeObject.nutrition.nutrients),
             instruction: instruction,
             instructionSteps: instructionSteps,
             servings: recipeObject.servings,
@@ -243,6 +244,24 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         };
     }
 
+    protected parseNutrients(nutrientsArray?: any[]): INutrient[] {
+        let nutrients: INutrient[] = [];
+
+        nutrientsArray?.forEach((nutrient: any) => {
+            nutrients.push({
+                name: nutrient.name,
+                unit: {
+                    unit: nutrient.unit,
+                    value: Number.parseFloat(nutrient.amount)
+                },
+                percentOfDaily: Number.parseFloat(nutrient.percentOfDailyNeeds)
+            });
+        });
+
+        return nutrients;
+    }
+
+
     /**
      * Looks for an ingredient through foodAPI.
      * 
@@ -258,24 +277,11 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             value: Number.parseFloat(ingredientObject.amount)
         };
 
-        let nutrients: INutrient[] = [];
-
-        ingredientObject?.nutrients.forEach((nutrient: any) => {
-            nutrients.push({
-                name: nutrient.name,
-                unit: {
-                    unit: nutrient.unit,
-                    value: Number.parseFloat(nutrient.amount)
-                },
-                percentOfDaily: Number.parseFloat(nutrient.percentOfDailyNeeds)
-            });
-        });
-
         return {
             id: id,
             name: name,
             category: category,
-            nutrients: nutrients,
+            nutrients: this.parseNutrients(ingredientObject?.nutrients),
             quantityUnits: [ quantity.unit ],
             quantity: quantity
         };

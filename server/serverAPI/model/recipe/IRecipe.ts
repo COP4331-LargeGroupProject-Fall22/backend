@@ -1,4 +1,5 @@
 import IInstruction from "../instruction/IInstruction";
+import INutrient from "../nutrients/INutrient";
 import IBaseRecipe from "./IBaseRecipe";
 
 /**
@@ -26,6 +27,11 @@ export default interface IRecipe extends IBaseRecipe {
      * Complete instructions including all needed ingredients and cooking instructions.
      */
     readonly instruction: IInstruction;
+
+    /**
+     * Complete information about nutrients in the recipe.
+     */
+    readonly nutritionFacts: INutrient[];
     
     /**
      * Step by step instructions. Each step includes all needed ingredients for current step and instructions.
