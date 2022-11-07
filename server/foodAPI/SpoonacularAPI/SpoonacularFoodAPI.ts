@@ -126,8 +126,6 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         searchParams.set("sourceUnit", oldAmount.unit);
         searchParams.set("ingredientName", ingredientName);
 
-        
-
         let response = await this.sendRequest(converterBaseURL, searchParams);
 
         if (response === null) {
