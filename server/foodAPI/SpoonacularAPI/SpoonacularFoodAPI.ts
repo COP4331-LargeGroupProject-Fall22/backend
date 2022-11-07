@@ -67,7 +67,6 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             }
         });
 
-
         searchParams.set("amount", "100");
 
         return searchParams;
