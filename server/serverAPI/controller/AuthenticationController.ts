@@ -19,7 +19,7 @@ export default class AuthenticationController extends BaseUserController {
     private tokenCreator: TokenCreator<IIdentification>;
 
     // 30 minutes in seconds.
-    protected accessTokenTimeoutInSeconds = 1 * 60;
+    protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
 
     constructor(
