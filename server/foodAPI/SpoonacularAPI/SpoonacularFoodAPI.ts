@@ -18,6 +18,8 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
     // https://spoonacular.com/food-api/docs#Get-Ingredient-Information
     private foodInfoParameters: Map<string, string>;
 
+    private foodUnits: Set<string>;
+
     constructor(apiKey: string, apiHost: string) {
         super(apiKey, apiHost);
 
@@ -33,6 +35,10 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             ['quantity', 'amount'],
             ['unit', 'unit']
         ]);
+
+        this.foodUnits = new Set(
+            ["kg", "g", "oz", "piece", "serving", "slice", "cup", "fruit", "container", "teaspoon", "tablespoon"]
+        )
     }
 
     /**
@@ -100,7 +106,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return partialFoods;
     }
 
-    private parseUnit(jsonObject: any): IUnit {
+    private async parseUnit(jsonObject: any): Promise<IUnit> {
         return {
             unit: jsonObject.targetUnit,
             value: jsonObject.targetAmount
@@ -110,11 +116,17 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
     async ConvertUnits(oldAmount: IUnit, targetUnit: string, ingredientName: string): Promise<IUnit | null> {
         let converterBaseURL: string = process.env.SPOONACULAR_CONVERTER_BASE_URL;
 
+        if (!this.foodUnits.has(targetUnit) || !this.foodUnits.has(oldAmount.unit)) {
+            return Promise.resolve(null);
+        }
+
         let searchParams = new URLSearchParams();
         searchParams.set("targetUnit", targetUnit);
         searchParams.set("sourceAmount", oldAmount.value.toString());
         searchParams.set("sourceUnit", oldAmount.unit);
         searchParams.set("ingredientName", ingredientName);
+
+        
 
         let response = await this.sendRequest(converterBaseURL, searchParams);
 
