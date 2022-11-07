@@ -51,7 +51,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             ['intolerances', 'intolerances'],
             ['mealTypes', 'type'],
             ['resultsPerPage', 'number'],
-            ['page', 'offset']
+            ['page', 'offset'],
+            ["hasIngredients", "includeIngredients"]
         ]);
     }
 
@@ -99,7 +100,8 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching.
      * - cuisine - optional parameter that limits search results to specific cuisines.
      * - mealType - optional parameter that limits search results to specific meal types.
-     * 
+     * - hasIngredients - optional parameter that constraints search result to recipes that contains specified ingredients.
+     * (ingredient list should be represented as comma separated ingredient names)
      * @throws NoParameterFound exception when an invalid parameter is provided in the request.
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns 
