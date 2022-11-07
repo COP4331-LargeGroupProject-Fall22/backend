@@ -111,7 +111,6 @@ export default class ShoppingCartController extends BaseUserController {
 
             for (let i = 0; i < user.shoppingCart.length; i++) {
                 let existingItem = user.shoppingCart[i];
-                console.log(existingItem);
 
                 if (existingItem.id === ingredientSchema.id &&
                     existingItem.recipeID === ingredientSchema.recipeID
@@ -125,7 +124,7 @@ export default class ShoppingCartController extends BaseUserController {
                     let amount = ingredientSchema.quantity;
 
                     if (existingItem.quantity.unit !== ingredientSchema.quantity.unit) {
-                        let convertedUnit = await this.foodAPI.ConvertUnits(ingredientSchema.quantity, existingItem.quantity.unit);
+                        let convertedUnit = await this.foodAPI.ConvertUnits(ingredientSchema.quantity, existingItem.quantity.unit, existingItem.name);
                         
                         if (convertedUnit === null) {
                             return this.sendError(400, res, "Amount units cannot be converted.");

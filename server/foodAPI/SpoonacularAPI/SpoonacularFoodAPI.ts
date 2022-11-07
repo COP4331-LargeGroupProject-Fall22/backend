@@ -100,10 +100,33 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return partialFoods;
     }
 
-    async ConvertUnits(oldAmount: IUnit, targetUnit: string): Promise<IUnit | null> {
-        throw new Error("Method not implemented.");
+    private parseUnit(jsonObject: any): IUnit {
+        return {
+            unit: jsonObject.targetUnit,
+            value: jsonObject.targetAmount
+        };
     }
 
+    async ConvertUnits(oldAmount: IUnit, targetUnit: string, ingredientName: string): Promise<IUnit | null> {
+        let converterBaseURL: string = process.env.SPOONACULAR_CONVERTER_BASE_URL;
+
+        let searchParams = new URLSearchParams();
+        searchParams.set("targetUnit", targetUnit);
+        searchParams.set("sourceAmount", oldAmount.value.toString());
+        searchParams.set("sourceUnit", oldAmount.unit);
+        searchParams.set("ingredientName", ingredientName);
+
+        let response = await this.sendRequest(converterBaseURL, searchParams);
+
+        if (response === null) {
+            return null;
+        }
+
+        let jsonObject = response;
+        let parsedUnit = await this.parseUnit(jsonObject);
+
+        return parsedUnit;
+    }
 
     /**
      * Retrieves array of food items that satisfy searching parameters.

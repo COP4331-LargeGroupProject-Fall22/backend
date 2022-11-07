@@ -33,7 +33,7 @@ export default interface IFoodAPI {
     Get(parameters: Map<string, any>): Promise<IIngredient | null>;
 
 
-    ConvertUnits(oldAmount: IUnit, targetUnit: string): Promise<IUnit | null>;
+    ConvertUnits(oldAmount: IUnit, targetUnit: string, ingredientName: string): Promise<IUnit | null>;
 
     // TODO(#57): add support for UPC
     GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null>;

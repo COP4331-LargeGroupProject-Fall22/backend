@@ -41,7 +41,8 @@ declare global {
             SPOONACULAR_INGREDIENTS_BASE_URL: string;
             SPOONACULAR_GROCERY_PRODUCT_BASE_URL: string;
             SPOONACULAR_RECIPE_BASE_URL: string;
-
+            SPOONACULAR_CONVERTER_BASE_URL: string;
+            
             PRIVATE_KEY_FOR_USER_TOKEN: string;
         }
 
