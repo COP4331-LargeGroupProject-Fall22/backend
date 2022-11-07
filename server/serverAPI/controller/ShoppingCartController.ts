@@ -33,6 +33,8 @@ export default class ShoppingCartController extends BaseUserController {
             jsonPayload.recipeID === undefined ? null : jsonPayload.recipeID
         );
 
+        ingredientSchema.itemID = new ObjectID().toHexString();
+
         try {
             ingredientSchema = await this.verifySchema(ingredientSchema, res);
         } catch (e) {
@@ -53,7 +55,7 @@ export default class ShoppingCartController extends BaseUserController {
             existingIngredient.recipeID
         );
 
-        ingredientSchema.itemID = ObjectID.generate(Date.now()).toString();
+        ingredientSchema.itemID = existingIngredient.itemID;
 
         if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
             let quantityObject = req.body.quantity;
@@ -105,8 +107,6 @@ export default class ShoppingCartController extends BaseUserController {
 
             let ingredientSchema = await this.parseAddRequest(req, res);
 
-            console.log(ingredientSchema);
-
             let exists: boolean = false;
 
             for (let i = 0; i < user.shoppingCart.length; i++) {
@@ -117,9 +117,9 @@ export default class ShoppingCartController extends BaseUserController {
                     existingItem.recipeID === ingredientSchema.recipeID
                 ) {
                     exists = true;
-                    
+
                     if (existingItem.recipeID !== null) {
-                        return this.sendError(400, res, "Ingredient already exists in shopping cart.");
+                        return this.sendError(400, res, "Ingredient for this recipe already exists in shopping cart.");
                     }
 
                     let amount = ingredientSchema.quantity;
@@ -189,13 +189,13 @@ export default class ShoppingCartController extends BaseUserController {
 
             let isFound: boolean = false;
 
-            for (let i = 0; i < user.inventory.length; i++) {
+            for (let i = 0; i < user.shoppingCart.length; i++) {
                 let existingIngredient = user.shoppingCart[i];
 
                 if (existingIngredient.itemID === req.params.itemID) {
                     isFound = true;
 
-                    if (existingIngredient.recipeID !== undefined) {
+                    if (existingIngredient.recipeID !== null) {
                         return this.sendError(400, res, "Cannot modify ingredients provided by recipe.");
                     }
 
@@ -209,7 +209,7 @@ export default class ShoppingCartController extends BaseUserController {
             }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.inventory);
+            return this.sendSuccess(200, res, updatedUser.shoppingCart);
         } catch (e) {
             return e;
         }
@@ -230,7 +230,7 @@ export default class ShoppingCartController extends BaseUserController {
 
             let shopingList: IShoppingIngredient[] = [];
 
-            for (let i = 0; i < user.inventory.length; i++) {
+            for (let i = 0; i < user.shoppingCart.length; i++) {
                 if (user.shoppingCart[i].itemID === req.params.itemID) {
                     isFound = true;
                 } else {
