@@ -6,7 +6,6 @@ import UserRegistrationSchema from "../model/user/requestSchema/UserRegistration
 import TokenCreator from "../../utils/TokenCreator";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
-import BaseController from "./BaseController";
 import BaseUserController from "./BaseUserController";
 
 /**
@@ -18,7 +17,8 @@ export default class AuthenticationController extends BaseUserController {
     private tokenCreator: TokenCreator<IIdentification>;
 
     // 30 minutes in seconds.
-    protected timeoutTimeInSeconds = 30 * 60;
+    protected accessTokenTimeoutInSeconds = 1 * 60;
+    protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
 
     constructor(
         database: IDatabase<IUser>,
@@ -74,18 +74,38 @@ export default class AuthenticationController extends BaseUserController {
                 username: user.username
             };
 
-            let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
+            let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
+            let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
 
             if (req.query.includeInfo === 'true') {
                 return this.sendSuccess(200, res, {
-                    accessToken: token,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken,
                     userInfo: this.convertToUserResponse(user)
                 });
             } else {
-                return this.sendSuccess(200, res, { accessToken: token });
+                return this.sendSuccess(200, res, {
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                });
             }
         } catch (e) {
             return e;
+        }
+    }
+
+    refreshToken = async (req: Request, res: Response) => {
+        try {
+            let identification = this.tokenCreator.verify(req.body.refreshToken);
+
+            let accessToken = this.tokenCreator.sign({ username: identification.username }, this.accessTokenTimeoutInSeconds);
+            
+            return this.sendSuccess(200, res, {
+                accessToken: accessToken
+            });
+        } catch(e) {
+            console.log(e);
+            return this.sendError(401, res, "Refresh token is invalid.");
         }
     }
 

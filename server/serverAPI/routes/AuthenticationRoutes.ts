@@ -29,3 +29,4 @@ authenticationRoute.use(express.json());
 
 authenticationRoute.post("/login", authenticationController.login);
 authenticationRoute.post("/register", authenticationController.register);
+authenticationRoute.post("/refreshToken", authenticationController.refreshToken);
