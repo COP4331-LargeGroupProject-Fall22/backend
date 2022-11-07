@@ -57,6 +57,6 @@ userRoute.delete('/inventory/:ingredientID', inventoryController.delete);
 
 userRoute.get('/shopping-cart', shoppingCartController.getAll);
 userRoute.post('/shopping-cart', express.json(), shoppingCartController.add);
-userRoute.get('/shopping-cart/:ingredientID', shoppingCartController.get);
-userRoute.put('/shopping-cart/:ingredientID', express.json(), shoppingCartController.update);
-userRoute.put('/shopping-cart/:ingredientID', shoppingCartController.delete);
+userRoute.get('/shopping-cart/:routeID', shoppingCartController.get);
+userRoute.put('/shopping-cart/:routeID', express.json(), shoppingCartController.update);
+userRoute.put('/shopping-cart/:routeID', shoppingCartController.delete);

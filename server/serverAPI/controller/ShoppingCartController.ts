@@ -1,9 +1,8 @@
+import { ObjectID } from "bson";
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
-import IIngredient from "../model/food/IIngredient";
 import IShoppingIngredient from "../model/food/IShoppingIngredient";
-import IngredientSchema from "../model/food/requestSchema/IngredientSchema";
 import ShoppingIngredientSchema from "../model/food/requestSchema/ShoppingIngredient";
 
 import UnitSchema from "../model/unit/UnitSchema";
@@ -29,7 +28,6 @@ export default class ShoppingCartController extends BaseUserController {
             Number.parseInt(jsonPayload.id),
             jsonPayload.name,
             jsonPayload.category,
-            jsonPayload.nutrients,
             jsonPayload.quantityUnits,
             jsonPayload.quantity,
             jsonPayload?.recipeID
@@ -50,11 +48,12 @@ export default class ShoppingCartController extends BaseUserController {
             existingIngredient.id,
             existingIngredient.name,
             existingIngredient.category,
-            existingIngredient.nutrients,
             existingIngredient.quantityUnits,
             existingIngredient.quantity,
             existingIngredient.recipeID
         );
+
+        ingredientSchema.itemID = ObjectID.generate(Date.now()).toString();
 
         if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
             let quantityObject = req.body.quantity;
@@ -106,15 +105,40 @@ export default class ShoppingCartController extends BaseUserController {
 
             let ingredientSchema = await this.parseAddRequest(req, res);
 
-            let duplicateFood = user.shoppingCart.find((foodItem: IShoppingIngredient) =>
-                foodItem.id === ingredientSchema.id && foodItem.recipeID === ingredientSchema.recipeID
-            );
+            let exists: boolean = false;
 
-            if (duplicateFood !== undefined) {
-                return this.sendError(400, res, "Ingredient already exists in shopping cart.");
+            for (let i = 0; i < user.shoppingCart.length; i++) {
+                let existingItem = user.shoppingCart[i];
+
+                if (existingItem.id === ingredientSchema.id &&
+                    existingItem.recipeID === ingredientSchema.recipeID
+                ) {
+                    exists = true;
+                    if (existingItem.recipeID !== undefined) {
+                        return this.sendError(400, res, "Ingredient already exists in shopping cart.");
+                    }
+
+                    let amount = ingredientSchema.quantity;
+
+                    if (existingItem.quantity.unit !== ingredientSchema.quantity.unit) {
+                        let convertedUnit = await this.foodAPI.ConvertUnits(ingredientSchema.quantity, existingItem.quantity.unit);
+                        
+                        if (convertedUnit === null) {
+                            return this.sendError(400, res, "Amount units cannot be converted.");
+                        }
+
+                        amount = convertedUnit;
+                    }
+
+                    user.shoppingCart[i].quantity.value += amount.value;
+
+                    break;
+                }
             }
 
-            user.shoppingCart.push(ingredientSchema);
+            if (!exists) {
+                user.shoppingCart.push(ingredientSchema);
+            }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
             return this.sendSuccess(200, res, updatedUser.shoppingCart);
@@ -135,7 +159,7 @@ export default class ShoppingCartController extends BaseUserController {
         try {
             let user = await this.requestGet(parameters, res)
             let ingredient = user.shoppingCart
-                .find((foodItem: IShoppingIngredient) => foodItem.id === Number.parseInt(req.params.ingredientID));
+                .find((foodItem: IShoppingIngredient) => foodItem.itemID === req.params.itemID);
 
             if (ingredient === undefined) {
                 return this.sendError(404, res, "Ingredient doesn't exist in shopping cart.");
@@ -164,33 +188,15 @@ export default class ShoppingCartController extends BaseUserController {
             for (let i = 0; i < user.inventory.length; i++) {
                 let existingIngredient = user.shoppingCart[i];
 
-                if (user.shoppingCart[i].id === Number.parseInt(req.params.ingredientID)) {
+                if (existingIngredient.itemID === req.params.itemID) {
                     isFound = true;
 
-                    user.shoppingCart[i] = await this.parseUpdateRequest(req, res, existingIngredient);
-
-                    if (user.shoppingCart[i].quantity?.unit !== existingIngredient.quantity?.unit ||
-                        user.shoppingCart[i].quantity?.value !== existingIngredient.quantity?.value) {
-
-                        let updatedIngredient = await this.foodAPI.Get(
-                            new Map<string, any>([
-                                ["id", existingIngredient.id],
-                                ["quantity", user.shoppingCart[i].quantity.value],
-                                ["unit", user.shoppingCart[i].quantity.unit]
-                            ])
-                        );
-
-                        if (updatedIngredient !== null) {
-                            user.shoppingCart[i] = {
-                                nutrients: updatedIngredient.nutrients,
-                                id: updatedIngredient.id,
-                                name: updatedIngredient.name,
-                                category: updatedIngredient.category,
-                                quantityUnits: updatedIngredient.quantityUnits,
-                                quantity: updatedIngredient.quantity!,
-                            };
-                        }
+                    if (existingIngredient.recipeID !== undefined) {
+                        return this.sendError(400, res, "Cannot modify ingredients provided by recipe.");
                     }
+
+                    let ingredient = await this.parseUpdateRequest(req, res, existingIngredient);
+                    user.shoppingCart[i] = ingredient;
                 }
             }
 
@@ -221,7 +227,7 @@ export default class ShoppingCartController extends BaseUserController {
             let shopingList: IShoppingIngredient[] = [];
 
             for (let i = 0; i < user.inventory.length; i++) {
-                if (user.shoppingCart[i].id === Number.parseInt(req.params.ingredientID)) {
+                if (user.shoppingCart[i].itemID === req.params.itemID) {
                     isFound = true;
                 } else {
                     shopingList.push(user.shoppingCart[i]);

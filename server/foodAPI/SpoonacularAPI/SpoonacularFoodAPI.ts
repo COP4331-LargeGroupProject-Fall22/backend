@@ -100,6 +100,11 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         return partialFoods;
     }
 
+    async ConvertUnits(oldAmount: IUnit, targetUnit: string): Promise<IUnit | null> {
+        throw new Error("Method not implemented.");
+    }
+
+
     /**
      * Retrieves array of food items that satisfy searching parameters.
      * 

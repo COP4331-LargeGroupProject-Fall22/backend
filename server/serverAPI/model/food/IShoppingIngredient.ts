@@ -1,10 +1,13 @@
 import IUnit from "../unit/IUnit";
-import IIngredient from "./IIngredient";
+import IBaseIngredient from "./IBaseIngredient";
 
 /**
- * IInventoryIngredient interface.
+ * IShoppingIngredient interface.
  */
-export default interface IShoppingIngredient extends IIngredient {
+export default interface IShoppingIngredient extends IBaseIngredient {
+    itemID?: string;
+
     recipeID?: number;
+    
     quantity: IUnit;
 }

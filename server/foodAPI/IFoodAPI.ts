@@ -1,5 +1,6 @@
 import IBaseIngredient from "../serverAPI/model/food/IBaseIngredient";
 import IIngredient from "../serverAPI/model/food/IIngredient";
+import IUnit from "../serverAPI/model/unit/IUnit";
 
 export default interface IFoodAPI {
     /**
@@ -30,6 +31,9 @@ export default interface IFoodAPI {
      * @returns Promise filled with IFood object on successful search or null.
      */
     Get(parameters: Map<string, any>): Promise<IIngredient | null>;
+
+
+    ConvertUnits(oldAmount: IUnit, targetUnit: string): Promise<IUnit | null>;
 
     // TODO(#57): add support for UPC
     GetByUPC(parameters: Map<string, any>): Promise<IIngredient | null>;

@@ -8,5 +8,6 @@ module.exports = {
   setupFiles: [
     "<rootDir>/server/tests/mongoMemoryServer/databaseSetup.ts"
   ],
+  moduleFileExtensions: ["ts", "js"],
   testPathIgnorePatterns: [".js"]
 };

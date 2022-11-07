@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsPositive, IsString, validate, ValidateNested } from "class-validator";
+import { IsArray, IsInt, IsNotEmpty, IsPositive, IsString, validate } from "class-validator";
 import ISchema from "../../ISchema";
 import IBaseIngredient from "../IBaseIngredient";
 

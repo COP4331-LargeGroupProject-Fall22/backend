@@ -15,7 +15,8 @@ let mockUser: IUser = {
     lastName: 'Plekunov',
     lastSeen: Date.now(),
     password: '123',
-    username: 'Mekromic'
+    username: 'Mekromic',
+    shoppingCart: []
 };
 
 let mockServerUser: IIdentification = {

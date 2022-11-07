@@ -2,6 +2,7 @@ import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 import * as dotenv from 'dotenv';
+import { exit } from 'process';
 dotenv.config();
 
 export default async function globalSetup() {
@@ -19,6 +20,8 @@ export default async function globalSetup() {
   await client.db(process.env.DB_NAME).createCollection(process.env.DB_USERS_COLLECTION!);
 
   await client.close();
+
+  await instance.cleanup();
 
   await instance.stop();
 };
