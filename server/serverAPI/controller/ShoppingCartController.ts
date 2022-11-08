@@ -194,10 +194,6 @@ export default class ShoppingCartController extends BaseUserController {
                 if (existingIngredient.itemID === req.params.itemID) {
                     isFound = true;
 
-                    if (existingIngredient.recipeID !== null) {
-                        return this.sendError(400, res, "Cannot modify ingredients provided by recipe.");
-                    }
-
                     let ingredient = await this.parseUpdateRequest(req, res, existingIngredient);
                     user.shoppingCart[i] = ingredient;
                 }
