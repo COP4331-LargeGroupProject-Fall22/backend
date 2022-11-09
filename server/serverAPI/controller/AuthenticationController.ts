@@ -42,7 +42,7 @@ export default class AuthenticationController extends BaseUserController {
             lastName: userCredentials.lastName,
             lastSeen: userCredentials.lastSeen,
             inventory: [],
-            shoppingCart: []
+            shoppingList: []
         }
     }
 
