@@ -184,7 +184,7 @@ export default class UserDatabase implements IDatabase<IUser> {
             username: user.username,
             password: user.password,
             inventory: user.inventory,
-            shoppingCart: user.shoppingCart,
+            shoppingList: user.shoppingList,
             lastSeen: user.lastSeen
         };
 
@@ -220,7 +220,7 @@ export default class UserDatabase implements IDatabase<IUser> {
                         "lastName": user.lastName,
                         "lastSeen": user.lastSeen,
                         "inventory": user.inventory,
-                        "shoppingCart": user.shoppingCart
+                        "shoppingCart": user.shoppingList
                     }
                 }
             ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));
