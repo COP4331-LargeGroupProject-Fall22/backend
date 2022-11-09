@@ -33,7 +33,7 @@ export default interface IFoodAPI {
     Get(parameters: Map<string, any>): Promise<IIngredient | null>;
 
 
-        /**
+    /**
      * Retrieves food item that is specified by searching parameters.
      * 
      * @param oldAmount - old amount of food item.
