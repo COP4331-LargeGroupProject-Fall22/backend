@@ -178,12 +178,13 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async Create(user: IUser): Promise<IUser | null> {
-        let newUser = {
+        let newUser: IUser = {
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
             password: user.password,
             inventory: user.inventory,
+            shoppingList: user.shoppingList,
             lastSeen: user.lastSeen
         };
 
@@ -218,7 +219,8 @@ export default class UserDatabase implements IDatabase<IUser> {
                         "firstName": user.firstName,
                         "lastName": user.lastName,
                         "lastSeen": user.lastSeen,
-                        "inventory": user.inventory
+                        "inventory": user.inventory,
+                        "shoppingCart": user.shoppingList
                     }
                 }
             ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));

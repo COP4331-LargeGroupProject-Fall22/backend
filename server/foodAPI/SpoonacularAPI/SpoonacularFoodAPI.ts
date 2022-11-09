@@ -18,6 +18,9 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
     // https://spoonacular.com/food-api/docs#Get-Ingredient-Information
     private foodInfoParameters: Map<string, string>;
 
+    // Allowed food units for conversion operations
+    private foodUnits: Set<string>;
+
     constructor(apiKey: string, apiHost: string) {
         super(apiKey, apiHost);
 
@@ -33,6 +36,10 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             ['quantity', 'amount'],
             ['unit', 'unit']
         ]);
+
+        this.foodUnits = new Set(
+            ["kg", "g", "oz", "piece", "serving", "slice", "cup", "fruit", "container", "teaspoon", "tablespoon", "ounces", "cloves"]
+        );
     }
 
     /**
@@ -60,7 +67,6 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
                 throw new ParameterIsNotAllowed(`Query parameter is not allowed ${key}`);
             }
         });
-
 
         searchParams.set("amount", "100");
 
@@ -98,6 +104,37 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
         }
 
         return partialFoods;
+    }
+
+    private async parseUnit(jsonObject: any): Promise<IUnit> {
+        return {
+            unit: jsonObject.targetUnit,
+            value: jsonObject.targetAmount
+        };
+    }
+
+    async ConvertUnits(oldAmount: IUnit, targetUnit: string, ingredientName: string): Promise<IUnit | null> {
+        let converterBaseURL: string = process.env.SPOONACULAR_CONVERTER_BASE_URL;
+
+        if (!this.foodUnits.has(targetUnit) || !this.foodUnits.has(oldAmount.unit)) {
+            return Promise.resolve(null);
+        }
+
+        let searchParams = new URLSearchParams();
+        searchParams.set("targetUnit", targetUnit);
+        searchParams.set("sourceAmount", oldAmount.value.toString());
+        searchParams.set("sourceUnit", oldAmount.unit);
+        searchParams.set("ingredientName", ingredientName);
+
+        let response = await this.sendRequest(converterBaseURL, searchParams);
+
+        if (response === null) {
+            return null;
+        }
+
+        let parsedUnit = await this.parseUnit(response);
+
+        return parsedUnit;
     }
 
     /**

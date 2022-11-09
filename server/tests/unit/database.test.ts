@@ -24,7 +24,8 @@ describe('User database functionality', () => {
         lastName: 'Plekunov',
         lastSeen: Date.now(),
         password: '123',
-        username: 'Mekromic'
+        username: 'Mekromic',
+        shoppingCart: []
     };
 
     let mockUpdatedUser: IUser = {
@@ -39,7 +40,8 @@ describe('User database functionality', () => {
             quantityUnits: ["g", "kg", "oz"]
         }],
         password: 'Mekromic',
-        username: 'password'
+        username: 'password',
+        shoppingCart: []
     };
 
     let mockUserSummary: IBaseUser;

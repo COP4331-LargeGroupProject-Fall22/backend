@@ -1,6 +1,6 @@
 import { IsNumber, IsPositive } from "class-validator";
 import IInventoryIngredient from "../IInventoryIngredient";
-import BaseIngredientSchema from "./IngredientSchema";
+import BaseIngredientSchema from "./BaseIngredientSchema";
 
 export default class InventoryIngredientSchema extends BaseIngredientSchema implements IInventoryIngredient {
     @IsNumber()

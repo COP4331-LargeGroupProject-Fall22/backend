@@ -15,7 +15,8 @@ let mockUser: IUser = {
     lastName: 'Plekunov',
     lastSeen: Date.now(),
     password: '123',
-    username: 'Mekromic'
+    username: 'Mekromic',
+    shoppingCart: []
 };
 
 let mockServerUser: IIdentification = {
@@ -89,6 +90,8 @@ describe(`User inventory endpoints`, () => {
             let response = await supertest(app)
                 .post(`/user/inventory`)
                 .send(mockFood)
+
+            console.log(response.body);
 
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toMatchObject([mockFood]);

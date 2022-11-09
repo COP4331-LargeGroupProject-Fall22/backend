@@ -11,7 +11,8 @@ let mockUser: IUser = {
     lastName: 'Plekunov',
     lastSeen: Date.now(),
     password: '123',
-    username: 'Mekromic'
+    username: 'Mekromic',
+    shoppingCart: []
 };
 
 let mockServerUser: IIdentification = {
@@ -24,7 +25,8 @@ let mockUpdatedUser: IUser = {
     lastName: "Alex",
     lastSeen: 123123123,
     password: '123321123321',
-    username: 'Marta'
+    username: 'Marta',
+    shoppingCart: []
 };
 
 jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
