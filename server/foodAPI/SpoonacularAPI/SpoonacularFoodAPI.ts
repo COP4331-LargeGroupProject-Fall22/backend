@@ -18,6 +18,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
     // https://spoonacular.com/food-api/docs#Get-Ingredient-Information
     private foodInfoParameters: Map<string, string>;
 
+    // Allowed food units for conversion operations
     private foodUnits: Set<string>;
 
     constructor(apiKey: string, apiHost: string) {
@@ -131,8 +132,7 @@ export default class SpoonacularFoodAPI extends SpoonacularAPI implements IFoodA
             return null;
         }
 
-        let jsonObject = response;
-        let parsedUnit = await this.parseUnit(jsonObject);
+        let parsedUnit = await this.parseUnit(response);
 
         return parsedUnit;
     }

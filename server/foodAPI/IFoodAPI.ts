@@ -33,6 +33,14 @@ export default interface IFoodAPI {
     Get(parameters: Map<string, any>): Promise<IIngredient | null>;
 
 
+        /**
+     * Retrieves food item that is specified by searching parameters.
+     * 
+     * @param oldAmount - old amount of food item.
+     * @param targetUnit - target unit to which oldAmount will be converted to.
+     * @param ingrdientName - name of the ingredient used in conversion.
+     * @returns Promise filled with IUnit object on successful search or null.
+     */
     ConvertUnits(oldAmount: IUnit, targetUnit: string, ingredientName: string): Promise<IUnit | null>;
 
     // TODO(#57): add support for UPC
