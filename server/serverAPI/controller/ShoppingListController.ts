@@ -10,10 +10,10 @@ import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 
 /**
- * This class creates several properties responsible for inventory actions 
+ * This class creates several properties responsible for shopping list actions 
  * provided to the user.
  */
-export default class ShoppingCartController extends BaseUserController {
+export default class ShoppingListController extends BaseUserController {
     private foodAPI: IIngredientAPI;
 
     constructor(database: IDatabase<IUser>, foodAPI: IIngredientAPI) {
@@ -87,7 +87,7 @@ export default class ShoppingCartController extends BaseUserController {
 
         try {
             let user = await this.requestGet(parameters, res)
-            return this.sendSuccess(200, res, user.shoppingCart);
+            return this.sendSuccess(200, res, user.shoppingList);
         } catch (e) {
             return e;
         }
@@ -107,25 +107,29 @@ export default class ShoppingCartController extends BaseUserController {
 
             let ingredientSchema = await this.parseAddRequest(req, res);
 
-            let exists: boolean = false;
+            let listAlreadyHasItem: boolean = false;
 
-            for (let i = 0; i < user.shoppingCart.length; i++) {
-                let existingItem = user.shoppingCart[i];
+            for (let i = 0; i < user.shoppingList.length; i++) {
+                let existingItem = user.shoppingList[i];
 
                 if (existingItem.id === ingredientSchema.id &&
-                    existingItem.recipeID === ingredientSchema.recipeID
-                ) {
-                    exists = true;
+                    existingItem.recipeID === ingredientSchema.recipeID) {
+                    listAlreadyHasItem = true;
 
                     if (existingItem.recipeID !== null) {
-                        return this.sendError(400, res, "Ingredient for this recipe already exists in shopping cart.");
+                        return this.sendError(400, res, "Use update endpoint to change the amount of ingredient in the shopping list.");
                     }
 
                     let amount = ingredientSchema.quantity;
 
                     if (existingItem.quantity.unit !== ingredientSchema.quantity.unit) {
-                        let convertedUnit = await this.foodAPI.ConvertUnits(ingredientSchema.quantity, existingItem.quantity.unit, existingItem.name);
-                        
+                        let convertedUnit =
+                            await this.foodAPI.ConvertUnits(
+                                ingredientSchema.quantity,
+                                existingItem.quantity.unit,
+                                existingItem.name
+                            );
+
                         if (convertedUnit === null) {
                             return this.sendError(400, res, "Amount units cannot be converted.");
                         }
@@ -133,25 +137,25 @@ export default class ShoppingCartController extends BaseUserController {
                         amount = convertedUnit;
                     }
 
-                    user.shoppingCart[i].quantity.value += amount.value;
+                    user.shoppingList[i].quantity.value += amount.value;
 
                     break;
                 }
             }
 
-            if (!exists) {
-                user.shoppingCart.push(ingredientSchema);
+            if (!listAlreadyHasItem) {
+                user.shoppingList.push(ingredientSchema);
             }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.shoppingCart);
+            return this.sendSuccess(200, res, updatedUser.shoppingList);
         } catch (e) {
             return e;
         }
     }
 
     /**
-     * Gets complete informations of the food item from user's inventory.
+     * Gets complete informations of the food item from user's shopping list.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -161,11 +165,11 @@ export default class ShoppingCartController extends BaseUserController {
 
         try {
             let user = await this.requestGet(parameters, res)
-            let ingredient = user.shoppingCart
+            let ingredient = user.shoppingList
                 .find((foodItem: IShoppingIngredient) => foodItem.itemID === req.params.itemID);
 
             if (ingredient === undefined) {
-                return this.sendError(404, res, "Ingredient doesn't exist in shopping cart.");
+                return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
             }
 
             return this.sendSuccess(200, res, ingredient);
@@ -175,7 +179,7 @@ export default class ShoppingCartController extends BaseUserController {
     }
 
     /**
-     * Updates information of the food item from user's inventory.
+     * Updates information of the food item from user's shopping list.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -186,36 +190,32 @@ export default class ShoppingCartController extends BaseUserController {
         try {
             let user = await this.requestGet(parameters, res);
 
-            let isFound: boolean = false;
+            let listHasItem: boolean = false;
 
-            for (let i = 0; i < user.shoppingCart.length; i++) {
-                let existingIngredient = user.shoppingCart[i];
+            for (let i = 0; i < user.shoppingList.length; i++) {
+                let existingIngredient = user.shoppingList[i];
 
                 if (existingIngredient.itemID === req.params.itemID) {
-                    isFound = true;
-
-                    if (existingIngredient.recipeID !== null) {
-                        return this.sendError(400, res, "Cannot modify ingredients provided by recipe.");
-                    }
+                    listHasItem = true;
 
                     let ingredient = await this.parseUpdateRequest(req, res, existingIngredient);
-                    user.shoppingCart[i] = ingredient;
+                    user.shoppingList[i] = ingredient;
                 }
             }
 
-            if (!isFound) {
-                return this.sendError(404, res, "Ingredient could not be found.");
+            if (!listHasItem) {
+                return this.sendError(404, res, "Use Add endpoint to add ingredient to the shopping list.");
             }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.shoppingCart);
+            return this.sendSuccess(200, res, updatedUser.shoppingList);
         } catch (e) {
             return e;
         }
     }
 
     /**
-     * Deletes food item from item from user's inventory.
+     * Deletes food item from item from user's shopping list.
      * 
      * @param req Request parameter that holds information about request.
      * @param res Response parameter that holds information about response.
@@ -229,22 +229,22 @@ export default class ShoppingCartController extends BaseUserController {
 
             let shopingList: IShoppingIngredient[] = [];
 
-            for (let i = 0; i < user.shoppingCart.length; i++) {
-                if (user.shoppingCart[i].itemID === req.params.itemID) {
+            for (let i = 0; i < user.shoppingList.length; i++) {
+                if (user.shoppingList[i].itemID === req.params.itemID) {
                     isFound = true;
                 } else {
-                    shopingList.push(user.shoppingCart[i]);
+                    shopingList.push(user.shoppingList[i]);
                 }
             }
 
             if (!isFound) {
-                return this.sendError(404, res, "Ingredient doesn't exist in shopping cart.");
+                return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
             }
 
-            user.shoppingCart = shopingList;
+            user.shoppingList = shopingList;
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.sendSuccess(200, res, updatedUser.shoppingCart);
+            return this.sendSuccess(200, res, updatedUser.shoppingList);
         } catch (e) {
             return e;
         }
