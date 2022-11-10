@@ -3,7 +3,7 @@
  */
 
 import express from "express";
-import SpoonacularFoodAPI from "../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI";
+import SpoonacularIngredientAPI from "../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI";
 import SpoonacularRecipeAPI from "../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI";
 import RecipeController from "../controller/RecipeController";
 
@@ -16,7 +16,7 @@ const recipeController = new RecipeController(
     new SpoonacularRecipeAPI(
         apiKey, 
         apiHost,
-        new SpoonacularFoodAPI(apiKey, apiHost)
+        new SpoonacularIngredientAPI(apiKey, apiHost)
     )
 );
 

@@ -14,7 +14,7 @@ import path from 'path';
 import Logger from './serverAPI/middleware/logger/Logger';
 import { userRoute } from './serverAPI/routes/UserRoutes';
 import { authenticationRoute } from './serverAPI/routes/AuthenticationRoutes';
-import { foodRoute } from './serverAPI/routes/FoodRoute';
+import { ingredientRoute } from './serverAPI/routes/IngredientRoute';
 import { recipeRoute } from './serverAPI/routes/RecipeRoute';
 
 const app = express();
@@ -33,7 +33,7 @@ app.use(cors(corsOptions));
 
 app.use('/user', userRoute);
 app.use('/recipes', recipeRoute)
-app.use('/foods', foodRoute);
+app.use('/ingredients', ingredientRoute);
 app.use('/auth', authenticationRoute);
 
 const server = (port: number) => {

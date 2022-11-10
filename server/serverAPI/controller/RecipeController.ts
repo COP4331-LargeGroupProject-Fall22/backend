@@ -24,8 +24,8 @@ export default class RecipeController extends BaseController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>();
 
-        if (req.query?.query !== undefined) {
-            parameters.set("query", req.query.query);
+        if (req.query?.recipeName !== undefined) {
+            parameters.set("recipeName", req.query.recipeName);
         }
 
         if (req.query?.page !== undefined) {

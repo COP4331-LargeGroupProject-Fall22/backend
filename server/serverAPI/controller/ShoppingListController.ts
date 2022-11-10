@@ -1,9 +1,9 @@
 import { ObjectID } from "bson";
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
-import IFoodAPI from "../../foodAPI/IFoodAPI";
-import IShoppingIngredient from "../model/food/IShoppingIngredient";
-import ShoppingIngredientSchema from "../model/food/requestSchema/ShoppingIngredientSchema";
+import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
+import IShoppingIngredient from "../model/ingredient/IShoppingIngredient";
+import ShoppingIngredientSchema from "../model/ingredient/requestSchema/ShoppingIngredientSchema";
 
 import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
@@ -14,9 +14,9 @@ import BaseUserController from "./BaseUserController";
  * provided to the user.
  */
 export default class ShoppingListController extends BaseUserController {
-    private foodAPI: IFoodAPI;
+    private foodAPI: IIngredientAPI;
 
-    constructor(database: IDatabase<IUser>, foodAPI: IFoodAPI) {
+    constructor(database: IDatabase<IUser>, foodAPI: IIngredientAPI) {
         super(database);
         this.foodAPI = foodAPI;
     }

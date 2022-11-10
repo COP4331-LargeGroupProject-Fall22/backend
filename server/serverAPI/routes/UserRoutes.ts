@@ -12,8 +12,8 @@ import InventoryController from '../controller/InventoryController';
 import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 import TokenCreator from '../../utils/TokenCreator';
 import IIdentification from '../model/user/IIdentification';
-import SpoonacularFoodAPI from '../../foodAPI/SpoonacularAPI/SpoonacularFoodAPI';
-import ShoppingCartController from '../controller/ShoppingListController';
+import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
+import ShoppingListController from '../controller/ShoppingListController';
 
 export const userRoute = express.Router();
 
@@ -33,11 +33,11 @@ const database = UserDatabase.connect(
 const userController = new UserController(database);
 const inventoryController = new InventoryController(
     database,
-    new SpoonacularFoodAPI(apiKey, apiHost)
+    new SpoonacularIngredientAPI(apiKey, apiHost)
 );
-const shoppingCartController = new ShoppingCartController(
+const shoppingListController = new ShoppingListController(
     database,
-    new SpoonacularFoodAPI(apiKey, apiHost)
+    new SpoonacularIngredientAPI(apiKey, apiHost)
 );
 
 let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
@@ -55,8 +55,8 @@ userRoute.get('/inventory/:ingredientID', inventoryController.get);
 userRoute.put('/inventory/:ingredientID', express.json(), inventoryController.update);
 userRoute.delete('/inventory/:ingredientID', inventoryController.delete);
 
-userRoute.get('/shopping-cart', shoppingCartController.getAll);
-userRoute.post('/shopping-cart', express.json(), shoppingCartController.add);
-userRoute.get('/shopping-cart/:itemID', shoppingCartController.get);
-userRoute.put('/shopping-cart/:itemID', express.json(), shoppingCartController.update);
-userRoute.delete('/shopping-cart/:itemID', shoppingCartController.delete);
+userRoute.get('/shopping-list', shoppingListController.getAll);
+userRoute.post('/shopping-list', express.json(), shoppingListController.add);
+userRoute.get('/shopping-list/:itemID', shoppingListController.get);
+userRoute.put('/shopping-list/:itemID', express.json(), shoppingListController.update);
+userRoute.delete('/shopping-list/:itemID', shoppingListController.delete);
