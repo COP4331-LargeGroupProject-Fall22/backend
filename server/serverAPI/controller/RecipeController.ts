@@ -40,6 +40,10 @@ export default class RecipeController extends BaseController {
             parameters.set("intolerance", req.query.intolerance);
         }
 
+        if (req.query?.hasIngredients !== undefined) {
+            parameters.set("hasIngredients", req.query.hasIngredients);
+        }
+
         return this.recipeAPI.GetAll(parameters).then(recipes => {
             return this.sendSuccess(200, res, recipes);
         }, (error) => this.sendSuccess(400, res, this.getException(error)));
