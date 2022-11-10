@@ -7,15 +7,15 @@ import TokenCreator from "../../utils/TokenCreator";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
 import BaseController from "./BaseController";
+import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class AuthenticationController extends BaseController {
+export default class AuthenticationController extends BaseUserController {
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IIdentification>;
-    private database: IDatabase<IUser>;
 
     // 30 minutes in seconds.
     protected timeoutTimeInSeconds = 30 * 60;
@@ -25,7 +25,7 @@ export default class AuthenticationController extends BaseController {
         encryptor: Encryptor,
         tokenCreator: TokenCreator<IIdentification>
     ) {
-        super();
+        super(database);
 
         this.database = database;
         this.encryptor = encryptor;
@@ -76,7 +76,14 @@ export default class AuthenticationController extends BaseController {
 
             let token = this.tokenCreator.sign(identification, this.timeoutTimeInSeconds);
 
-            return this.sendSuccess(200, res, { accessToken: token });
+            if (req.query.includeInfo === 'true') {
+                return this.sendSuccess(200, res, {
+                    accessToken: token,
+                    userInfo: this.convertToUserResponse(user)
+                });
+            } else {
+                return this.sendSuccess(200, res, { accessToken: token });
+            }
         } catch (e) {
             return e;
         }
