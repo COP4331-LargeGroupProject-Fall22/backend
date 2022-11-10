@@ -66,7 +66,7 @@ To run tests use `npm run test` or `npm test`.
 
 ## User Endpoints:
 
-https://app.swaggerhub.com/apis/mplekunov/Smart-Chief/1.0.0#/
+https://app.swaggerhub.com/apis/mplekunov/Smart-Chef-API/1.0.0
 
 
 # DataModels Used:
