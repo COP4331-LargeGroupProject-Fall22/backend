@@ -9,21 +9,21 @@ interface IRecipe extends IBaseRecipe {
     + cuisines: string[]
 
     + diets: string[] 
-    
+
     + mealTypes: string[]
-    
+
     + intolerances: string[]
-    
+
     + nutritionFacts: INutrient[]
-    
+
     + instruction: IInstruction
     + instructionSteps: IInstruction[]
-    
+
     + servings: number
-    
+
     + cookingTimeInMinutes: number
-    + preparationInMinutes: numbe
-    
+    + preparationInMinutes: number
+
     + totalCost: number
     + costPerServing: number
 }
