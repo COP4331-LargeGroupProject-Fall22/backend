@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IFoodAPI from "../../foodAPI/IFoodAPI";
 import IShoppingIngredient from "../model/food/IShoppingIngredient";
-import ShoppingIngredientSchema from "../model/food/requestSchema/ShoppingIngredient";
+import ShoppingIngredientSchema from "../model/food/requestSchema/ShoppingIngredientSchema";
 
 import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
