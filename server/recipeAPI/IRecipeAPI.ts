@@ -14,7 +14,7 @@ export default interface IRecipeAPI {
      * - intolerances - optional parameter that defines the type of intolerances to be taken into consideration during searching. (default = none)
      * - cuisine - optional parameter that limits search results to specific cuisines. (default = none)
      * - mealType - optional parameter that limits search results to specific meal types. (default = none)
-     * - hasIngredients - optional parameter that constraints search result to recipes that contains specified ingredients.
+     * - hasIngredients - optional parameter that constrains search result to recipes that contains specified ingredients.
      * (ingredient list should be represented as comma separated ingredient names)
      * Complete list of intolerances is available at https://spoonacular.com/food-api/docs#Intolerances 
      * Complete list of mealTypes is available at // https://spoonacular.com/food-api/docs#Meal-Types

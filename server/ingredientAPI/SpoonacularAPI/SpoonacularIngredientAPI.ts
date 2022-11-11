@@ -9,7 +9,7 @@ import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
 import IIngredientAPI from "../IIngredientAPI";
 
 /**
- * This class implements IFoodAPI interface using Spoonacular API.
+ * This class implements IIngredientAPI interface using Spoonacular API.
  */
 export default class SpoonacularIngredientAPI extends SpoonacularAPI implements IIngredientAPI {
     // https://spoonacular.com/food-api/docs#Ingredient-Search
@@ -149,7 +149,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @throws RequestLimitReached excpetion when request limit has been reached.
-     * @returns Promise filled with an array of IFood objects.
+     * @returns Promise filled with an array of IIngredient objects.
      */
     async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
@@ -168,10 +168,10 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     }
 
     /**
-     * Parses plain javascript object as IFood object.
+     * Parses plain javascript object as IIngredient object.
      * 
      * @param data representing food as plain javascript object.
-     * @returns Promise filled with IFood object.
+     * @returns Promise filled with IIngredient object.
      */
     private parseFood = async (data: any): Promise<IIngredient> => {
         let id = data.id;
@@ -256,7 +256,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * 
      * @throws IncorrectIDFormat exception when id has incorrect format.
      * @throws NoParameterFound exception when required parameters weren't found. 
-     * @returns Promise filled with IFood object on successful search or null.
+     * @returns Promise filled with IIngredient object on successful search or null.
      */
     async Get(parameters: Map<string, any>): Promise<IIngredient | null> {
         if (!parameters.has("id")) {

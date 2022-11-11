@@ -4,7 +4,6 @@ import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
-import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 
