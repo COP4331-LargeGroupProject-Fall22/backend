@@ -2,8 +2,6 @@ import IBaseRecipe from "../serverAPI/model/recipe/IBaseRecipe";
 import IRecipe from "../serverAPI/model/recipe/IRecipe";
 
 export default interface IRecipeAPI {
-    // TODO(#50): Rename query parameters for Get endpoints. 
-
     /**
      * Retrieves collection of partially filled Recipe items that satisfy searching parameters.
      * 

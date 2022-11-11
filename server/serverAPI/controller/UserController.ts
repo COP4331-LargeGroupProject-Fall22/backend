@@ -21,6 +21,7 @@ export default class UserController extends BaseUserController {
             this.isStringUndefinedOrEmpty(req.body?.lastName) ? user.lastName : req.body.lastName,
             this.isStringUndefinedOrEmpty(req.body?.username) ? user.username : req.body.username,
             this.isStringUndefinedOrEmpty(req.body?.password) ? user.password : req.body.password,
+            user.email,
             user.lastSeen,
         );
 
@@ -31,8 +32,10 @@ export default class UserController extends BaseUserController {
                 firstName: userSchema.firstName,
                 lastName: userSchema.lastName,
                 lastSeen: user.lastSeen,
+                email: user.email,
                 password: userSchema.password,
-                username: userSchema.username
+                username: userSchema.username,
+                isVerified: user.isVerified
             };
 
             return newUser;

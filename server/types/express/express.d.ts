@@ -43,6 +43,10 @@ declare global {
             SPOONACULAR_RECIPE_BASE_URL: string;
             SPOONACULAR_CONVERTER_BASE_URL: string;
             
+            SENDGRID_API_KEY: string;
+
+            OUTBOUND_VERIFICATION_EMAIL: string;
+
             PRIVATE_KEY_FOR_USER_TOKEN: string;
         }
 
