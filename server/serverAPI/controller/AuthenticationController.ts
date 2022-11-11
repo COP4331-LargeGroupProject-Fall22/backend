@@ -18,7 +18,6 @@ export default class AuthenticationController extends BaseUserController {
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IIdentification>;
 
-    // 30 minutes in seconds.
     protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
 
@@ -102,22 +101,47 @@ export default class AuthenticationController extends BaseUserController {
         }
     }
 
-    refreshToken = async (req: Request, res: Response) => {
+    /**
+     * Refreshes client's JWT tokens when correct refresh token is provided.
+     * 
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
+     */
+    refreshJWT = async (req: Request, res: Response) => {
         try {
             let identification = this.tokenCreator.verify(req.body.refreshToken);
 
             let accessToken = this.tokenCreator.sign({ username: identification.username }, this.accessTokenTimeoutInSeconds);
+            let refreshToken = this.tokenCreator.sign({ username: identification.username }, this.refreshTokenTimeoutInSeconds);
+
 
             JWTStorage.getInstance().addJWT(
                 identification.username,
-                new Token(accessToken, req.body.refreshToken)
+                new Token(accessToken, refreshToken)
             );
 
             return this.sendSuccess(200, res, {
-                accessToken: accessToken
+                accessToken: accessToken,
+                refreshToken: refreshToken
             });
         } catch (e) {
             return this.sendError(401, res, "Refresh token is invalid.");
+        }
+    }
+
+
+    /**
+     * Logs client out from the server. All JWT tokens related to the client becomes invalid.
+     * 
+     * @param req Request parameter that holds information about request.
+     * @param res Response parameter that holds information about response.
+     */
+    logout = async (req: Request, res: Response) => {
+        try {
+            JWTStorage.getInstance().deleteJWT(req.serverUser.username);
+            return this.sendSuccess(200, res);
+        } catch (e) {
+            return this.sendError(400, res, "Could not perform logout operation.");
         }
     }
 
