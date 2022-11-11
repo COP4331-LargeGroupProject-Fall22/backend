@@ -21,8 +21,6 @@ const app = express();
 
 app.use(Logger.consoleLog);
 
-app.use(express.static(path.resolve(__dirname, '../frontend/html/public')));
-
 const cors = require("cors");
 
 var corsOptions = {
