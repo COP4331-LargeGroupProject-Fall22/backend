@@ -146,8 +146,15 @@ export default class AuthenticationController extends BaseUserController {
     }
 
     sendVerificationCode = async (req: Request, res: Response) => {
-        let email = req.body?.email;
+        let email = "";
         let username = req.body?.username;
+
+        try {
+            let user = await this.requestGet(new Map([["username", username]]), res);
+            email = user.email;
+        } catch(e) {
+            return e;
+        }
 
         let verificationCode = Random.getRandomNumber(this.minVerificationCode, this.maxVerificationCode);
 
