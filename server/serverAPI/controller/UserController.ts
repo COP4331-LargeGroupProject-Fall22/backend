@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import Encryptor from "../../utils/Encryptor";
+import JWTStorage from "../middleware/authentication/JWTStorage";
 import IUser from "../model/user/IUser";
 import UserSchema from "../model/user/requestSchema/UserSchema";
 import BaseUserController from "./BaseUserController";
@@ -104,13 +105,15 @@ export default class UserController extends BaseUserController {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         try {
-            await this.requestGet(parameters, res);
+            let user = await this.requestGet(parameters, res);
 
             let result = await this.requestDelete(req.serverUser.username, res)
             if (!result) {
                 return this.sendError(400, res, "User could not be deleted.");
             }
 
+            JWTStorage.getInstance().deleteJWT(user.username);
+            
             return this.sendSuccess(200, res);
         } catch (e) {
             return e;

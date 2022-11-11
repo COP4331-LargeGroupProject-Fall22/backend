@@ -7,6 +7,7 @@ import AuthenticationController from '../controller/AuthenticationController';
 import UserDatabase from '../../database/UserDatabase';
 import Encryptor from '../../utils/Encryptor';
 import TokenCreator from '../../utils/TokenCreator';
+import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
 
 export const authenticationRoute = express.Router();
 
@@ -29,3 +30,5 @@ authenticationRoute.use(express.json());
 
 authenticationRoute.post("/login", authenticationController.login);
 authenticationRoute.post("/register", authenticationController.register);
+authenticationRoute.post("/refreshJWT", authenticationController.refreshJWT);
+authenticationRoute.get("/logout", new JWTAuthenticator().authenticate(new TokenCreator(privateKey)), authenticationController.logout);
