@@ -114,7 +114,6 @@ export default class AuthenticationController extends BaseUserController {
             let accessToken = this.tokenCreator.sign({ username: identification.username }, this.accessTokenTimeoutInSeconds);
             let refreshToken = this.tokenCreator.sign({ username: identification.username }, this.refreshTokenTimeoutInSeconds);
 
-
             JWTStorage.getInstance().addJWT(
                 identification.username,
                 new Token(accessToken, refreshToken)

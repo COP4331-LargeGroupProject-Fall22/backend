@@ -20,7 +20,6 @@ export default class JWTAuthenticator extends BaseController {
             let userIdentification: IIdentification;
             try {
                 userIdentification = tokenCreator.verify(accessToken.trim());
-
             } catch (error) {
                 return this.sendError(400, res, this.getException(error));
             }
