@@ -120,15 +120,21 @@ export default class AuthenticationController extends BaseUserController {
 
     confirmVerificationCode = async (req: Request, res: Response) => {
         let username = req.body?.username;
-        let actualCode = req.body?.verificationCode;
+        let inputCode = req.body?.verificationCode;
 
-        let requestedCode = AuthenticationController.verificationCodesMap.get(username);
+        let actualCode = AuthenticationController.verificationCodesMap.get(username);
 
-        if (requestedCode === undefined) {
+        try {
+            await this.requestGet(new Map([["username", username]]), res)
+        } catch(response) {
+            return response;
+        }
+
+        if (actualCode === undefined) {
             return this.sendError(400, res, "Verification code is either expired or not issued.");
         }
 
-        if (actualCode !== requestedCode) {
+        if (inputCode !== actualCode) {
             return this.sendError(400, res, "Verification code is invalid.");
         }
 
@@ -152,11 +158,11 @@ export default class AuthenticationController extends BaseUserController {
         try {
             let user = await this.requestGet(new Map([["username", username]]), res);
             email = user.email;
-        } catch(e) {
+        } catch (e) {
             return e;
         }
 
-        let verificationCode = Random.getRandomNumber(this.minVerificationCode, this.maxVerificationCode);
+        let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
 
         let emailVerificationSchema = new EmailVerificationTemplateSchema(
             username,

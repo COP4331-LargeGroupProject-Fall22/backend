@@ -47,6 +47,8 @@ declare global {
 
             OUTBOUND_VERIFICATION_EMAIL: string;
 
+            SENDGRID_VERIFICATION_EMAIL_TEMPLATEID: string;
+
             PRIVATE_KEY_FOR_USER_TOKEN: string;
         }
 
