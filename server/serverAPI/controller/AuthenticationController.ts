@@ -179,16 +179,19 @@ export default class AuthenticationController extends BaseUserController {
 
         let verificationInfo = AuthenticationController.verificationCodesMap.get(username);
 
-        if (verificationInfo !== undefined && verificationInfo.attempts < this.maxAttemptsPerVerificationCode) {
-            verificationInfo = {
-                code: verificationInfo.code,
-                generationTime: verificationInfo.generationTime,
-                attempts: ++verificationInfo.attempts
-            };
+        if (verificationInfo !== undefined) {
+            if (verificationInfo.attempts < this.maxAttemptsPerVerificationCode) {
+                verificationInfo = {
+                    code: verificationInfo.code,
+                    generationTime: verificationInfo.generationTime,
+                    attempts: ++verificationInfo.attempts
+                };
 
-            emailVerificationSchema.confirmationCode = verificationInfo.code;
-        }
-        else {
+                emailVerificationSchema.confirmationCode = verificationInfo.code;
+            } else {
+                return this.sendError(400, res, `Max number of attempts has been reached. Wait for a while before trying again.`);
+            }
+        } else {
             verificationInfo = {
                 code: verificationCode,
                 generationTime: Date.now(),
