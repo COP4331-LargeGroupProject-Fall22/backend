@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import IDatabase from '../../database/IDatabase';
 import Encryptor from "../../utils/Encryptor";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import IUser from "../model/user/IUser";
 import UserSchema from "../model/user/requestSchema/UserSchema";
@@ -52,7 +53,7 @@ export default class UserController extends BaseUserController {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
         return this.requestGet(parameters, res).then(user => {
-            return this.sendSuccess(200, res, this.convertToUserResponse(user));
+            return this.send(ResponseCodes.OK, res, this.convertToUserResponse(user));
         }, (response) => response);
     }
 
@@ -75,12 +76,10 @@ export default class UserController extends BaseUserController {
             let user = await this.requestGet(parameters, res);
 
             if (req.body.username !== undefined) {
-                console.log("Username check");
                 let result = await this.isUnique(req.body.username);
 
                 if (!result) {
-                    console.log("Username is not unique check");
-                    return this.sendError(404, res, "Username already exists.");
+                    return this.send(ResponseCodes.BAD_REQUEST, res, "Username already exists.");
                 }
             }
 
@@ -92,9 +91,9 @@ export default class UserController extends BaseUserController {
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, validatedUser, res);
 
-            return this.sendSuccess(200, res, this.convertToUserResponse(updatedUser));
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.OK, res, this.convertToUserResponse(updatedUser));
+        } catch (response) {
+            return response;
         }
     }
 
@@ -112,14 +111,14 @@ export default class UserController extends BaseUserController {
 
             let result = await this.requestDelete(req.serverUser.username, res)
             if (!result) {
-                return this.sendError(400, res, "User could not be deleted.");
+                return this.send(ResponseCodes.BAD_REQUEST, res, "User could not be deleted.");
             }
 
             JWTStorage.getInstance().deleteJWT(user.username);
             
-            return this.sendSuccess(200, res);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.OK, res);
+        } catch (response) {
+            return response;
         }
     }
 }

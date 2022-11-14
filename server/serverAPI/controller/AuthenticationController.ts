@@ -12,6 +12,7 @@ import Token from "../model/token/Token";
 import IEmailAPI from "../../emailAPI/IEmailAPI";
 import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
 import Random from "../../utils/Random";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -74,15 +75,17 @@ export default class AuthenticationController extends BaseUserController {
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
 
-            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
+            let user: IUser;
 
-            if (user === null) {
-                return this.sendError(404, res, "User could not be found.");
+            try {
+                user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
+            } catch (e) {
+                return e;
             }
 
             let result = await this.encryptor.compare(userCredentials.password, user.password);
             if (!result) {
-                return this.sendError(403, res, `User credentials are incorrect.`);
+                return this.send(ResponseCodes.UNAUTHORIZED, res, `User credentials are incorrect.`);
             }
 
             let identification: IIdentification = {
@@ -90,7 +93,7 @@ export default class AuthenticationController extends BaseUserController {
             };
 
             if (!user.isVerified) {
-                this.sendError(400, res, "Account is not verified.");
+                this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
             }
 
             let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
@@ -102,13 +105,13 @@ export default class AuthenticationController extends BaseUserController {
             );
 
             if (req.query.includeInfo === 'true') {
-                return this.sendSuccess(200, res, {
+                return this.send(ResponseCodes.OK, res, {
                     accessToken: accessToken,
                     refreshToken: refreshToken,
                     userInfo: this.convertToUserResponse(user)
                 });
             } else {
-                return this.sendSuccess(200, res, {
+                return this.send(ResponseCodes.OK, res, {
                     accessToken: accessToken,
                     refreshToken: refreshToken
                 });
@@ -125,11 +128,11 @@ export default class AuthenticationController extends BaseUserController {
         let requestedCode = AuthenticationController.verificationCodesMap.get(username);
 
         if (requestedCode === undefined) {
-            return this.sendError(400, res, "Verification code is either expired or not issued.");
+            return this.send(ResponseCodes.UNAUTHORIZED, res, "Verification code is either expired or not issued.");
         }
 
         if (actualCode !== requestedCode) {
-            return this.sendError(400, res, "Verification code is invalid.");
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
         }
 
         try {
@@ -139,7 +142,7 @@ export default class AuthenticationController extends BaseUserController {
 
             await this.requestUpdate(user.username, user, res);
 
-            return this.sendSuccess(200, res, "Account has been verified.");
+            return this.send(ResponseCodes.OK, res, "Account has been verified.");
         } catch (e) {
             return e;
         }
@@ -152,8 +155,8 @@ export default class AuthenticationController extends BaseUserController {
         try {
             let user = await this.requestGet(new Map([["username", username]]), res);
             email = user.email;
-        } catch(e) {
-            return e;
+        } catch (response) {
+            return response;
         }
 
         let verificationCode = Random.getRandomNumber(this.minVerificationCode, this.maxVerificationCode);
@@ -166,8 +169,8 @@ export default class AuthenticationController extends BaseUserController {
         try {
             await this.verifySchema(emailVerificationSchema, res);
             await this.requestGet(new Map([["username", username]]), res)
-        } catch (e) {
-            return e;
+        } catch (response) {
+            return response;
         }
 
         AuthenticationController.verificationCodesMap.set(username, verificationCode);
@@ -180,8 +183,8 @@ export default class AuthenticationController extends BaseUserController {
             email,
             process.env.OUTBOUND_VERIFICATION_EMAIL,
             emailVerificationSchema)
-            .then(() => this.sendSuccess(200, res, "Verification code has been sent."))
-            .catch((error) => this.sendError(400, res, error));
+            .then(() => this.send(ResponseCodes.OK, res, "Verification code has been sent."))
+            .catch((error) => this.send(ResponseCodes.BAD_REQUEST, res, error));
     }
 
     /**
@@ -202,12 +205,12 @@ export default class AuthenticationController extends BaseUserController {
                 new Token(accessToken, refreshToken)
             );
 
-            return this.sendSuccess(200, res, {
+            return this.send(ResponseCodes.OK, res, {
                 accessToken: accessToken,
                 refreshToken: refreshToken
             });
         } catch (e) {
-            return this.sendError(401, res, "Refresh token is invalid.");
+            return this.send(ResponseCodes.UNAUTHORIZED, res, "Refresh token is invalid.");
         }
     }
 
@@ -221,9 +224,9 @@ export default class AuthenticationController extends BaseUserController {
     logout = async (req: Request, res: Response) => {
         try {
             JWTStorage.getInstance().deleteJWT(req.serverUser.username);
-            return this.sendSuccess(200, res);
+            return this.send(ResponseCodes.OK, res);
         } catch (e) {
-            return this.sendError(400, res, "Could not perform logout operation.");
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Could not perform logout operation.");
         }
     }
 
@@ -245,9 +248,16 @@ export default class AuthenticationController extends BaseUserController {
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
 
-            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
+            let user: IUser;
+
+            try {
+                user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
+            } catch(response) {
+                return response;
+            }
+
             if (user !== null) {
-                return this.sendError(400, res, `User with such username already exists.`);
+                return this.send(ResponseCodes.BAD_REQUEST, res, `User with such username already exists.`);
             }
 
             let internalUser = this.convertToUser(userCredentials);
@@ -255,7 +265,7 @@ export default class AuthenticationController extends BaseUserController {
 
             let createdUser = await this.database.Create(internalUser);
             if (createdUser === null) {
-                return this.sendError(400, res, `User could not be created.`);
+                return this.send(ResponseCodes.BAD_REQUEST, res, `User could not be created.`);
             }
 
             this.sendVerificationCode(req, res);
