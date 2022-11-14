@@ -22,8 +22,8 @@ export default class AuthenticationController extends BaseUserController {
     private tokenCreator: TokenCreator<IIdentification>;
     private emailAPI: IEmailAPI;
 
-    protected static verificationCodesMap: Map<string, { code: number, geneationTime: number }> = new Map();
-    protected verificationCodeLifetimeInMilliseconds = 15 *60 * 1000;
+    protected static verificationCodesMap: Map<string, { code: number, generationTime: number }> = new Map();
+    protected verificationCodeLifetimeInMilliseconds = 5 * 60 * 1000;
 
     protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
@@ -124,8 +124,10 @@ export default class AuthenticationController extends BaseUserController {
 
         let actualCode = AuthenticationController.verificationCodesMap.get(username);
 
+        let user: IUser;
+
         try {
-            await this.requestGet(new Map([["username", username]]), res)
+            user = await this.requestGet(new Map([["username", username]]), res)
         } catch (response) {
             return response;
         }
@@ -139,8 +141,6 @@ export default class AuthenticationController extends BaseUserController {
         }
 
         try {
-            let user = await this.requestGet(new Map([["username", username]]), res);
-
             user.isVerified = true;
 
             await this.requestUpdate(user.username, user, res);
@@ -163,12 +163,7 @@ export default class AuthenticationController extends BaseUserController {
         }
 
         if (AuthenticationController.verificationCodesMap.has(username)) {
-            let generationTime = AuthenticationController.verificationCodesMap.get(username)!.geneationTime;
-            let currentTime = Date.now();
-
-            if ((currentTime - generationTime) < this.verificationCodeLifetimeInMilliseconds) {
-                return this.sendError(400, res, "The previous code sent hasn't expired yet.");
-            }
+            return this.sendError(400, res, "The previous code sent hasn't expired yet.");
         }
 
         let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
@@ -189,7 +184,7 @@ export default class AuthenticationController extends BaseUserController {
             username,
             {
                 code: verificationCode,
-                geneationTime: Date.now()
+                generationTime: Date.now()
             }
         );
 
