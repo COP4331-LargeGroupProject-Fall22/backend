@@ -22,8 +22,9 @@ export default class AuthenticationController extends BaseUserController {
     private tokenCreator: TokenCreator<IIdentification>;
     private emailAPI: IEmailAPI;
 
-    protected static verificationCodesMap: Map<string, { code: number, generationTime: number }> = new Map();
+    protected static verificationCodesMap: Map<string, { code: number, generationTime: number, attempts: number }> = new Map();
     protected verificationCodeLifetimeInMilliseconds = 5 * 60 * 1000;
+    protected maxAttemptsPerVerificationCode = 3;
 
     protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
@@ -162,10 +163,6 @@ export default class AuthenticationController extends BaseUserController {
             return e;
         }
 
-        if (AuthenticationController.verificationCodesMap.has(username)) {
-            return this.sendError(400, res, "The previous code sent hasn't expired yet.");
-        }
-
         let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
 
         let emailVerificationSchema = new EmailVerificationTemplateSchema(
@@ -180,17 +177,33 @@ export default class AuthenticationController extends BaseUserController {
             return e;
         }
 
+        let verificationInfo = AuthenticationController.verificationCodesMap.get(username);
+
+        if (verificationInfo !== undefined && verificationInfo.attempts < this.maxAttemptsPerVerificationCode) {
+            verificationInfo = {
+                code: verificationInfo.code,
+                generationTime: verificationInfo.generationTime,
+                attempts: ++verificationInfo.attempts
+            };
+
+            emailVerificationSchema.confirmationCode = verificationInfo.code;
+        }
+        else {
+            verificationInfo = {
+                code: verificationCode,
+                generationTime: Date.now(),
+                attempts: 1
+            };
+
+            setTimeout(() => {
+                AuthenticationController.verificationCodesMap.delete(username);
+            }, this.verificationCodeLifetimeInMilliseconds);
+        }
+
         AuthenticationController.verificationCodesMap.set(
             username,
-            {
-                code: verificationCode,
-                generationTime: Date.now()
-            }
+            verificationInfo
         );
-
-        setTimeout(() => {
-            AuthenticationController.verificationCodesMap.delete(username);
-        }, this.verificationCodeLifetimeInMilliseconds);
 
         this.emailAPI.SendVerificationCode(
             email,
