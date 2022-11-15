@@ -1,3 +1,3 @@
 export default interface IContactInformation {
-    email?: string
+    email: string
 }

@@ -184,8 +184,11 @@ export default class UserDatabase implements IDatabase<IUser> {
             username: user.username,
             password: user.password,
             inventory: user.inventory,
+            email: user.email,
             shoppingList: user.shoppingList,
-            lastSeen: user.lastSeen
+            isVerified: user.isVerified,
+            lastSeen: user.lastSeen,
+            image: user.image
         };
 
         return this.collection.insertOne(newUser).then(result => {
@@ -216,11 +219,14 @@ export default class UserDatabase implements IDatabase<IUser> {
                     {
                         "username": user.username,
                         "password": user.password,
+                        "email": user.email,
+                        "isVerified": user.isVerified,
                         "firstName": user.firstName,
                         "lastName": user.lastName,
                         "lastSeen": user.lastSeen,
                         "inventory": user.inventory,
-                        "shoppingList": user.shoppingList
+                        "shoppingList": user.shoppingList,
+                        "image": user.image
                     }
                 }
             ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));

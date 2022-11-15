@@ -9,6 +9,10 @@ import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import Token from "../model/token/Token";
+import IEmailAPI from "../../emailAPI/IEmailAPI";
+import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
+import Random from "../../utils/Random";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -17,12 +21,20 @@ import Token from "../model/token/Token";
 export default class AuthenticationController extends BaseUserController {
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IIdentification>;
+    private emailAPI: IEmailAPI;
+
+    protected static verificationCodesMap: Map<string, number> = new Map();
+    protected verificationCodeLifetimeInMilliseconds = 15 * 60 * 1000;
 
     protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
 
+    protected minVerificationCode = 100000;
+    protected maxVerificationCode = 999999;
+
     constructor(
         database: IDatabase<IUser>,
+        emailAPI: IEmailAPI,
         encryptor: Encryptor,
         tokenCreator: TokenCreator<IIdentification>
     ) {
@@ -31,6 +43,7 @@ export default class AuthenticationController extends BaseUserController {
         this.database = database;
         this.encryptor = encryptor;
         this.tokenCreator = tokenCreator;
+        this.emailAPI = emailAPI;
     }
 
     private convertToUser(userCredentials: UserRegistrationSchema): IUser {
@@ -41,7 +54,9 @@ export default class AuthenticationController extends BaseUserController {
             lastName: userCredentials.lastName,
             lastSeen: userCredentials.lastSeen,
             inventory: [],
-            shoppingList: []
+            shoppingList: [],
+            email: userCredentials.email,
+            isVerified: false
         }
     }
 
@@ -60,21 +75,26 @@ export default class AuthenticationController extends BaseUserController {
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
 
-            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
+            let user: IUser;
 
-            if (user === null) {
-                return this.sendError(404, res, "User could not be found.");
+            try {
+                user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
+            } catch (e) {
+                return e;
             }
 
             let result = await this.encryptor.compare(userCredentials.password, user.password);
             if (!result) {
-                return this.sendError(403, res, `User credentials are incorrect.`);
+                return this.send(ResponseCodes.UNAUTHORIZED, res, `User credentials are incorrect.`);
             }
 
             let identification: IIdentification = {
                 username: user.username
             };
 
+            if (!user.isVerified) {
+                this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
+            }
 
             let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
             let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
@@ -85,13 +105,13 @@ export default class AuthenticationController extends BaseUserController {
             );
 
             if (req.query.includeInfo === 'true') {
-                return this.sendSuccess(200, res, {
+                return this.send(ResponseCodes.OK, res, {
                     accessToken: accessToken,
                     refreshToken: refreshToken,
                     userInfo: this.convertToUserResponse(user)
                 });
             } else {
-                return this.sendSuccess(200, res, {
+                return this.send(ResponseCodes.OK, res, {
                     accessToken: accessToken,
                     refreshToken: refreshToken
                 });
@@ -99,6 +119,72 @@ export default class AuthenticationController extends BaseUserController {
         } catch (e) {
             return e;
         }
+    }
+
+    confirmVerificationCode = async (req: Request, res: Response) => {
+        let username = req.body?.username;
+        let actualCode = req.body?.verificationCode;
+
+        let requestedCode = AuthenticationController.verificationCodesMap.get(username);
+
+        if (requestedCode === undefined) {
+            return this.send(ResponseCodes.UNAUTHORIZED, res, "Verification code is either expired or not issued.");
+        }
+
+        if (actualCode !== requestedCode) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
+        }
+
+        try {
+            let user = await this.requestGet(new Map([["username", username]]), res);
+
+            user.isVerified = true;
+
+            await this.requestUpdate(user.username, user, res);
+
+            return this.send(ResponseCodes.OK, res, "Account has been verified.");
+        } catch (e) {
+            return e;
+        }
+    }
+
+    sendVerificationCode = async (req: Request, res: Response) => {
+        let email = "";
+        let username = req.body?.username;
+
+        try {
+            let user = await this.requestGet(new Map([["username", username]]), res);
+            email = user.email;
+        } catch (response) {
+            return response;
+        }
+
+        let verificationCode = Random.getRandomNumber(this.minVerificationCode, this.maxVerificationCode);
+
+        let emailVerificationSchema = new EmailVerificationTemplateSchema(
+            username,
+            verificationCode
+        );
+
+        try {
+            await this.verifySchema(emailVerificationSchema, res);
+            await this.requestGet(new Map([["username", username]]), res)
+        } catch (response) {
+            return response;
+        }
+
+        AuthenticationController.verificationCodesMap.set(username, verificationCode);
+
+        setTimeout(() => {
+            AuthenticationController.verificationCodesMap.delete(username);
+        }, this.verificationCodeLifetimeInMilliseconds);
+
+        this.emailAPI.SendVerificationCode(
+            email,
+            process.env.OUTBOUND_VERIFICATION_EMAIL,
+            emailVerificationSchema)
+            .then(() => this.send(ResponseCodes.OK, res, "Verification code has been sent."))
+            .catch((error) => this.send(ResponseCodes.BAD_REQUEST, res, error));
     }
 
     /**
@@ -119,12 +205,12 @@ export default class AuthenticationController extends BaseUserController {
                 new Token(accessToken, refreshToken)
             );
 
-            return this.sendSuccess(200, res, {
+            return this.send(ResponseCodes.OK, res, {
                 accessToken: accessToken,
                 refreshToken: refreshToken
             });
         } catch (e) {
-            return this.sendError(401, res, "Refresh token is invalid.");
+            return this.send(ResponseCodes.UNAUTHORIZED, res, "Refresh token is invalid.");
         }
     }
 
@@ -138,9 +224,9 @@ export default class AuthenticationController extends BaseUserController {
     logout = async (req: Request, res: Response) => {
         try {
             JWTStorage.getInstance().deleteJWT(req.serverUser.username);
-            return this.sendSuccess(200, res);
+            return this.send(ResponseCodes.OK, res);
         } catch (e) {
-            return this.sendError(400, res, "Could not perform logout operation.");
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Could not perform logout operation.");
         }
     }
 
@@ -155,15 +241,23 @@ export default class AuthenticationController extends BaseUserController {
             req.body?.firstName,
             req.body?.lastName,
             req.body?.username,
-            req.body?.password
+            req.body?.password,
+            req.body?.email
         );
 
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
 
-            let user = await this.database.Get(new Map([["username", userCredentials.username]]));
+            let user: IUser;
+
+            try {
+                user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
+            } catch(response) {
+                return response;
+            }
+
             if (user !== null) {
-                return this.sendError(400, res, `User with such username already exists.`);
+                return this.send(ResponseCodes.BAD_REQUEST, res, `User with such username already exists.`);
             }
 
             let internalUser = this.convertToUser(userCredentials);
@@ -171,10 +265,10 @@ export default class AuthenticationController extends BaseUserController {
 
             let createdUser = await this.database.Create(internalUser);
             if (createdUser === null) {
-                return this.sendError(400, res, `User could not be created.`);
+                return this.send(ResponseCodes.BAD_REQUEST, res, `User could not be created.`);
             }
 
-            return this.sendSuccess(200, res);
+            this.sendVerificationCode(req, res);
         } catch (e) {
             return e;
         }

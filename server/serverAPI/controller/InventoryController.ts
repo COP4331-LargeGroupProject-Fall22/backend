@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
@@ -12,11 +13,8 @@ import BaseUserController from "./BaseUserController";
  * provided to the user.
  */
 export default class InventoryController extends BaseUserController {
-    private ingredientAPI: IIngredientAPI;
-
-    constructor(database: IDatabase<IUser>, ingredientAPI: IIngredientAPI) {
+    constructor(database: IDatabase<IUser>) {
         super(database);
-        this.ingredientAPI = ingredientAPI;
     }
 
     private async parseUpdateRequest(req: Request, res: Response, existingIngredient: IInventoryIngredient)
@@ -48,8 +46,8 @@ export default class InventoryController extends BaseUserController {
 
         try {
             ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (e) {
-            return Promise.reject(e);
+        } catch (response) {
+            return Promise.reject(response);
         }
 
         return ingredientSchema;
@@ -66,9 +64,9 @@ export default class InventoryController extends BaseUserController {
 
         try {
             let user = await this.requestGet(parameters, res)
-            return this.sendSuccess(200, res, user.inventory);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.OK, res, user.inventory);
+        } catch (response) {
+            return response;
         }
     }
 
@@ -89,15 +87,15 @@ export default class InventoryController extends BaseUserController {
             let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === ingredientSchema.id);
 
             if (duplicateingredient !== undefined) {
-                return this.sendError(400, res, "Ingredient already exists in inventory.");
+                return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in inventory.");
             }
 
             user.inventory.push(ingredientSchema);
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.inventory);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.CREATED, res, updatedUser.inventory);
+        } catch (response) {
+            return response;
         }
     }
 
@@ -116,10 +114,10 @@ export default class InventoryController extends BaseUserController {
                 .find((ingredientItem: IInventoryIngredient) => ingredientItem.id === Number.parseInt(req.params.ingredientID));
 
             if (ingredient === undefined) {
-                return this.sendError(404, res, "Ingredient doesn't exist in inventory.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in inventory.");
             }
 
-            return this.sendSuccess(200, res, ingredient);
+            return this.send(ResponseCodes.OK, res, ingredient);
         } catch (e) {
             return e;
         }
@@ -149,11 +147,11 @@ export default class InventoryController extends BaseUserController {
             }
 
             if (!isFound) {
-                return this.sendError(404, res, "Ingredient could not be found.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found.");
             }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.inventory);
+            return this.send(ResponseCodes.OK, res, updatedUser.inventory);
         } catch (e) {
             return e;
         }
@@ -183,13 +181,13 @@ export default class InventoryController extends BaseUserController {
             }
 
             if (!isFound) {
-                return this.sendError(404, res, "Ingredient doesn't exist in inventory.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in inventory.");
             }
 
             user.inventory = newInventory;
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.sendSuccess(200, res, updatedUser.inventory);
+            return this.send(ResponseCodes.OK, res, updatedUser.inventory);
         } catch (e) {
             return e;
         }

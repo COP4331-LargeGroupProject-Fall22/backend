@@ -8,6 +8,7 @@ import UserDatabase from '../../database/UserDatabase';
 import Encryptor from '../../utils/Encryptor';
 import TokenCreator from '../../utils/TokenCreator';
 import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
+import SendGridAPI from '../../emailAPI/sendGridAPI/SendGridAPI';
 
 export const authenticationRoute = express.Router();
 
@@ -22,13 +23,20 @@ const authenticationController = new AuthenticationController(
         databaseName,
         collectionName
     ),
+    new SendGridAPI(process.env.SENDGRID_API_KEY),
     new Encryptor(),
     new TokenCreator(privateKey)
 );
+
+const authenticator = new JWTAuthenticator().authenticate(new TokenCreator(privateKey));
 
 authenticationRoute.use(express.json());
 
 authenticationRoute.post("/login", authenticationController.login);
 authenticationRoute.post("/register", authenticationController.register);
+authenticationRoute.get("/logout", authenticator, authenticationController.logout);
+
 authenticationRoute.post("/refreshJWT", authenticationController.refreshJWT);
-authenticationRoute.get("/logout", new JWTAuthenticator().authenticate(new TokenCreator(privateKey)), authenticationController.logout);
+
+authenticationRoute.post("/send-verification-code", authenticationController.sendVerificationCode);
+authenticationRoute.post("/confirm-verification-code", authenticationController.confirmVerificationCode);
