@@ -2,8 +2,6 @@ import IBaseRecipe from "../serverAPI/model/recipe/IBaseRecipe";
 import IRecipe from "../serverAPI/model/recipe/IRecipe";
 
 export default interface IRecipeAPI {
-    // TODO(#50): Rename query parameters for Get endpoints. 
-
     /**
      * Retrieves collection of partially filled Recipe items that satisfy searching parameters.
      * 
@@ -17,7 +15,7 @@ export default interface IRecipeAPI {
      * - hasIngredients - optional parameter that constrains search result to recipes that contains specified ingredients.
      * (ingredient list should be represented as comma separated ingredient names)
      * Complete list of intolerances is available at https://spoonacular.com/food-api/docs#Intolerances 
-     * Complete list of mealTypes is available at // https://spoonacular.com/food-api/docs#Meal-Types
+     * Complete list of mealTypes is available at https://spoonacular.com/food-api/docs#Meal-Types
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.

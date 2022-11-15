@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
+import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
 import ISchema from "../../ISchema";
 import IBaseUser from "../IBaseUser";
 import ICredentials from "../ICredentials";
@@ -25,12 +25,15 @@ export default class UserSchema implements IBaseUser, ICredentials, ISchema {
     @IsInt()
     lastSeen: number;
 
+    @IsEmail()
+    email: string;
 
     constructor(
         firstName: string,
         lastName: string,
         username: string,
         password: string,
+        email: string,
         lastSeen: number
     ) {
         this.firstName = firstName;
@@ -38,6 +41,7 @@ export default class UserSchema implements IBaseUser, ICredentials, ISchema {
         this.username = username;
         this.password = password;
         this.lastSeen = lastSeen;
+        this.email = email;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

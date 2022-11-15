@@ -17,7 +17,8 @@ export default class BaseUserController extends BaseController {
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            lastSeen: user.lastSeen
+            lastSeen: user.lastSeen,
+            email: user.email
         }
     }
 

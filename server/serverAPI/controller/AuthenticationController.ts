@@ -9,6 +9,9 @@ import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import Token from "../model/token/Token";
+import IEmailAPI from "../../emailAPI/IEmailAPI";
+import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
+import Random from "../../utils/Random";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -17,12 +20,21 @@ import Token from "../model/token/Token";
 export default class AuthenticationController extends BaseUserController {
     private encryptor: Encryptor;
     private tokenCreator: TokenCreator<IIdentification>;
+    private emailAPI: IEmailAPI;
+
+    protected static verificationCodesMap: Map<string, { code: number, generationTime: number, attempts: number }> = new Map();
+    protected verificationCodeLifetimeInMilliseconds = 5 * 60 * 1000;
+    protected maxAttemptsPerVerificationCode = 3;
 
     protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
 
+    protected minVerificationCode = 100000;
+    protected maxVerificationCode = 999999;
+
     constructor(
         database: IDatabase<IUser>,
+        emailAPI: IEmailAPI,
         encryptor: Encryptor,
         tokenCreator: TokenCreator<IIdentification>
     ) {
@@ -31,6 +43,7 @@ export default class AuthenticationController extends BaseUserController {
         this.database = database;
         this.encryptor = encryptor;
         this.tokenCreator = tokenCreator;
+        this.emailAPI = emailAPI;
     }
 
     private convertToUser(userCredentials: UserRegistrationSchema): IUser {
@@ -41,7 +54,9 @@ export default class AuthenticationController extends BaseUserController {
             lastName: userCredentials.lastName,
             lastSeen: userCredentials.lastSeen,
             inventory: [],
-            shoppingList: []
+            shoppingList: [],
+            email: userCredentials.email,
+            isVerified: false
         }
     }
 
@@ -75,6 +90,9 @@ export default class AuthenticationController extends BaseUserController {
                 username: user.username
             };
 
+            if (!user.isVerified) {
+                this.sendError(400, res, "Account is not verified.");
+            }
 
             let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
             let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
@@ -99,6 +117,112 @@ export default class AuthenticationController extends BaseUserController {
         } catch (e) {
             return e;
         }
+    }
+
+    confirmVerificationCode = async (req: Request, res: Response) => {
+        let username = req.body?.username;
+        let inputCode = req.body?.verificationCode;
+
+        let actualCode = AuthenticationController.verificationCodesMap.get(username);
+
+        let user: IUser;
+
+        try {
+            user = await this.requestGet(new Map([["username", username]]), res)
+        } catch (response) {
+            return response;
+        }
+
+        if (actualCode === undefined) {
+            return this.sendError(400, res, "Verification code is either expired or not issued.");
+        }
+
+        if (inputCode !== actualCode) {
+            return this.sendError(400, res, "Verification code is invalid.");
+        }
+
+        try {
+            user.isVerified = true;
+
+            await this.requestUpdate(user.username, user, res);
+
+            return this.sendSuccess(200, res, "Account has been verified.");
+        } catch (e) {
+            return e;
+        }
+    }
+
+    private convertToMinutes(timeInMilliseconds: number): number {
+        return Math.ceil(timeInMilliseconds / 1000 / 60)
+    }
+
+    sendVerificationCode = async (req: Request, res: Response) => {
+        let email = "";
+        let username = req.body?.username;
+
+        try {
+            let user = await this.requestGet(new Map([["username", username]]), res);
+            email = user.email;
+        } catch (e) {
+            return e;
+        }
+
+        let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
+
+        let emailVerificationSchema = new EmailVerificationTemplateSchema(
+            username,
+            verificationCode
+        );
+
+        try {
+            await this.verifySchema(emailVerificationSchema, res);
+            await this.requestGet(new Map([["username", username]]), res)
+        } catch (e) {
+            return e;
+        }
+
+        let verificationInfo = AuthenticationController.verificationCodesMap.get(username);
+
+        if (verificationInfo !== undefined) {
+            if (verificationInfo.attempts < this.maxAttemptsPerVerificationCode) {
+                verificationInfo = {
+                    code: verificationInfo.code,
+                    generationTime: verificationInfo.generationTime,
+                    attempts: ++verificationInfo.attempts
+                };
+
+                emailVerificationSchema.confirmationCode = verificationInfo.code;
+            } else {
+                let timeRemaining =
+                    this.convertToMinutes(this.verificationCodeLifetimeInMilliseconds - (Date.now() - verificationInfo.generationTime));
+
+                return this.sendError(400, res, 
+                    `Max number of ${this.maxAttemptsPerVerificationCode} attempts has been reached. ` + 
+                    `Please wait ${timeRemaining} minutes before trying again.`);
+            }
+        } else {
+            verificationInfo = {
+                code: verificationCode,
+                generationTime: Date.now(),
+                attempts: 1
+            };
+
+            setTimeout(() => {
+                AuthenticationController.verificationCodesMap.delete(username);
+            }, this.verificationCodeLifetimeInMilliseconds);
+        }
+
+        AuthenticationController.verificationCodesMap.set(
+            username,
+            verificationInfo
+        );
+
+        this.emailAPI.SendVerificationCode(
+            email,
+            process.env.OUTBOUND_VERIFICATION_EMAIL,
+            emailVerificationSchema)
+            .then(() => this.sendSuccess(200, res, "Verification code has been sent."))
+            .catch((error) => this.sendError(400, res, error));
     }
 
     /**
@@ -155,7 +279,8 @@ export default class AuthenticationController extends BaseUserController {
             req.body?.firstName,
             req.body?.lastName,
             req.body?.username,
-            req.body?.password
+            req.body?.password,
+            req.body?.email
         );
 
         try {
@@ -174,7 +299,7 @@ export default class AuthenticationController extends BaseUserController {
                 return this.sendError(400, res, `User could not be created.`);
             }
 
-            return this.sendSuccess(200, res);
+            this.sendVerificationCode(req, res);
         } catch (e) {
             return e;
         }

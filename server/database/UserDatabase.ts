@@ -184,7 +184,9 @@ export default class UserDatabase implements IDatabase<IUser> {
             username: user.username,
             password: user.password,
             inventory: user.inventory,
+            email: user.email,
             shoppingList: user.shoppingList,
+            isVerified: user.isVerified,
             lastSeen: user.lastSeen
         };
 
@@ -216,6 +218,8 @@ export default class UserDatabase implements IDatabase<IUser> {
                     {
                         "username": user.username,
                         "password": user.password,
+                        "email": user.email,
+                        "isVerified": user.isVerified,
                         "firstName": user.firstName,
                         "lastName": user.lastName,
                         "lastSeen": user.lastSeen,

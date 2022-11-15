@@ -6,7 +6,8 @@ export default class UserRegistrationSchema extends UserSchema {
         lastName: string,
         username: string,
         password: string,
+        email: string
     ) {
-        super(firstName, lastName, username, password, Date.now())
+        super(firstName, lastName, username, password, email, Date.now())
     }
 }
