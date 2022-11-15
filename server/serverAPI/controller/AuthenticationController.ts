@@ -152,6 +152,10 @@ export default class AuthenticationController extends BaseUserController {
         }
     }
 
+    private convertToMinutes(timeInMilliseconds: number): number {
+        return Math.ceil(timeInMilliseconds / 1000 / 60)
+    }
+
     sendVerificationCode = async (req: Request, res: Response) => {
         let email = "";
         let username = req.body?.username;
@@ -189,7 +193,12 @@ export default class AuthenticationController extends BaseUserController {
 
                 emailVerificationSchema.confirmationCode = verificationInfo.code;
             } else {
-                return this.sendError(400, res, `Max number of attempts has been reached. Wait for a while before trying again.`);
+                let timeRemaining =
+                    this.convertToMinutes(this.verificationCodeLifetimeInMilliseconds - (Date.now() - verificationInfo.generationTime));
+
+                return this.sendError(400, res, 
+                    `Max number of ${this.maxAttemptsPerVerificationCode} attempts has been reached. ` + 
+                    `Please wait ${timeRemaining} minutes before trying again.`);
             }
         } else {
             verificationInfo = {
