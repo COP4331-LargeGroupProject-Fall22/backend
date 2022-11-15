@@ -31,7 +31,7 @@ export default abstract class SpoonacularAPI {
         SpoonacularAPI.requestRateRemaining = requestRemaining as number ? requestRemaining as number : SpoonacularAPI.requestRateRemaining;
     }
 
-    protected async sendRequest(url: string, params?: URLSearchParams, headers?: any): Promise<any> {
+    protected async getRequest(url: string, params?: URLSearchParams, headers?: any): Promise<any> {
         if (!this.hasEnoughRequestsRemaining()) {
             throw new RequestLimitReached("Request limit has been reached for Spoonacular API.");
         }
@@ -40,7 +40,7 @@ export default abstract class SpoonacularAPI {
             url,
             {
                 headers: headers !== undefined ? Object.assign(headers, this.headers) : this.headers,
-                params: params
+                params: params,
             }
         ).then(response => {
             this.updateRequestCounters(response.headers);

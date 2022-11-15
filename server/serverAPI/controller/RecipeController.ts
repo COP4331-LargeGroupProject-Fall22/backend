@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
+import IImage from "../model/image/IImage";
+import IBaseRecipe from "../model/recipe/IBaseRecipe";
 import BaseController from "./BaseController";
 
 /**
@@ -45,7 +47,17 @@ export default class RecipeController extends BaseController {
         }
 
         return this.recipeAPI.GetAll(parameters).then(recipes => {
-            return this.sendSuccess(200, res, recipes);
+            let response: any[] = []
+
+            recipes?.forEach(recipe => {
+                response.push({
+                    id: recipe.id,
+                    name: recipe.name,
+                    imageUrl: recipe.image.srcUrl
+                });
+            });
+
+            return this.sendSuccess(200, res, response);
         }, (error) => this.sendSuccess(400, res, this.getException(error)));
     }
 
@@ -65,7 +77,22 @@ export default class RecipeController extends BaseController {
                 return this.sendError(404, res,  "Recipe could not be found.");
             }
 
-            return this.sendSuccess(200, res, recipe);
+            return this.sendSuccess(200, res, {
+                id: recipe.id,
+                name: recipe.name,
+                imageUrl: recipe.image.srcUrl,
+                cusines: recipe.cuisines,
+                diets: recipe.diets,
+                mealTypes: recipe.mealTypes,
+                instruction: recipe.instruction,
+                instructionSteps: recipe.instructionSteps,
+                nutritionFacts: recipe.nutritionFacts,
+                cookingTimeInMinutes: recipe.cookingTimeInMinutes,
+                preparationTimeInMinutes: recipe.preparationTimeInMinutes,
+                servings: recipe.servings,
+                totalCost: recipe.totalCost,
+                costPerServing: recipe.costPerServing
+            });
         }, (error) => this.sendError(400, res, this.getException(error)));
     }
 }
