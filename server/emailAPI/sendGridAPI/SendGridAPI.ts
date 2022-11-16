@@ -4,7 +4,7 @@ import IEmailVerificationTemplate from "../../serverAPI/model/emailVerification/
 import { isEmail } from "class-validator";
 
 export default class SendGridAPI implements IEmailAPI {
-    private readonly templateId = "d-41af78b6ace24a2b93e78678f06073f8";
+    private readonly templateId = process.env.SENDGRID_VERIFICATION_EMAIL_TEMPLATEID;
 
     constructor(apiKey: string) {
         SendGrid.setApiKey(apiKey);
@@ -26,7 +26,7 @@ export default class SendGridAPI implements IEmailAPI {
             await SendGrid.send(message);
             return Promise.resolve(true);
         } catch(e) {
-            return Promise.resolve(false);
+            return Promise.reject(e);
         }
     }
 }
