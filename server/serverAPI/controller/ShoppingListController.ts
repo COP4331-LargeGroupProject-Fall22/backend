@@ -21,6 +21,74 @@ export default class ShoppingListController extends BaseUserController {
         this.foodAPI = foodAPI;
     }
 
+    protected returnByRecipe(shoppingList: IShoppingIngredient[], isReverse: boolean): any {
+        let recipeMap = new Map<string, IShoppingIngredient[]>();
+
+        let itemsWithoutRecipeID: IShoppingIngredient[] = [];
+
+        shoppingList.forEach(item => {
+            if (item.recipeID) {
+                if (!recipeMap.has(item.recipeID.toString())) {
+                    recipeMap.set(item.recipeID.toString(), []);
+                }
+
+                recipeMap.get(item.recipeID.toString())?.push(item);
+            } else {
+                itemsWithoutRecipeID.push(item);
+            }
+        });
+
+        let recipes = Array.from(recipeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        recipes.forEach(recipe => {
+            recipe[1].sort((a, b) => a.name.localeCompare(b.name))
+        });
+
+        if (isReverse) {
+            recipes.reverse();
+        }
+
+        return {
+                itemsWithRecipeID: Object.fromEntries(recipes),
+                itemsWithoutRecipeID: itemsWithoutRecipeID
+            };
+    }
+
+    protected returnByCategory(inventory: IShoppingIngredient[], isReverse: boolean): any {
+        let itemMap = new Map<string, IShoppingIngredient[]>();
+
+        inventory.forEach(item => {
+            if (!itemMap.has(item.category)) {
+                itemMap.set(item.category, []);
+            }
+
+            itemMap.get(item.category)?.push(item);
+        });
+
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        items.forEach(item => {
+            item[1].sort((a, b) => a.name.localeCompare(b.name))
+        });
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return Object.fromEntries(items);
+    }
+
+    protected returnByLexicographicalOrder(inventory: IShoppingIngredient[], isReverse: boolean): any {
+        inventory.sort((a, b) => a.name.localeCompare(b.name));
+        console.log("?!");
+
+        if (isReverse) {
+            inventory.reverse();
+        }
+
+        return inventory;
+    }
+
     private async parseAddRequest(req: Request, res: Response)
         : Promise<IShoppingIngredient> {
         let jsonPayload = req.body;
@@ -85,9 +153,26 @@ export default class ShoppingListController extends BaseUserController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let isReverse = req.query.isReverse === 'true' ? true : false;
+
         try {
             let user = await this.requestGet(parameters, res)
-            return this.sendSuccess(200, res, user.shoppingList);
+
+            let responseData: any = user.shoppingList;
+
+            if (req.query.sortByRecipe === 'true') {
+                responseData = this.returnByRecipe(user.shoppingList, isReverse);
+            }
+
+            if (req.query.sortByCategory === 'true') {
+                responseData = this.returnByCategory(user.shoppingList, isReverse);
+            }
+
+            if (req.query.sortByLexicographicalOrder === 'true') {
+                responseData = this.returnByLexicographicalOrder(user.shoppingList, isReverse);
+            }
+
+            return this.sendSuccess(200, res, responseData);
         } catch (e) {
             return e;
         }
