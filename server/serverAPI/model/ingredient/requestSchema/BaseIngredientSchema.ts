@@ -14,19 +14,14 @@ export default class BaseIngredientSchema implements IBaseIngredient, ISchema {
     @IsString()
     category: string;
 
-    @IsArray()
-    quantityUnits: string[];
-
     constructor(
         id: number,
         name: string,
-        category: string,
-        quantityUnits: string[]
+        category: string
     ) {
         this.id = id;
         this.name = name;
         this.category = category;
-        this.quantityUnits = quantityUnits;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

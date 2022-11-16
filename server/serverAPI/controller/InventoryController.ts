@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
-import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
@@ -12,20 +11,17 @@ import BaseUserController from "./BaseUserController";
  * provided to the user.
  */
 export default class InventoryController extends BaseUserController {
-    private ingredientAPI: IIngredientAPI;
 
-    constructor(database: IDatabase<IUser>, ingredientAPI: IIngredientAPI) {
+    constructor(database: IDatabase<IUser>) {
         super(database);
-        this.ingredientAPI = ingredientAPI;
     }
 
-    private async parseUpdateRequest(req: Request, res: Response, existingIngredient: IInventoryIngredient)
+    private async parseUpdateRequest(req: Request, existingIngredient: IInventoryIngredient)
         : Promise<IInventoryIngredient> {
         let ingredientSchema = new InventoryIngredientSchema(
             existingIngredient.id,
             existingIngredient.name,
             existingIngredient.category,
-            existingIngredient.quantityUnits,
             existingIngredient.expirationDate
         );
 
@@ -42,8 +38,7 @@ export default class InventoryController extends BaseUserController {
             Number.parseInt(jsonPayload.id),
             jsonPayload.name,
             jsonPayload.category,
-            jsonPayload.quantityUnits,
-            Number.parseInt(jsonPayload.expirationDate)
+            jsonPayload?.expirationDate !== undefined ? Number.parseInt(jsonPayload.expirationDate) : null
         );
 
         try {
@@ -55,6 +50,60 @@ export default class InventoryController extends BaseUserController {
         return ingredientSchema;
     }
 
+    protected returnByExpirationDate(inventory: IInventoryIngredient[], isReverse: boolean): any {
+        let itemsWithExpirationDate: IInventoryIngredient[] = [];
+        let itemsWithoutExpirationDate: IInventoryIngredient[] = [];
+        
+        inventory.forEach(item => {
+            if (item.expirationDate) {
+                itemsWithExpirationDate.push(item);
+            }
+            else
+                itemsWithoutExpirationDate.push(item);
+        });
+
+        itemsWithExpirationDate.sort((a, b) => b.expirationDate! - a.expirationDate!);
+
+        if (isReverse) {
+            itemsWithExpirationDate.reverse();
+        }
+
+        return {
+            hasExpirationDate: itemsWithExpirationDate,
+            noExpirationDate: itemsWithoutExpirationDate 
+        }
+    }
+
+    protected returnByCategory(inventory: IInventoryIngredient[], isReverse: boolean): any {
+        let itemMap = new Map<string, IInventoryIngredient[]>();
+
+        inventory.forEach(item => {
+            if (!itemMap.has(item.category)) {
+                itemMap.set(item.category, []);
+            }
+
+            itemMap.get(item.category)?.push(item);
+        });
+
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return Object.fromEntries(items);
+    }
+
+    protected returnByLexicographicalOrder(inventory: IInventoryIngredient[], isReverse: boolean): any {
+        inventory.sort((a, b) => a.name.localeCompare(b.name));
+
+        if (isReverse) {
+            inventory.reverse();
+        }
+
+        return inventory;
+    }
+
     /**
      * Returns all ingredient in user inventory.
      * 
@@ -64,9 +113,26 @@ export default class InventoryController extends BaseUserController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let isReverse = req.query.isReverse === 'true' ? true : false;
+
         try {
             let user = await this.requestGet(parameters, res)
-            return this.sendSuccess(200, res, user.inventory);
+
+            let responseData: any = user.inventory;
+
+            if (req.query.sortByExpirationDate === 'true') {
+                responseData = this.returnByExpirationDate(user.inventory, isReverse);    
+            }
+
+            if (req.query.sortByCategory === 'true') {
+                responseData = this.returnByCategory(user.inventory, isReverse);    
+            }
+
+            if (req.query.sortByLexicographicalOrder === 'true') {
+                responseData = this.returnByLexicographicalOrder(user.inventory, isReverse);    
+            }
+
+            return this.sendSuccess(200, res, responseData);
         } catch (e) {
             return e;
         }
@@ -144,7 +210,7 @@ export default class InventoryController extends BaseUserController {
 
                 if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
                     isFound = true;
-                    user.inventory[i] = await this.parseUpdateRequest(req, res, existingIngredient);
+                    user.inventory[i] = await this.parseUpdateRequest(req, existingIngredient);
                 }
             }
 

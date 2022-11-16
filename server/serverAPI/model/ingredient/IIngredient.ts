@@ -1,18 +1,18 @@
 import INutrient from "../nutrients/INutrient";
-import IUnit from "../unit/IUnit";
 import IBaseIngredient from "./IBaseIngredient";
+import IIngredientQuantity from "./IIngredientQuantity";
 
 /**
  * Food interface.
  */
-export default interface IIngredient extends IBaseIngredient {
+export default interface IIngredient extends IBaseIngredient, IIngredientQuantity {   
+    /**
+     * Food quantity units.
+     */
+     quantityUnits: string[];
+
     /**
      * Collection of nutrients that food contains.
      */
     nutrients?: INutrient[];
-
-    /**
-     * Quantity of the food.
-     */
-    quantity?: IUnit;
 }
