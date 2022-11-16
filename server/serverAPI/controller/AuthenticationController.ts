@@ -23,8 +23,9 @@ export default class AuthenticationController extends BaseUserController {
     private tokenCreator: TokenCreator<IIdentification>;
     private emailAPI: IEmailAPI;
 
-    protected static verificationCodesMap: Map<string, number> = new Map();
-    protected verificationCodeLifetimeInMilliseconds = 15 * 60 * 1000;
+    protected static verificationCodesMap: Map<string, { code: number, generationTime: number, attempts: number }> = new Map();
+    protected verificationCodeLifetimeInMilliseconds = 5 * 60 * 1000;
+    protected maxAttemptsPerVerificationCode = 3;
 
     protected accessTokenTimeoutInSeconds = 15 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
@@ -123,21 +124,27 @@ export default class AuthenticationController extends BaseUserController {
 
     confirmVerificationCode = async (req: Request, res: Response) => {
         let username = req.body?.username;
-        let actualCode = req.body?.verificationCode;
+        let inputCode = req.body?.verificationCode;
 
-        let requestedCode = AuthenticationController.verificationCodesMap.get(username);
+        let actualCode = AuthenticationController.verificationCodesMap.get(username);
 
-        if (requestedCode === undefined) {
+        let user: IUser;
+
+        try {
+            user = await this.requestGet(new Map([["username", username]]), res)
+        } catch (response) {
+            return response;
+        }
+
+        if (actualCode === undefined) {
             return this.send(ResponseCodes.UNAUTHORIZED, res, "Verification code is either expired or not issued.");
         }
 
-        if (actualCode !== requestedCode) {
+        if (inputCode !== actualCode) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
         }
 
         try {
-            let user = await this.requestGet(new Map([["username", username]]), res);
-
             user.isVerified = true;
 
             await this.requestUpdate(user.username, user, res);
@@ -148,6 +155,10 @@ export default class AuthenticationController extends BaseUserController {
         }
     }
 
+    private convertToMinutes(timeInMilliseconds: number): number {
+        return Math.ceil(timeInMilliseconds / 1000 / 60)
+    }
+
     sendVerificationCode = async (req: Request, res: Response) => {
         let email = "";
         let username = req.body?.username;
@@ -155,11 +166,11 @@ export default class AuthenticationController extends BaseUserController {
         try {
             let user = await this.requestGet(new Map([["username", username]]), res);
             email = user.email;
-        } catch (response) {
+        } catch  (response) {
             return response;
         }
 
-        let verificationCode = Random.getRandomNumber(this.minVerificationCode, this.maxVerificationCode);
+        let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
 
         let emailVerificationSchema = new EmailVerificationTemplateSchema(
             username,
@@ -173,11 +184,41 @@ export default class AuthenticationController extends BaseUserController {
             return response;
         }
 
-        AuthenticationController.verificationCodesMap.set(username, verificationCode);
+        let verificationInfo = AuthenticationController.verificationCodesMap.get(username);
 
-        setTimeout(() => {
-            AuthenticationController.verificationCodesMap.delete(username);
-        }, this.verificationCodeLifetimeInMilliseconds);
+        if (verificationInfo !== undefined) {
+            if (verificationInfo.attempts < this.maxAttemptsPerVerificationCode) {
+                verificationInfo = {
+                    code: verificationInfo.code,
+                    generationTime: verificationInfo.generationTime,
+                    attempts: ++verificationInfo.attempts
+                };
+
+                emailVerificationSchema.confirmationCode = verificationInfo.code;
+            } else {
+                let timeRemaining =
+                    this.convertToMinutes(this.verificationCodeLifetimeInMilliseconds - (Date.now() - verificationInfo.generationTime));
+
+                return this.send(ResponseCodes.BAD_REQUEST, res, 
+                    `Max number of ${this.maxAttemptsPerVerificationCode} attempts has been reached. ` + 
+                    `Please wait ${timeRemaining} minutes before trying again.`);
+            }
+        } else {
+            verificationInfo = {
+                code: verificationCode,
+                generationTime: Date.now(),
+                attempts: 1
+            };
+
+            setTimeout(() => {
+                AuthenticationController.verificationCodesMap.delete(username);
+            }, this.verificationCodeLifetimeInMilliseconds);
+        }
+
+        AuthenticationController.verificationCodesMap.set(
+            username,
+            verificationInfo
+        );
 
         this.emailAPI.SendVerificationCode(
             email,
