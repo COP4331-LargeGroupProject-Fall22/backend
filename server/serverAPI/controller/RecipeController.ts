@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
-import IImage from "../model/image/IImage";
-import IBaseRecipe from "../model/recipe/IBaseRecipe";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 import BaseController from "./BaseController";
 
 /**
@@ -46,19 +45,27 @@ export default class RecipeController extends BaseController {
             parameters.set("hasIngredients", req.query.hasIngredients);
         }
 
+        if (req.query?.cuisines !== undefined) {
+            parameters.set("cuisines", req.query.cuisines);
+        }
+
+        if (req.query?.diets !== undefined) {
+            parameters.set("diets", req.query.cusines);
+        }
+
+        if (req.query?.mealTypes !== undefined) {
+            parameters.set("mealTypes", req.query.mealTypes);
+        }
+
         return this.recipeAPI.GetAll(parameters).then(recipes => {
             let response: any[] = []
 
             recipes?.forEach(recipe => {
-                response.push({
-                    id: recipe.id,
-                    name: recipe.name,
-                    imageUrl: recipe.image.srcUrl
-                });
+                response.push(recipe);
             });
 
-            return this.sendSuccess(200, res, response);
-        }, (error) => this.sendSuccess(400, res, this.getException(error)));
+            return this.send(ResponseCodes.OK, res, response);
+        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 
     /**
@@ -74,25 +81,10 @@ export default class RecipeController extends BaseController {
 
         return this.recipeAPI.Get(parameters).then(recipe => {
             if (recipe === null) {
-                return this.sendError(404, res,  "Recipe could not be found.");
+                return this.send(ResponseCodes.NOT_FOUND, res,  "Recipe could not be found.");
             }
 
-            return this.sendSuccess(200, res, {
-                id: recipe.id,
-                name: recipe.name,
-                imageUrl: recipe.image.srcUrl,
-                cusines: recipe.cuisines,
-                diets: recipe.diets,
-                mealTypes: recipe.mealTypes,
-                instruction: recipe.instruction,
-                instructionSteps: recipe.instructionSteps,
-                nutritionFacts: recipe.nutritionFacts,
-                cookingTimeInMinutes: recipe.cookingTimeInMinutes,
-                preparationTimeInMinutes: recipe.preparationTimeInMinutes,
-                servings: recipe.servings,
-                totalCost: recipe.totalCost,
-                costPerServing: recipe.costPerServing
-            });
-        }, (error) => this.sendError(400, res, this.getException(error)));
+            return this.send(ResponseCodes.OK, res, recipe);
+        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 }
