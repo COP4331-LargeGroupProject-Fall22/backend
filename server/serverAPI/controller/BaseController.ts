@@ -1,7 +1,5 @@
 import { Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
-import ResponseFormatter from "../../utils/ResponseFormatter";
-import { ResponseTypes } from "../../utils/ResponseTypes";
 import ISchema from "../model/ISchema";
 
 export default class BaseController {
@@ -17,7 +15,7 @@ export default class BaseController {
         let logs = await object.validate()
 
         if (logs.length > 0) {
-            return Promise.reject(this.send(400, res, logs));
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, logs));
         }
 
         return object;
@@ -25,7 +23,7 @@ export default class BaseController {
 
     protected send(statusCode: ResponseCodes, res: Response, message?: any): Response<any, Record<string, any>> {
         return res.status(statusCode)
-            .json(ResponseFormatter.formatAsJSON(message));
+            .json(message);
     }
 
     protected isStringUndefinedOrEmpty(data: string): boolean {

@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
-import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
