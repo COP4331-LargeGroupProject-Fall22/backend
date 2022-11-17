@@ -4,13 +4,14 @@ import IDatabase from "../../database/IDatabase";
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
 import IUser from "../model/user/IUser";
+import BaseIngredientController from "./BaseIngredientController";
 import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for inventory actions 
  * provided to the user.
  */
-export default class InventoryController extends BaseUserController {
+export default class InventoryController extends BaseIngredientController {
 
     constructor(database: IDatabase<IUser>) {
         super(database);
@@ -50,11 +51,11 @@ export default class InventoryController extends BaseUserController {
         return ingredientSchema;
     }
 
-    protected returnByExpirationDate(inventory: IInventoryIngredient[], isReverse: boolean): any {
+    protected sortByExpirationDate(collection: IInventoryIngredient[], isReverse: boolean): any {
         let itemsWithExpirationDate: IInventoryIngredient[] = [];
         let itemsWithoutExpirationDate: IInventoryIngredient[] = [];
         
-        inventory.forEach(item => {
+        collection.forEach(item => {
             if (item.expirationDate) {
                 itemsWithExpirationDate.push(item);
             }
@@ -74,36 +75,6 @@ export default class InventoryController extends BaseUserController {
         }
     }
 
-    protected returnByCategory(inventory: IInventoryIngredient[], isReverse: boolean): any {
-        let itemMap = new Map<string, IInventoryIngredient[]>();
-
-        inventory.forEach(item => {
-            if (!itemMap.has(item.category)) {
-                itemMap.set(item.category, []);
-            }
-
-            itemMap.get(item.category)?.push(item);
-        });
-
-        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-        if (isReverse) {
-            items.reverse();
-        }
-
-        return Object.fromEntries(items);
-    }
-
-    protected returnByLexicographicalOrder(inventory: IInventoryIngredient[], isReverse: boolean): any {
-        inventory.sort((a, b) => a.name.localeCompare(b.name));
-
-        if (isReverse) {
-            inventory.reverse();
-        }
-
-        return inventory;
-    }
-
     /**
      * Returns all ingredient in user inventory.
      * 
@@ -121,15 +92,15 @@ export default class InventoryController extends BaseUserController {
             let responseData: any = user.inventory;
 
             if (req.query.sortByExpirationDate === 'true') {
-                responseData = this.returnByExpirationDate(user.inventory, isReverse);    
+                responseData = this.sortByExpirationDate(user.inventory, isReverse);    
             }
 
             if (req.query.sortByCategory === 'true') {
-                responseData = this.returnByCategory(user.inventory, isReverse);    
+                responseData = this.sortByCategory(user.inventory, isReverse);    
             }
 
             if (req.query.sortByLexicographicalOrder === 'true') {
-                responseData = this.returnByLexicographicalOrder(user.inventory, isReverse);    
+                responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
             }
 
             return this.sendSuccess(200, res, responseData);

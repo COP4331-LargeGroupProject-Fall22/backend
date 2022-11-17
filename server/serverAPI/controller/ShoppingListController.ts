@@ -7,13 +7,14 @@ import ShoppingIngredientSchema from "../model/ingredient/requestSchema/Shopping
 
 import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
+import BaseIngredientController from "./BaseIngredientController";
 import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for shopping list actions 
  * provided to the user.
  */
-export default class ShoppingListController extends BaseUserController {
+export default class ShoppingListController extends BaseIngredientController {
     private foodAPI: IIngredientAPI;
 
     constructor(database: IDatabase<IUser>, foodAPI: IIngredientAPI) {
@@ -21,12 +22,12 @@ export default class ShoppingListController extends BaseUserController {
         this.foodAPI = foodAPI;
     }
 
-    protected returnByRecipe(shoppingList: IShoppingIngredient[], isReverse: boolean): any {
+    protected sortByRecipe(collection: IShoppingIngredient[]): any {
         let recipeMap = new Map<string, IShoppingIngredient[]>();
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
 
-        shoppingList.forEach(item => {
+        collection.forEach(item => {
             if (item.recipeID) {
                 if (!recipeMap.has(item.recipeID.toString())) {
                     recipeMap.set(item.recipeID.toString(), []);
@@ -44,49 +45,10 @@ export default class ShoppingListController extends BaseUserController {
             recipe[1].sort((a, b) => a.name.localeCompare(b.name))
         });
 
-        if (isReverse) {
-            recipes.reverse();
-        }
-
         return {
                 itemsWithRecipeID: Object.fromEntries(recipes),
                 itemsWithoutRecipeID: itemsWithoutRecipeID
             };
-    }
-
-    protected returnByCategory(inventory: IShoppingIngredient[], isReverse: boolean): any {
-        let itemMap = new Map<string, IShoppingIngredient[]>();
-
-        inventory.forEach(item => {
-            if (!itemMap.has(item.category)) {
-                itemMap.set(item.category, []);
-            }
-
-            itemMap.get(item.category)?.push(item);
-        });
-
-        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-        items.forEach(item => {
-            item[1].sort((a, b) => a.name.localeCompare(b.name))
-        });
-
-        if (isReverse) {
-            items.reverse();
-        }
-
-        return Object.fromEntries(items);
-    }
-
-    protected returnByLexicographicalOrder(inventory: IShoppingIngredient[], isReverse: boolean): any {
-        inventory.sort((a, b) => a.name.localeCompare(b.name));
-        console.log("?!");
-
-        if (isReverse) {
-            inventory.reverse();
-        }
-
-        return inventory;
     }
 
     private async parseAddRequest(req: Request, res: Response)
@@ -161,15 +123,15 @@ export default class ShoppingListController extends BaseUserController {
             let responseData: any = user.shoppingList;
 
             if (req.query.sortByRecipe === 'true') {
-                responseData = this.returnByRecipe(user.shoppingList, isReverse);
+                responseData = this.sortByRecipe(user.shoppingList);
             }
 
             if (req.query.sortByCategory === 'true') {
-                responseData = this.returnByCategory(user.shoppingList, isReverse);
+                responseData = this.sortByCategory(user.shoppingList, isReverse);
             }
 
             if (req.query.sortByLexicographicalOrder === 'true') {
-                responseData = this.returnByLexicographicalOrder(user.shoppingList, isReverse);
+                responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
             }
 
             return this.sendSuccess(200, res, responseData);
