@@ -45,8 +45,26 @@ export default class RecipeController extends BaseController {
             parameters.set("hasIngredients", req.query.hasIngredients);
         }
 
+        if (req.query?.cuisines !== undefined) {
+            parameters.set("cuisines", req.query.cuisines);
+        }
+
+        if (req.query?.diets !== undefined) {
+            parameters.set("diets", req.query.cusines);
+        }
+
+        if (req.query?.mealTypes !== undefined) {
+            parameters.set("mealTypes", req.query.mealTypes);
+        }
+
         return this.recipeAPI.GetAll(parameters).then(recipes => {
-            return this.send(ResponseCodes.OK, res, recipes);
+            let response: any[] = []
+
+            recipes?.forEach(recipe => {
+                response.push(recipe);
+            });
+
+            return this.send(ResponseCodes.OK, res, response);
         }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 
