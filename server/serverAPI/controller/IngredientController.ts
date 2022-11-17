@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 import BaseController from "./BaseController";
 
 /**
@@ -51,8 +52,8 @@ export default class IngredientController extends BaseController {
         }
 
         return this.ingredientAPI.GetAll(parameters)
-            .then(ingredients => this.sendSuccess(200, res, ingredients),
-                (error) => this.sendSuccess(400, res, this.getException(error)));
+            .then(ingredients => this.send(ResponseCodes.OK, res, ingredients),
+                (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 
     /**
@@ -76,10 +77,10 @@ export default class IngredientController extends BaseController {
 
         return this.ingredientAPI.Get(parameters).then(ingredient => {
             if (ingredient === null) {
-                return this.sendSuccess(404, res, "Ingredient could not be found");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found");
             }
 
-            return this.sendSuccess(200, res, ingredient);
-        }, (error) => this.sendError(400, res, this.getException(error)));
+            return this.send(ResponseCodes.OK, res, ingredient);
+        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 }

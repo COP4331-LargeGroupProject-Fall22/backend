@@ -2,6 +2,7 @@ import { ObjectID } from "bson";
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 import IShoppingIngredient from "../model/ingredient/IShoppingIngredient";
 import ShoppingIngredientSchema from "../model/ingredient/requestSchema/ShoppingIngredientSchema";
 
@@ -67,8 +68,8 @@ export default class ShoppingListController extends BaseIngredientController {
 
         try {
             ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (e) {
-            return Promise.reject(e);
+        } catch (response) {
+            return Promise.reject(response);
         }
 
         return ingredientSchema;
@@ -98,8 +99,8 @@ export default class ShoppingListController extends BaseIngredientController {
             try {
                 await this.verifySchema(quantitySchema, res);
                 ingredientSchema.quantity = quantitySchema;
-            } catch (e) {
-                return Promise.reject(e);
+            } catch (response) {
+                return Promise.reject(response);
             }
         }
 
@@ -134,7 +135,7 @@ export default class ShoppingListController extends BaseIngredientController {
                 responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
             }
 
-            return this.sendSuccess(200, res, responseData);
+            return this.send(ResponseCodes.OK, res, responseData);
         } catch (e) {
             return e;
         }
@@ -164,7 +165,7 @@ export default class ShoppingListController extends BaseIngredientController {
                     listAlreadyHasItem = true;
 
                     if (existingItem.recipeID !== null) {
-                        return this.sendError(400, res, "Use update endpoint to change the amount of ingredient in the shopping list.");
+                        return this.send(ResponseCodes.BAD_REQUEST, res, "Use update endpoint to change the amount of ingredient in the shopping list.");
                     }
 
                     let amount = ingredientSchema.quantity;
@@ -178,7 +179,7 @@ export default class ShoppingListController extends BaseIngredientController {
                             );
 
                         if (convertedUnit === null) {
-                            return this.sendError(400, res, "Amount units cannot be converted.");
+                            return this.send(ResponseCodes.BAD_REQUEST, res, "Amount units cannot be converted.");
                         }
 
                         amount = convertedUnit;
@@ -195,9 +196,9 @@ export default class ShoppingListController extends BaseIngredientController {
             }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.shoppingList);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.CREATED, res, updatedUser.shoppingList);
+        } catch (response) {
+            return response;
         }
     }
 
@@ -216,12 +217,12 @@ export default class ShoppingListController extends BaseIngredientController {
                 .find((foodItem: IShoppingIngredient) => foodItem.itemID === req.params.itemID);
 
             if (ingredient === undefined) {
-                return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in shopping list.");
             }
 
-            return this.sendSuccess(200, res, ingredient);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.OK, res, ingredient);
+        } catch (response) {
+            return response;
         }
     }
 
@@ -251,13 +252,13 @@ export default class ShoppingListController extends BaseIngredientController {
             }
 
             if (!listHasItem) {
-                return this.sendError(404, res, "Use Add endpoint to add ingredient to the shopping list.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Use Add endpoint to add ingredient to the shopping list.");
             }
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.sendSuccess(200, res, updatedUser.shoppingList);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
+        } catch (response) {
+            return response;
         }
     }
 
@@ -285,15 +286,15 @@ export default class ShoppingListController extends BaseIngredientController {
             }
 
             if (!isFound) {
-                return this.sendError(404, res, "Ingredient doesn't exist in shopping list.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in shopping list.");
             }
 
             user.shoppingList = shopingList;
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.sendSuccess(200, res, updatedUser.shoppingList);
-        } catch (e) {
-            return e;
+            return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
+        } catch (response) {
+            return response;
         }
     }
 }

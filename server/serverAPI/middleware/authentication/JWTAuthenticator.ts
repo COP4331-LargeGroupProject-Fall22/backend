@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { ResponseCodes } from '../../../utils/ResponseCodes';
 import TokenCreator from '../../../utils/TokenCreator';
 import BaseController from '../../controller/BaseController';
 import IIdentification from '../../model/user/IIdentification';
@@ -8,7 +9,7 @@ export default class JWTAuthenticator extends BaseController {
     authenticate = (tokenCreator: TokenCreator<IIdentification>) =>
         (req: Request, res: Response, next: NextFunction) => {
             if (!req.headers.authorization) {
-                return this.sendError(400, res, "Token is invalid.");
+                return this.send(ResponseCodes.UNAUTHORIZED, res, "Token is invalid.");
             }
 
             let authHeaderItems = req.headers.authorization.split(' ');
@@ -21,13 +22,13 @@ export default class JWTAuthenticator extends BaseController {
             try {
                 userIdentification = tokenCreator.verify(accessToken.trim());
             } catch (error) {
-                return this.sendError(400, res, this.getException(error));
+                return this.send(ResponseCodes.UNAUTHORIZED, res, this.getException(error));
             }
 
             if (!JWTStorage.getInstance().hasJWT(userIdentification.username) ||
                 JWTStorage.getInstance().getJWT(userIdentification.username)?.accessToken !== accessToken
             ) {
-                return this.sendError(400, res, "Token is not assigned to the user.");
+                return this.send(ResponseCodes.UNAUTHORIZED, res, "Token is not assigned to the user.");
             }
 
             req.serverUser = userIdentification;

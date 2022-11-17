@@ -125,7 +125,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         searchParams.set("sourceUnit", oldAmount.unit);
         searchParams.set("ingredientName", ingredientName);
 
-        let response = await this.sendRequest(converterBaseURL, searchParams);
+        let response = await this.getRequest(converterBaseURL, searchParams);
 
         if (response === null) {
             return null;
@@ -157,7 +157,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         searchParams.append("metaInformation", "true");
 
-        let response = await this.sendRequest(foodSearchBaseURL, searchParams);
+        let response = await this.getRequest(foodSearchBaseURL, searchParams);
 
         if (response === null) {
             return null;
@@ -275,7 +275,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         let searchParams = this.convertFoodParameters(parameters);
 
-        let response = await this.sendRequest(foodGetInfoBaseURL, searchParams);
+        let response = await this.getRequest(foodGetInfoBaseURL, searchParams);
 
         if (response == null) {
             return Promise.resolve(null);
