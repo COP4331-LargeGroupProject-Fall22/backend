@@ -32,8 +32,7 @@ const database = UserDatabase.connect(
 
 const userController = new UserController(database);
 const inventoryController = new InventoryController(
-    database,
-    new SpoonacularIngredientAPI(apiKey, apiHost)
+    database
 );
 const shoppingListController = new ShoppingListController(
     database,
