@@ -6,6 +6,7 @@ import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
 import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
 import IIngredientAPI from '../../ingredientAPI/IIngredientAPI';
+import IImage from '../../serverAPI/model/image/IImage';
 import IIngredient from '../../serverAPI/model/ingredient/IIngredient';
 import IInstruction from '../../serverAPI/model/instruction/IInstruction';
 import INutrient from '../../serverAPI/model/nutrients/INutrient';
@@ -75,7 +76,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
 
-        let response = await this.sendRequest(searchRecipeURL, urlSearchParameters);
+        let response = await this.getRequest(searchRecipeURL, urlSearchParameters);
 
         let jsonArray: any[] = response.results;
 
@@ -129,10 +130,17 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         return searchParameters;
     }
 
+    protected async parseRecipeImage(recipeObject: any): Promise<IImage> {
+        return {
+            srcUrl: recipeObject.image
+        };
+    }
+
     protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
         return {
             id: recipeObject.id,
-            name: recipeObject.title
+            name: recipeObject.title,
+            image: await this.parseRecipeImage(recipeObject)
         };
     }
 
@@ -149,6 +157,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         return {
             id: recipeObject.id,
             name: recipeObject.title,
+            image: await this.parseRecipeImage(recipeObject),
             cuisines: recipeObject.cuisines,
             diets: recipeObject.diets,
             mealTypes: recipeObject.dishTypes,
@@ -156,7 +165,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             instruction: instruction,
             instructionSteps: instructionSteps,
             servings: recipeObject.servings,
-            preparationInMinutes: recipeObject.preparationMinutes,
+            preparationTimeInMinutes: recipeObject.preparationMinutes,
             cookingTimeInMinutes: recipeObject.readyInMinutes,
             totalCost: recipeObject.pricePerServing * recipeObject.servings,
             costPerServing: recipeObject.pricePerServing
@@ -186,7 +195,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let ingredients: IIngredient[] = this.parseIngredients(recipeObject.nutrition.ingredients);
 
         let ingredientMap: Map<number, IIngredient> = new Map();
-        
+
         ingredients.forEach(ingredient => {
             if (!ingredientMap.has(ingredient.id)) {
                 ingredientMap.set(ingredient.id, ingredient);
@@ -284,7 +293,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             name: name,
             category: category,
             nutrients: this.parseNutrients(ingredientObject?.nutrients),
-            quantityUnits: [ quantity.unit ],
+            quantityUnits: [quantity.unit],
             quantity: quantity
         };
     }
@@ -319,7 +328,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let searchParameters = new URLSearchParams();
         searchParameters.set("includeNutrition", "true");
 
-        let response = await this.sendRequest(getRecipeURL, searchParameters);
+        let response = await this.getRequest(getRecipeURL, searchParameters);
 
         let parsedRecipe = this.parseRecipe(response);
 
