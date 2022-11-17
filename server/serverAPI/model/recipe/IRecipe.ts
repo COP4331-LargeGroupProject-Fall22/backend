@@ -51,7 +51,7 @@ export default interface IRecipe extends IBaseRecipe {
     /**
      * Preparation time in minutes.
      */
-    readonly preparationInMinutes: number;
+    readonly preparationTimeInMinutes: number;
 
     /**
      * Approximate total cost of the meal in USD.
