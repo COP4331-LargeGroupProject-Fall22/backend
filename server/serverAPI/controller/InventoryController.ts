@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
@@ -132,7 +133,7 @@ export default class InventoryController extends BaseUserController {
                 responseData = this.returnByLexicographicalOrder(user.inventory, isReverse);    
             }
 
-            return this.sendSuccess(200, res, responseData);
+            return this.send(ResponseCodes.OK, res, responseData);
         } catch (e) {
             return e;
         }
