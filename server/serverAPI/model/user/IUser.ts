@@ -1,3 +1,4 @@
+import IBaseIngredient from "../ingredient/IBaseIngredient";
 import IInventoryIngredient from "../ingredient/IInventoryIngredient";
 import IShoppingIngredient from "../ingredient/IShoppingIngredient";
 import IBaseRecipe from "../recipe/IBaseRecipe";
@@ -11,6 +12,8 @@ export default interface IUser extends IBaseUser, ICredentials, IContactInformat
     inventory: IInventoryIngredient[];
     
     shoppingList: IShoppingIngredient[];
+
+    allergens: IBaseIngredient[];
 
     favoriteRecipes?: IBaseRecipe[];
 }
