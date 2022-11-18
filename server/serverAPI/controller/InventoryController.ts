@@ -6,7 +6,6 @@ import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
 import IUser from "../model/user/IUser";
 import BaseIngredientController from "./BaseIngredientController";
-import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for inventory actions 
@@ -105,29 +104,16 @@ export default class InventoryController extends BaseIngredientController {
 
             let responseData: any = user.inventory;
 
-<<<<<<< HEAD
-            if (req.query.sortByExpirationDate === 'true') {
+            if (sortByExpirationDate) {
                 responseData = this.sortByExpirationDate(user.inventory, isReverse);    
             }
 
-            if (req.query.sortByCategory === 'true') {
+            if (sortByCategory) {
                 responseData = this.sortByCategory(user.inventory, isReverse);    
             }
 
-            if (req.query.sortByLexicographicalOrder === 'true') {
-                responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
-=======
-            if (sortByExpirationDate) {
-                responseData = this.returnByExpirationDate(user.inventory, isReverse);    
-            }
-
-            if (sortByCategory) {
-                responseData = this.returnByCategory(user.inventory, isReverse);    
-            }
-
             if (sortByLexicographicalOrder) {
-                responseData = this.returnByLexicographicalOrder(user.inventory, isReverse);    
->>>>>>> main
+                responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
             }
 
             return this.send(ResponseCodes.OK, res, responseData);
