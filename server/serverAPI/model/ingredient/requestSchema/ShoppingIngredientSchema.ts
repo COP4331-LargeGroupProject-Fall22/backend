@@ -1,4 +1,4 @@
-import { ValidateNested } from "class-validator";
+import { IsArray, ValidateNested } from "class-validator";
 import IUnit from "../../unit/IUnit";
 import IShoppingIngredient from "../IShoppingIngredient";
 import BaseIngredientSchema from "./BaseIngredientSchema";
@@ -8,6 +8,9 @@ export default class ShoppingIngredientSchema extends BaseIngredientSchema imple
     
     @ValidateNested()
     quantity: IUnit;
+
+    @IsArray({ each: true })
+    quantityUnits: string[];
 
     recipeID?: number;
 
@@ -19,8 +22,9 @@ export default class ShoppingIngredientSchema extends BaseIngredientSchema imple
         quantity: IUnit,
         recipeID?: number
     ) {
-        super(id, name, category, quantityUnits);
+        super(id, name, category);
         
+        this.quantityUnits = quantityUnits;
         this.quantity = quantity;
         this.recipeID = recipeID;
     }

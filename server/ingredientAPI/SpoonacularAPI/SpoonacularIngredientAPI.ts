@@ -99,7 +99,6 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
                 id: parsedFood.id,
                 name: parsedFood.name,
                 category: parsedFood.category,
-                quantityUnits: parsedFood.quantityUnits
             });
         }
 
@@ -178,7 +177,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         let name = data.name;
         let category = data.aisle;
         let quantityUnits = data.possibleUnits;
-        let quantity: IUnit | undefined = undefined
+        let quantity: IUnit = { unit: "", value: 0};
 
         if (data.amount !== undefined && data.unit !== undefined) {
             quantity = {
