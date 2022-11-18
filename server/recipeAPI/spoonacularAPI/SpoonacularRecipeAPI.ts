@@ -52,7 +52,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             ['intolerances', 'intolerances'],
             ['mealTypes', 'type'],
             ['resultsPerPage', 'number'],
-            ['page', 'offset'],
+            ['page', 'page'],
             ["hasIngredients", "includeIngredients"]
         ]);
     }
@@ -83,9 +83,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let recipeArray: IBaseRecipe[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
-            recipeArray.push(
-                await this.parseBaseRecipe(jsonArray[i])
-            );
+            recipeArray.push(await this.parseBaseRecipe(jsonArray[i]));
         }
 
         return recipeArray.length === 0 ? null : recipeArray;
@@ -118,6 +116,15 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         keys.forEach(key => {
             if (this.recipeSearchParameters.has(key)) {
+                if (key === 'page') {
+                    let page = parameters.get("page") !== null ? Number.parseInt(parameters.get("page")!) : 0;
+                    let resultsPerPage = parameters.get("resultsPerPage") !== null ? Number.parseInt(parameters.get("resultsPerPage")!) : 10;
+            
+                    let offset = page * resultsPerPage;
+
+                    searchParameters.append("offset", offset.toString());
+                }
+
                 searchParameters.append(String(this.recipeSearchParameters.get(key)), parameters.get(key));
             } else {
                 throw new ParameterIsNotAllowed(`${key} parameter is not allowed.`);

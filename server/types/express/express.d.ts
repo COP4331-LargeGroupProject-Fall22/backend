@@ -50,6 +50,9 @@ declare global {
             SENDGRID_VERIFICATION_EMAIL_TEMPLATEID: string;
 
             PRIVATE_KEY_FOR_USER_TOKEN: string;
+
+            FREE_IMAGE_HOST_BASE_URL: string;
+            FREE_IMAGE_HOST_API_KEY: string;
         }
 
     }

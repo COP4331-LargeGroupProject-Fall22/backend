@@ -29,8 +29,10 @@ export default function IsType(types: (keyof (typeof typeValidator))[], validati
                 },
                 defaultMessage(validationArguments?: ValidationArguments) {
                     const lastType = types.pop();
-                    if (types.length == 0)
+                    if (types.length == 0) {
                         return `Has to be ${lastType}`;
+                    }
+                    
                     return `Can only be ${types.join(", ")} or ${lastType}.`;
                 }
             }

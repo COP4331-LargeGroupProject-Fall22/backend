@@ -68,7 +68,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             }
         });
 
-        searchParams.set("amount", "100");
+        searchParams.set("number", "100");
 
         return searchParams;
     }
