@@ -17,6 +17,8 @@ import ShoppingListController from '../controller/ShoppingListController';
 import UserProfilePictureController from '../controller/UserProfilePictureController';
 import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
 import AllergenController from '../controller/AllergenController';
+import FavoriteRecipesController from '../controller/FavoriteRecipesController';
+import SpoonacularRecipeAPI from '../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI';
 
 export const userRoute = express.Router();
 
@@ -37,19 +39,29 @@ const database = UserDatabase.connect(
     collectionName,
 );
 
+const ingredientAPI = new SpoonacularIngredientAPI(spoonacularApiKey, spoonacularApiHost);
+
 const userController = new UserController(database);
 const inventoryController = new InventoryController(
     database
 );
 const shoppingListController = new ShoppingListController(
     database,
-    new SpoonacularIngredientAPI(spoonacularApiKey, spoonacularApiHost)
+    ingredientAPI
 );
 const userProfilePictureController = new UserProfilePictureController(
     database,
     new FreeImageHostAPI(freeImageHostApiKey)
 );
 const allergenController = new AllergenController(database);
+const favoriteRecipesController = new FavoriteRecipesController(
+    database,
+    new SpoonacularRecipeAPI(
+        spoonacularApiKey, 
+        spoonacularApiHost,
+        ingredientAPI
+    )
+);
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
@@ -78,3 +90,8 @@ userRoute.get('/allergens', allergenController.getAll);
 userRoute.get('/allergens/:ingredientID', allergenController.get);
 userRoute.post('/allergens', express.json(), allergenController.add);
 userRoute.delete('/allergens/:ingredientID', allergenController.delete);
+
+userRoute.get('/favorite-recipes', favoriteRecipesController.getAll);
+userRoute.get('/favorite-recipes/:recipeID', favoriteRecipesController.get);
+userRoute.post('/favorite-recipes', express.json(), favoriteRecipesController.add);
+userRoute.delete('/favorite-recipes/:recipeID', favoriteRecipesController.delete);

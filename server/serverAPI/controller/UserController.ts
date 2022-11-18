@@ -37,7 +37,8 @@ export default class UserController extends BaseUserController {
                 password: userSchema.password,
                 username: userSchema.username,
                 allergens: user.allergens,
-                isVerified: user.isVerified
+                isVerified: user.isVerified,
+                favoriteRecipes: user.favoriteRecipes
             };
 
             return newUser;
