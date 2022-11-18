@@ -1,3 +1,4 @@
+import IImage from "../image/IImage";
 import IInventoryIngredient from "../ingredient/IInventoryIngredient";
 import IShoppingIngredient from "../ingredient/IShoppingIngredient";
 import IBaseRecipe from "../recipe/IBaseRecipe";
@@ -7,6 +8,8 @@ import ICredentials from "./ICredentials";
 
 export default interface IUser extends IBaseUser, ICredentials, IContactInformation {
     isVerified: boolean;
+
+    profilePicture?: IImage;
 
     inventory: IInventoryIngredient[];
     
