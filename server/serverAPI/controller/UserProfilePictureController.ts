@@ -8,7 +8,7 @@ import IUser from "../model/user/IUser";
 import BaseUserController from "./BaseUserController";
 
 /**
- * This class creates several properties responsible for inventory actions 
+ * This class creates several properties responsible for profile picture related actions 
  * provided to the user.
  */
 export default class UserProfilePictureController extends BaseUserController {
@@ -25,18 +25,18 @@ export default class UserProfilePictureController extends BaseUserController {
         try {
             let user = await this.requestGet(parameters, res);
 
-            if (!user.image) {
+            if (!user.profilePicture) {
                 return this.send(ResponseCodes.NOT_FOUND, res, "There is no image assigned to the user.");
             }
 
-            return this.send(ResponseCodes.OK, res, user.image);
+            return this.send(ResponseCodes.OK, res, user.profilePicture);
         } catch (response) {
             return response;
         }
     }
 
     /**
-     * Assings profile picture to the user's profile.
+     * Assigns profile picture to the user's profile.
      * 
      * @param req Request parameter that holds information about request
      * @param res Response parameter that holds information about response
@@ -59,10 +59,10 @@ export default class UserProfilePictureController extends BaseUserController {
         try {
             let image = await this.imageAPI.Get(imgAsBase64);
 
-            user.image = image;
+            user.profilePicture = image;
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.OK, res, updatedUser.image);
+            return this.send(ResponseCodes.OK, res, updatedUser.profilePicture);
         } catch (response) {
             return this.send(ResponseCodes.BAD_REQUEST, res, response);
         }
@@ -81,14 +81,14 @@ export default class UserProfilePictureController extends BaseUserController {
             let user = await this.requestGet(parameters, res)
 
 
-            if (!user.image) {
+            if (!user.profilePicture) {
                 return this.send(ResponseCodes.NOT_FOUND, res, "There is no image assigned to the user.");
             }
 
-            user.image = undefined;
+            user.profilePicture = undefined;
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.send(ResponseCodes.OK, res, updatedUser.image);
+            return this.send(ResponseCodes.OK, res);
         } catch (response) {
             return response;
         }

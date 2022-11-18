@@ -9,7 +9,7 @@ import ICredentials from "./ICredentials";
 export default interface IUser extends IBaseUser, ICredentials, IContactInformation {
     isVerified: boolean;
 
-    image?: IImage;
+    profilePicture?: IImage;
 
     inventory: IInventoryIngredient[];
     
