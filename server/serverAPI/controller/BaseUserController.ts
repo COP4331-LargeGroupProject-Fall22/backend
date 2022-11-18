@@ -23,6 +23,18 @@ export default class BaseUserController extends BaseController {
         }
     }
 
+    protected async userExists(username: string, res: Response): Promise<boolean> {
+        return this.database.Get(new Map([["username", username]])).then(async user => {
+            if (user === null) {
+                return Promise.resolve(false);
+            }
+
+            return Promise.resolve(true);
+        }, (error) => {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, error))
+        });
+    }
+
     protected async requestCreate(user: IUser, res: Response): Promise<IUser> {
         return this.database.Create(user).then(createdUser => {
             if (createdUser === null) {

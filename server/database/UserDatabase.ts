@@ -187,6 +187,7 @@ export default class UserDatabase implements IDatabase<IUser> {
             email: user.email,
             shoppingList: user.shoppingList,
             isVerified: user.isVerified,
+            allergens: user.allergens,
             lastSeen: user.lastSeen
         };
 
@@ -224,6 +225,7 @@ export default class UserDatabase implements IDatabase<IUser> {
                         "lastName": user.lastName,
                         "lastSeen": user.lastSeen,
                         "inventory": user.inventory,
+                        "allergens": user.allergens,
                         "shoppingList": user.shoppingList
                     }
                 }

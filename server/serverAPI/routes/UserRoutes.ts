@@ -14,6 +14,7 @@ import TokenCreator from '../../utils/TokenCreator';
 import IIdentification from '../model/user/IIdentification';
 import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
 import ShoppingListController from '../controller/ShoppingListController';
+import AllergenController from '../controller/AllergenController';
 
 export const userRoute = express.Router();
 
@@ -23,6 +24,8 @@ let collectionName = process.env.DB_USERS_COLLECTION;
 
 let apiKey = process.env.SPOONACULAR_API_KEY;
 let apiHost = process.env.SPOONACULAR_HOST;
+
+let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
 const database = UserDatabase.connect(
     databaseURL,
@@ -38,8 +41,7 @@ const shoppingListController = new ShoppingListController(
     database,
     new SpoonacularIngredientAPI(apiKey, apiHost)
 );
-
-let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
+const allergenController = new AllergenController(database);
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
@@ -59,3 +61,8 @@ userRoute.post('/shopping-list', express.json(), shoppingListController.add);
 userRoute.get('/shopping-list/:itemID', shoppingListController.get);
 userRoute.put('/shopping-list/:itemID', express.json(), shoppingListController.update);
 userRoute.delete('/shopping-list/:itemID', shoppingListController.delete);
+
+userRoute.get('/allergens', allergenController.getAll);
+userRoute.get('/allergens/:ingredientID', allergenController.get);
+userRoute.post('/allergens', express.json(), allergenController.add);
+userRoute.delete('/allergens/:ingredientID', allergenController.delete);
