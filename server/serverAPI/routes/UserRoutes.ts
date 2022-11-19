@@ -64,7 +64,6 @@ const favoriteRecipesController = new FavoriteRecipesController(
         ingredientAPI
     )
 );
-const authorizedRecipeController = new AuthorizedRecipeController(database, recipeAPI);
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
@@ -98,8 +97,3 @@ userRoute.get('/favorite-recipes', favoriteRecipesController.getAll);
 userRoute.get('/favorite-recipes/:recipeID', favoriteRecipesController.get);
 userRoute.post('/favorite-recipes', express.json(), favoriteRecipesController.add);
 userRoute.delete('/favorite-recipes/:recipeID', favoriteRecipesController.delete);
-
-
-userRoute.get('/recipes', authorizedRecipeController.getAll)
-userRoute.get('/recipes/:recipeID',authorizedRecipeController.get);
-

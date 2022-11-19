@@ -9,7 +9,9 @@
   "scripts": {
     "test": "jest --verbose",
     "start": "node build/Server.js",
-    "postinstall": "tsc"
+    "postinstall": "tsc",
+    "compile": "tsc && node build/Server.js",
+    "dev": "./node_modules/nodemon/bin/nodemon.js -e ts  --exec \"npm run compile\""
   },
   "keywords": [],
   "author": "",
