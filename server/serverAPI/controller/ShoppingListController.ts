@@ -22,7 +22,7 @@ export default class ShoppingListController extends BaseIngredientController {
         this.foodAPI = foodAPI;
     }
 
-    protected sortByRecipe(collection: IShoppingIngredient[]): any {
+    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): any {
         let recipeMap = new Map<string, IShoppingIngredient[]>();
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
@@ -44,6 +44,10 @@ export default class ShoppingListController extends BaseIngredientController {
         recipes.forEach(recipe => {
             recipe[1].sort((a, b) => a.name.localeCompare(b.name))
         });
+
+        if (isReverse) {
+            recipes.reverse();
+        }
 
         return {
                 itemsWithRecipeID: recipes,
@@ -123,7 +127,7 @@ export default class ShoppingListController extends BaseIngredientController {
             let responseData: any = user.shoppingList;
 
             if (req.query.sortByRecipe === 'true') {
-                responseData = this.sortByRecipe(user.shoppingList);
+                responseData = this.sortByRecipe(user.shoppingList, isReverse);
             }
 
             if (req.query.sortByCategory === 'true') {
