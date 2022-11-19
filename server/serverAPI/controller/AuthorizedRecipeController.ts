@@ -1,0 +1,145 @@
+import { Request, Response } from "express";
+import IDatabase from "../../database/IDatabase";
+import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
+import { ResponseCodes } from "../../utils/ResponseCodes";
+import IBaseRecipe from "../model/recipe/IBaseRecipe";
+import IRecipe from "../model/recipe/IRecipe";
+import UserBaseRecipe from "../model/recipe/UserBaseRecipe";
+import UserRecipe from "../model/recipe/UserRecipe";
+import IUser from "../model/user/IUser";
+import BaseUserController from "./BaseUserController";
+
+/**
+ * This class creates several properties responsible for authentication actions 
+ * provided to the user.
+ */
+export default class RecipeController extends BaseUserController {
+    private recipeAPI: IRecipeAPI;
+
+    constructor(database: IDatabase<IUser>, recipeAPI: IRecipeAPI) {
+        super(database);
+
+        this.recipeAPI = recipeAPI;
+    }
+
+    protected async convertToUserRecipe(recipe: IRecipe, req: Request, res: Response): Promise<UserRecipe> {
+        let user: IUser;
+
+        try {
+            user = await this.requestGet(new Map([["username", req.serverUser.username]]), res);
+        } catch (response) {
+            return Promise.reject(response);
+        }
+
+        let recipeSet: Set<number> = new Set();
+
+        user.favoriteRecipes.forEach(recipe => recipeSet.add(recipe.id));
+
+        let userRecipe: UserRecipe;
+
+        if (recipeSet.has(recipe.id)) {
+            userRecipe = new UserRecipe(recipe, true);
+        } else {
+            userRecipe = new UserRecipe(recipe, false);
+        }
+
+        return userRecipe;
+    }
+
+    protected async convertToUserBaseRecipe(recipes: IBaseRecipe[], req: Request, res: Response): Promise<UserBaseRecipe[]> {
+        let user: IUser;
+
+        try {
+            user = await this.requestGet(new Map([["username", req.serverUser.username]]), res);
+        } catch (response) {
+            return Promise.reject(response);
+        }
+
+        let recipeSet: Set<number> = new Set();
+
+        user.favoriteRecipes.forEach(recipe => recipeSet.add(recipe.id));
+
+        let userRecipes: UserBaseRecipe[] = [];
+
+        recipes.forEach(recipe => {
+            if (recipeSet.has(recipe.id)) {
+                userRecipes.push(new UserBaseRecipe(recipe, true));
+            } else {
+                userRecipes.push(new UserBaseRecipe(recipe, false));
+            }
+        });
+
+        return userRecipes;
+    }
+
+    /**
+     * Lets client to search recipes using specified parameters provided in the URL.
+     * Upon successful operation, this handler will return recipe items. 
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */
+    getAll = async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>();
+
+        if (req.query?.recipeName !== undefined) {
+            parameters.set("recipeName", req.query.recipeName);
+        }
+
+        if (req.query?.page !== undefined) {
+            parameters.set("page", req.query.page);
+        }
+
+        if (req.query?.resultsPerPage !== undefined) {
+            parameters.set("resultsPerPage", req.query.resultsPerPage);
+        }
+
+        if (req.query?.intolerence !== undefined) {
+            parameters.set("intolerance", req.query.intolerance);
+        }
+
+        if (req.query?.hasIngredients !== undefined) {
+            parameters.set("hasIngredients", req.query.hasIngredients);
+        }
+
+        if (req.query?.cuisines !== undefined) {
+            parameters.set("cuisines", req.query.cuisines);
+        }
+
+        if (req.query?.diets !== undefined) {
+            parameters.set("diets", req.query.cusines);
+        }
+
+        if (req.query?.mealTypes !== undefined) {
+            parameters.set("mealTypes", req.query.mealTypes);
+        }
+
+        return this.recipeAPI.GetAll(parameters).then(async recipes => {
+            if (recipes === null) {
+                return this.send(ResponseCodes.OK, res, []);
+            }
+
+            return this.send(ResponseCodes.OK, res, await this.convertToUserBaseRecipe(recipes, req, res));
+        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+    }
+
+    /**
+     * Gets information about specific recipe using specified parameters provided in the URL.
+     * 
+     * @param req Request parameter that holds information about request
+     * @param res Response parameter that holds information about response
+     */
+    get = async (req: Request, res: Response) => {
+        let parameters = new Map<string, any>([
+            ["id", req.params.recipeID]
+        ]);
+
+        return this.recipeAPI.Get(parameters).then(async recipe => {
+            if (recipe === null) {
+                return this.send(ResponseCodes.NOT_FOUND, res, "Recipe could not be found.");
+            }
+
+            return this.send(ResponseCodes.OK, res, await this.convertToUserRecipe(recipe, req, res));
+        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+    }
+}

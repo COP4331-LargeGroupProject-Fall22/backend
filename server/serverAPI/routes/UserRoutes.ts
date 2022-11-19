@@ -19,6 +19,7 @@ import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
 import AllergenController from '../controller/AllergenController';
 import FavoriteRecipesController from '../controller/FavoriteRecipesController';
 import SpoonacularRecipeAPI from '../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI';
+import AuthorizedRecipeController from '../controller/AuthorizedRecipeController';
 
 export const userRoute = express.Router();
 
@@ -40,6 +41,7 @@ const database = UserDatabase.connect(
 );
 
 const ingredientAPI = new SpoonacularIngredientAPI(spoonacularApiKey, spoonacularApiHost);
+const recipeAPI = new SpoonacularRecipeAPI(spoonacularApiKey, spoonacularApiHost, ingredientAPI);
 
 const userController = new UserController(database);
 const inventoryController = new InventoryController(
@@ -62,6 +64,7 @@ const favoriteRecipesController = new FavoriteRecipesController(
         ingredientAPI
     )
 );
+const authorizedRecipeController = new AuthorizedRecipeController(database, recipeAPI);
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
@@ -95,3 +98,8 @@ userRoute.get('/favorite-recipes', favoriteRecipesController.getAll);
 userRoute.get('/favorite-recipes/:recipeID', favoriteRecipesController.get);
 userRoute.post('/favorite-recipes', express.json(), favoriteRecipesController.add);
 userRoute.delete('/favorite-recipes/:recipeID', favoriteRecipesController.delete);
+
+
+userRoute.get('/recipes', authorizedRecipeController.getAll)
+userRoute.get('/recipes/:recipeID',authorizedRecipeController.get);
+
