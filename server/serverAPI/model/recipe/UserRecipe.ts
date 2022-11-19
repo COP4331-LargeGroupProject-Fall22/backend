@@ -18,9 +18,9 @@ export default class IUserRecipe implements IRecipe {
     id: number;
     name: string;
     image: IImage;
-    favorite: boolean;
+    isFavorite: boolean;
 
-    constructor(recipe: IRecipe, favorite: boolean) {
+    constructor(recipe: IRecipe, isFavorite: boolean) {
         this.cuisines = recipe.cuisines;
         this.diets = recipe.diets;
         this.mealTypes = recipe.mealTypes;
@@ -35,6 +35,6 @@ export default class IUserRecipe implements IRecipe {
         this.id = recipe.id;
         this.name = recipe.name;
         this.image = recipe.image;
-        this.favorite = favorite;
+        this.isFavorite = isFavorite;
     }
 }
