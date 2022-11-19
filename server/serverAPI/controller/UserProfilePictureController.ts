@@ -1,11 +1,11 @@
 import { isBase64 } from "class-validator";
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IImageAPI from "../../imageAPI/IImageAPI";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseUserController";
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for profile picture related actions 

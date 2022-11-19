@@ -1,4 +1,3 @@
-import { isURL, Validate, Validator } from "class-validator";
 import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
@@ -7,7 +6,7 @@ import ImageSchema from "../model/image/requestSchema/ImageSchema";
 import IBaseRecipe from "../model/recipe/IBaseRecipe";
 import BaseRecipeSchema from "../model/recipe/requestSchema/BaseRecipeSchema";
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseUserController";
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for inventory actions 

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import { ResponseCodes } from "../../utils/ResponseCodes";
-import BaseController from "./BaseController";
+import BaseController from "./BaseController/BaseController";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -50,7 +50,7 @@ export default class RecipeController extends BaseController {
         }
 
         if (req.query?.diets !== undefined) {
-            parameters.set("diets", req.query.cusines);
+            parameters.set("diets", req.query.diets);
         }
 
         if (req.query?.mealTypes !== undefined) {

@@ -6,14 +6,13 @@ import UserRegistrationSchema from "../model/user/requestSchema/UserRegistration
 import TokenCreator from "../../utils/TokenCreator";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseUserController";
+import BaseUserController from "./BaseController/BaseUserController";
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import Token from "../model/token/Token";
 import IEmailAPI from "../../emailAPI/IEmailAPI";
 import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
 import Random from "../../utils/Random";
 import { ResponseCodes } from "../../utils/ResponseCodes";
-import BaseUserSchema from "../model/user/requestSchema/BaseUserSchema";
 import UserSchema from "../model/user/UserSchema";
 
 /**
@@ -72,53 +71,49 @@ export default class AuthenticationController extends BaseUserController {
             req.body?.password
         );
 
+        let user: IUser;
+
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
-
-            let user: IUser;
-
-            try {
-                user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
-            } catch (e) {
-                return e;
-            }
-
-            let result = await this.encryptor.compare(userCredentials.password, user.password);
-            if (!result) {
-                return this.send(ResponseCodes.UNAUTHORIZED, res, `User credentials are incorrect.`);
-            }
-
-            let identification: IIdentification = {
-                username: user.username
-            };
-
-            if (!user.isVerified) {
-                this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
-            }
-
-            let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
-            let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
-
-            JWTStorage.getInstance().addJWT(
-                userCredentials.username,
-                new Token(accessToken, refreshToken)
-            );
-
-            if (req.query.includeInfo === 'true') {
-                return this.send(ResponseCodes.OK, res, {
-                    accessToken: accessToken,
-                    refreshToken: refreshToken,
-                    userInfo: this.convertToUserResponse(user)
-                });
-            } else {
-                return this.send(ResponseCodes.OK, res, {
-                    accessToken: accessToken,
-                    refreshToken: refreshToken
-                });
-            }
-        } catch (e) {
-            return e;
+            user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
+        } catch (response) {
+            return response;
         }
+
+        let result = await this.encryptor.compare(userCredentials.password, user.password);
+
+        if (!result) {
+            return this.send(ResponseCodes.UNAUTHORIZED, res, `User credentials are incorrect.`);
+        }
+
+        let identification: IIdentification = {
+            username: user.username
+        };
+
+        if (!user.isVerified) {
+            this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
+        }
+
+        let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
+        let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
+
+        JWTStorage.getInstance().addJWT(
+            userCredentials.username,
+            new Token(accessToken, refreshToken)
+        );
+
+        if (req.query.includeInfo === 'true') {
+            return this.send(ResponseCodes.OK, res, {
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                userInfo: this.convertToUserResponse(user)
+            });
+        }
+
+        return this.send(ResponseCodes.OK, res, {
+            accessToken: accessToken,
+            refreshToken: refreshToken
+        });
     }
 
     confirmVerificationCode = async (req: Request, res: Response) => {
@@ -136,22 +131,22 @@ export default class AuthenticationController extends BaseUserController {
         }
 
         if (actualCode === undefined) {
-            return this.send(ResponseCodes.UNAUTHORIZED, res, "Verification code is either expired or not issued.");
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is either expired or not issued.");
         }
 
         if (inputCode !== actualCode.code) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
         }
 
+        user.isVerified = true;
+
         try {
-            user.isVerified = true;
-
             await this.requestUpdate(user.username, user, res);
-
-            return this.send(ResponseCodes.OK, res, "Account has been verified.");
-        } catch (e) {
-            return e;
+        } catch (response) {
+            return response;
         }
+
+        return this.send(ResponseCodes.OK, res, "Account has been verified.");
     }
 
     private convertToMinutes(timeInMilliseconds: number): number {
@@ -162,12 +157,15 @@ export default class AuthenticationController extends BaseUserController {
         let email = "";
         let username = req.body?.username;
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(new Map([["username", username]]), res);
-            email = user.email;
-        } catch  (response) {
+            user = await this.requestGet(new Map([["username", username]]), res);
+        } catch (response) {
             return response;
         }
+
+        email = user.email;
 
         let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
 
@@ -198,8 +196,8 @@ export default class AuthenticationController extends BaseUserController {
                 let timeRemaining =
                     this.convertToMinutes(this.verificationCodeLifetimeInMilliseconds - (Date.now() - verificationInfo.generationTime));
 
-                return this.send(ResponseCodes.BAD_REQUEST, res, 
-                    `Max number of ${this.maxAttemptsPerVerificationCode} attempts has been reached. ` + 
+                return this.send(ResponseCodes.BAD_REQUEST, res,
+                    `Max number of ${this.maxAttemptsPerVerificationCode} attempts has been reached. ` +
                     `Please wait ${timeRemaining} minutes before trying again.`);
             }
         } else {
@@ -219,7 +217,7 @@ export default class AuthenticationController extends BaseUserController {
             verificationInfo
         );
 
-        this.emailAPI.SendVerificationCode(
+        return this.emailAPI.SendVerificationCode(
             email,
             process.env.OUTBOUND_VERIFICATION_EMAIL,
             emailVerificationSchema)
@@ -249,11 +247,10 @@ export default class AuthenticationController extends BaseUserController {
                 accessToken: accessToken,
                 refreshToken: refreshToken
             });
-        } catch (e) {
+        } catch (error) {
             return this.send(ResponseCodes.UNAUTHORIZED, res, "Refresh token is invalid.");
         }
     }
-
 
     /**
      * Logs client out from the server. All JWT tokens related to the client becomes invalid.
@@ -265,7 +262,7 @@ export default class AuthenticationController extends BaseUserController {
         try {
             JWTStorage.getInstance().deleteJWT(req.serverUser.username);
             return this.send(ResponseCodes.OK, res);
-        } catch (e) {
+        } catch (error) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Could not perform logout operation.");
         }
     }
@@ -285,26 +282,28 @@ export default class AuthenticationController extends BaseUserController {
             req.body?.email
         );
 
+        let userExists: boolean;
+
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
-
-            let userExists = await this.userExists(userCredentials.username, res);
-
-            if (userExists) {
-                return this.send(ResponseCodes.BAD_REQUEST, res, `User with such username already exists.`);
-            }
-
-            let internalUser = this.convertToUser(userCredentials);
-            internalUser.password = await this.encryptor.encrypt(internalUser.password);
-
-            let createdUser = await this.database.Create(internalUser);
-            if (createdUser === null) {
-                return this.send(ResponseCodes.BAD_REQUEST, res, `User could not be created.`);
-            }
-
-            this.sendVerificationCode(req, res);
-        } catch (e) {
-            return e;
+            userExists = await this.userExists(userCredentials.username, res);
+        } catch (response) {
+            return response;
         }
+
+        if (userExists) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, `User with such username already exists.`);
+        }
+
+        let internalUser = this.convertToUser(userCredentials);
+        internalUser.password = await this.encryptor.encrypt(internalUser.password);
+
+        let createdUser = await this.database.Create(internalUser);
+        
+        if (createdUser === null) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, `User could not be created.`);
+        }
+
+        return this.sendVerificationCode(req, res);
     }
 }

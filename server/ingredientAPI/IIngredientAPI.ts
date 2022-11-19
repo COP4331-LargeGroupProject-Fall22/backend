@@ -11,7 +11,7 @@ export default interface IIngredientAPI {
      * - resultsPerPage - optional parameter that defines max number of the results to be returned. (default = 100)
      * - page - optional parameter that definds page number. (default = 1)
      * - intolerance - optional parameter that defines the type of intolerances to be taken in consideration during searching. (default = none)
-     * Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
+     * > Complete list of intolerences is available at https://spoonacular.com/food-api/docs#Intolerances 
      * 
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of Iingredient objects.

@@ -2,11 +2,9 @@ import { Request, Response } from "express";
 import IDatabase from "../../database/IDatabase";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 import IBaseIngredient from "../model/ingredient/IBaseIngredient";
-
-import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
 import IUser from "../model/user/IUser";
-import BaseIngredientController from "./BaseIngredientController";
+import BaseIngredientController from "./BaseController/BaseIngredientController";
 
 /**
  * This class creates several properties responsible for inventory actions 

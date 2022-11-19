@@ -7,7 +7,7 @@ import IRecipe from "../model/recipe/IRecipe";
 import UserBaseRecipe from "../model/recipe/UserBaseRecipe";
 import UserRecipe from "../model/recipe/UserRecipe";
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseUserController";
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for authentication actions 

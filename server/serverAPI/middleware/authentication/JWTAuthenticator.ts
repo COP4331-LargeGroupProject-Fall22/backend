@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ResponseCodes } from '../../../utils/ResponseCodes';
 import TokenCreator from '../../../utils/TokenCreator';
-import BaseController from '../../controller/BaseController';
+import BaseController from '../../controller/BaseController/BaseController';
 import IIdentification from '../../model/user/IIdentification';
 import JWTStorage from './JWTStorage';
 

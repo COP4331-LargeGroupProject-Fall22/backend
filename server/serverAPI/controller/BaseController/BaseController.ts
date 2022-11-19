@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { ResponseCodes } from "../../utils/ResponseCodes";
-import ISchema from "../model/ISchema";
+import { ResponseCodes } from "../../../utils/ResponseCodes";
+import ISchema from "../../model/ISchema";
 
 export default class BaseController {
     protected getException(error: unknown): string {

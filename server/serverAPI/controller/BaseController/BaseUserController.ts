@@ -1,8 +1,8 @@
 import { Response } from "express";
-import IDatabase from "../../database/IDatabase";
-import { ResponseCodes } from "../../utils/ResponseCodes";
-import IUser from "../model/user/IUser";
-import IUserResponse from "../model/user/responseSchema/IUserResponse";
+import IDatabase from "../../../database/IDatabase";
+import { ResponseCodes } from "../../../utils/ResponseCodes";
+import IUser from "../../model/user/IUser";
+import IUserResponse from "../../model/user/responseSchema/IUserResponse";
 import BaseController from "./BaseController";
 
 export default class BaseUserController extends BaseController {

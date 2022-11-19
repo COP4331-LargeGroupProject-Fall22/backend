@@ -5,7 +5,7 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import IUser from "../model/user/IUser";
 import BaseUserSchema from "../model/user/requestSchema/BaseUserSchema";
-import BaseUserController from "./BaseUserController";
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for user-actions 
