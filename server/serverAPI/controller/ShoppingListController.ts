@@ -9,7 +9,6 @@ import ShoppingIngredientSchema from "../model/ingredient/requestSchema/Shopping
 import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
 import BaseIngredientController from "./BaseIngredientController";
-import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for shopping list actions 
@@ -47,7 +46,7 @@ export default class ShoppingListController extends BaseIngredientController {
         });
 
         return {
-                itemsWithRecipeID: Object.fromEntries(recipes),
+                itemsWithRecipeID: recipes,
                 itemsWithoutRecipeID: itemsWithoutRecipeID
             };
     }
