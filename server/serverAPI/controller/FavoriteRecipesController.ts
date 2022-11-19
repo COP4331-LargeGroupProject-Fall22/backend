@@ -49,17 +49,15 @@ export default class FavoriteRecipesController extends BaseUserController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        let isReverse = req.query.isReverse === 'true' ? true : false;
+        let user: IUser;
 
         try {
-            let user = await this.requestGet(parameters, res)
-
-            let responseData: any = user.favoriteRecipes;
-
-            return this.send(ResponseCodes.OK, res, responseData);
-        } catch (e) {
-            return e;
+            user = await this.requestGet(parameters, res)
+        } catch (response) {
+            return response;
         }
+
+        return this.send(ResponseCodes.OK, res, user.favoriteRecipes);
     }
 
     /**
@@ -71,24 +69,27 @@ export default class FavoriteRecipesController extends BaseUserController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            let recipeSchema = await this.parseAddRequest(req, res);
-
-            let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe) => recipeItem.id === recipeSchema.id);
-
-            if (duplicateRecipe !== undefined) {
-                return this.send(ResponseCodes.BAD_REQUEST, res, "Recipe already exists in favorite recipes.");
-            }
-
-            user.favoriteRecipes.push(recipeSchema);
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.CREATED, res, updatedUser.favoriteRecipes);
+            user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
+
+        let recipeSchema = await this.parseAddRequest(req, res);
+
+        let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe) => recipeItem.id === recipeSchema.id);
+
+        if (duplicateRecipe !== undefined) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Recipe already exists in favorite recipes.");
+        }
+
+        user.favoriteRecipes.push(recipeSchema);
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+
+        return this.send(ResponseCodes.CREATED, res, updatedUser.favoriteRecipes);
     }
 
     /**
@@ -100,26 +101,28 @@ export default class FavoriteRecipesController extends BaseUserController {
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let recipe = user.favoriteRecipes
-                .find((ingredientItem: IBaseRecipe) => ingredientItem.id === Number.parseInt(req.params.recipeID));
+            user = await this.requestGet(parameters, res)
+        } catch (response) {
+            return response;
+        }
 
-            if (recipe === undefined) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Recipe doesn't exist in favorite recipes.");
-            }
+        let recipe = user.favoriteRecipes
+            .find((ingredientItem: IBaseRecipe) => ingredientItem.id === Number.parseInt(req.params.recipeID));
 
-            return this.recipeAPI.Get(new Map([["id", recipe.id]]))
+        if (recipe === undefined) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Recipe doesn't exist in favorite recipes.");
+        }
+
+        return this.recipeAPI.Get(new Map([["id", recipe.id]]))
             .then((recipe) => {
                 return this.send(ResponseCodes.OK, res, recipe);
             })
             .catch((error) => {
                 return this.send(ResponseCodes.BAD_REQUEST, res, error);
             });
-
-        } catch (response) {
-            return response;
-        }
     }
 
     /**
@@ -131,30 +134,33 @@ export default class FavoriteRecipesController extends BaseUserController {
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let isFound: boolean = false;
-
-            let newFavoriteRecipes: IBaseRecipe[] = [];
-
-            for (let i = 0; i < user.favoriteRecipes.length; i++) {
-                if (user.favoriteRecipes[i].id === Number.parseInt(req.params.recipeID)) {
-                    isFound = true;
-                } else {
-                    newFavoriteRecipes.push(user.favoriteRecipes[i])
-                }
-            }
-
-            if (!isFound) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Recipe doesn't exist in favorite recipes.");
-            }
-
-            user.favoriteRecipes = newFavoriteRecipes;
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.send(ResponseCodes.OK, res, updatedUser.favoriteRecipes);
-        } catch (e) {
-            return e;
+            user = await this.requestGet(parameters, res)
+        } catch (response) {
+            return response;
         }
+
+        let isFound: boolean = false;
+
+        let newFavoriteRecipes: IBaseRecipe[] = [];
+
+        for (let i = 0; i < user.favoriteRecipes.length; i++) {
+            if (user.favoriteRecipes[i].id === Number.parseInt(req.params.recipeID)) {
+                isFound = true;
+            } else {
+                newFavoriteRecipes.push(user.favoriteRecipes[i])
+            }
+        }
+
+        if (!isFound) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Recipe doesn't exist in favorite recipes.");
+        }
+
+        user.favoriteRecipes = newFavoriteRecipes;
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
+        return this.send(ResponseCodes.OK, res, updatedUser.favoriteRecipes);
     }
 }
