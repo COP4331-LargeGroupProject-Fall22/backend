@@ -17,7 +17,7 @@ import ShoppingListController from '../controller/ShoppingListController';
 import UserProfilePictureController from '../controller/UserProfilePictureController';
 import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
 import AllergenController from '../controller/AllergenController';
-import FavoriteRecipesController from '../controller/FavoriteRecipesController';
+import FavoriteRecipeController from '../controller/FavoriteRecipeController';
 import SpoonacularRecipeAPI from '../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI';
 import AuthorizedRecipeController from '../controller/AuthorizedRecipeController';
 
@@ -56,7 +56,7 @@ const userProfilePictureController = new UserProfilePictureController(
     new FreeImageHostAPI(freeImageHostApiKey)
 );
 const allergenController = new AllergenController(database);
-const favoriteRecipesController = new FavoriteRecipesController(
+const favoriteRecipesController = new FavoriteRecipeController(
     database,
     new SpoonacularRecipeAPI(
         spoonacularApiKey, 

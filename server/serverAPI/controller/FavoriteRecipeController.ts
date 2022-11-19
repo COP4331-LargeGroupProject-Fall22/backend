@@ -12,7 +12,7 @@ import BaseUserController from "./BaseController/BaseUserController";
  * This class creates several properties responsible for inventory actions 
  * provided to the user.
  */
-export default class FavoriteRecipesController extends BaseUserController {
+export default class FavoriteRecipeController extends BaseUserController {
     private recipeAPI: IRecipeAPI;
 
     constructor(database: IDatabase<IUser>, recipeAPI: IRecipeAPI) {
