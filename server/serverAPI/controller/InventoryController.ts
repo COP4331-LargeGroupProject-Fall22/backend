@@ -59,11 +59,14 @@ export default class InventoryController extends BaseIngredientController {
         collection.forEach(item => {
             if (item.expirationDate) {
                 itemsWithExpirationDate.push(item);
-            }
-            else
+            } else {
                 itemsWithoutExpirationDate.push(item);
+            }
         });
 
+        itemsWithoutExpirationDate.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Sorts from earliest to latest expiration date
         itemsWithExpirationDate.sort((a, b) => b.expirationDate! - a.expirationDate!);
 
         if (isReverse) {
@@ -84,6 +87,16 @@ export default class InventoryController extends BaseIngredientController {
      */
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
+        
+        let sortByExpirationDate = req.query.sortByExpirationDate === 'true';
+        let sortByCategory = req.query.sortByCategory === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+
+        let truthyCount = Number(sortByExpirationDate) + Number(sortByCategory) + Number(sortByLexicographicalOrder);
+
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
 
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
@@ -92,15 +105,15 @@ export default class InventoryController extends BaseIngredientController {
 
             let responseData: any = user.inventory;
 
-            if (req.query.sortByExpirationDate === 'true') {
+            if (sortByExpirationDate) {
                 responseData = this.sortByExpirationDate(user.inventory, isReverse);    
             }
 
-            if (req.query.sortByCategory === 'true') {
+            if (sortByCategory) {
                 responseData = this.sortByCategory(user.inventory, isReverse);    
             }
 
-            if (req.query.sortByLexicographicalOrder === 'true') {
+            if (sortByLexicographicalOrder) {
                 responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
             }
 

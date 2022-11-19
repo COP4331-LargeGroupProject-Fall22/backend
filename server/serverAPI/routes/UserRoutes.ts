@@ -14,6 +14,8 @@ import TokenCreator from '../../utils/TokenCreator';
 import IIdentification from '../model/user/IIdentification';
 import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
 import ShoppingListController from '../controller/ShoppingListController';
+import UserProfilePictureController from '../controller/UserProfilePictureController';
+import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
 
 export const userRoute = express.Router();
 
@@ -21,8 +23,10 @@ let databaseURL = process.env.DB_CONNECTION_STRING;
 let databaseName = process.env.DB_NAME;
 let collectionName = process.env.DB_USERS_COLLECTION;
 
-let apiKey = process.env.SPOONACULAR_API_KEY;
-let apiHost = process.env.SPOONACULAR_HOST;
+let spoonacularApiKey = process.env.SPOONACULAR_API_KEY;
+let spoonacularApiHost = process.env.SPOONACULAR_HOST;
+
+let freeImageHostApiKey = process.env.FREE_IMAGE_HOST_API_KEY;
 
 const database = UserDatabase.connect(
     databaseURL,
@@ -36,7 +40,11 @@ const inventoryController = new InventoryController(
 );
 const shoppingListController = new ShoppingListController(
     database,
-    new SpoonacularIngredientAPI(apiKey, apiHost)
+    new SpoonacularIngredientAPI(spoonacularApiKey, spoonacularApiHost)
+);
+const userProfilePictureController = new UserProfilePictureController(
+    database,
+    new FreeImageHostAPI(freeImageHostApiKey)
 );
 
 let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
@@ -59,3 +67,7 @@ userRoute.post('/shopping-list', express.json(), shoppingListController.add);
 userRoute.get('/shopping-list/:itemID', shoppingListController.get);
 userRoute.put('/shopping-list/:itemID', express.json(), shoppingListController.update);
 userRoute.delete('/shopping-list/:itemID', shoppingListController.delete);
+
+userRoute.get('/profile-picture', userProfilePictureController.get);
+userRoute.post('/profile-picture', express.json(), userProfilePictureController.add);
+userRoute.delete('/profile-picture', userProfilePictureController.delete);
