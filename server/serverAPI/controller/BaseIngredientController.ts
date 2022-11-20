@@ -27,7 +27,7 @@ export default class BaseIngredientController extends BaseUserController {
             items.reverse();
         }
 
-        return Object.fromEntries(items);
+        return items;
     }
 
     protected sortByLexicographicalOrder<T extends IBaseIngredient>(collections: T[], isReverse: boolean): any {
