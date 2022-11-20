@@ -12,7 +12,7 @@ export default class SendGridAPI implements IEmailAPI {
 
     async SendVerificationCode(to: string, from: string, emailVerificationTemplate: IEmailVerificationTemplate): Promise<boolean> {
         if (!(isEmail(to) && isEmail(from))) {
-            Promise.reject("Email addressed provided are invalid.");
+            return Promise.reject("Email addresses provided are invalid.");
         }
 
         let message: MailDataRequired = {

@@ -304,6 +304,6 @@ export default class AuthenticationController extends BaseUserController {
             return this.send(ResponseCodes.BAD_REQUEST, res, `User could not be created.`);
         }
 
-        return this.sendVerificationCode(req, res);
+        this.sendVerificationCode(req, res);
     }
 }
