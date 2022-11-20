@@ -9,7 +9,7 @@ export default class ShoppingIngredientSchema extends BaseIngredientSchema imple
     @ValidateNested()
     quantity: IUnit;
 
-    @IsArray({ each: true })
+    @IsArray()
     quantityUnits: string[];
 
     recipeID?: number;
