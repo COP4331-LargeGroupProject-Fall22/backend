@@ -27,6 +27,11 @@ export default class ShoppingListController extends BaseIngredientController {
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
 
+        /**
+         * Divide collection on 2 collections.
+         * 1 is a map where K,V => RecipeID, IShoppingIngredient[]
+         * 2 is an array of all ingredients that don't have recipeID assigned to them 
+        */
         collection.forEach(item => {
             if (item.recipeID) {
                 if (!recipeMap.has(item.recipeID.toString())) {
@@ -39,14 +44,20 @@ export default class ShoppingListController extends BaseIngredientController {
             }
         });
 
+        // Converts map to Array and sorts it by recipe id
         let recipes = Array.from(recipeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
+        // Sorts each collection attached to recipeID in lexicographical order
         recipes.forEach(recipe => {
             recipe[1].sort((a, b) => a.name.localeCompare(b.name))
         });
 
+        // Sorts collection of ingredients without recipe id in lexicographical order
+        itemsWithoutRecipeID.sort((a, b) => a.name.localeCompare(b.name));
+
         if (isReverse) {
             recipes.reverse();
+            itemsWithoutRecipeID.reverse();
         }
 
         return {
@@ -139,8 +150,8 @@ export default class ShoppingListController extends BaseIngredientController {
             }
 
             return this.send(ResponseCodes.OK, res, responseData);
-        } catch (e) {
-            return e;
+        } catch (response) {
+            return response;
         }
     }
 
