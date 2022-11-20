@@ -8,18 +8,62 @@ import ShoppingIngredientSchema from "../model/ingredient/requestSchema/Shopping
 
 import UnitSchema from "../model/unit/UnitSchema";
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseUserController";
+import BaseIngredientController from "./BaseIngredientController";
 
 /**
  * This class creates several properties responsible for shopping list actions 
  * provided to the user.
  */
-export default class ShoppingListController extends BaseUserController {
+export default class ShoppingListController extends BaseIngredientController {
     private foodAPI: IIngredientAPI;
 
     constructor(database: IDatabase<IUser>, foodAPI: IIngredientAPI) {
         super(database);
         this.foodAPI = foodAPI;
+    }
+
+    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): any {
+        let recipeMap = new Map<string, IShoppingIngredient[]>();
+
+        let itemsWithoutRecipeID: IShoppingIngredient[] = [];
+
+        /**
+         * Divide collection on 2 collections.
+         * 1 is a map where K,V => RecipeID, IShoppingIngredient[]
+         * 2 is an array of all ingredients that don't have recipeID assigned to them 
+        */
+        collection.forEach(item => {
+            if (item.recipeID) {
+                if (!recipeMap.has(item.recipeID.toString())) {
+                    recipeMap.set(item.recipeID.toString(), []);
+                }
+
+                recipeMap.get(item.recipeID.toString())?.push(item);
+            } else {
+                itemsWithoutRecipeID.push(item);
+            }
+        });
+
+        // Converts map to Array and sorts it by recipe id
+        let recipes = Array.from(recipeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        // Sorts each collection attached to recipeID in lexicographical order
+        recipes.forEach(recipe => {
+            recipe[1].sort((a, b) => a.name.localeCompare(b.name))
+        });
+
+        // Sorts collection of ingredients without recipe id in lexicographical order
+        itemsWithoutRecipeID.sort((a, b) => a.name.localeCompare(b.name));
+
+        if (isReverse) {
+            recipes.reverse();
+            itemsWithoutRecipeID.reverse();
+        }
+
+        return {
+                itemsWithRecipeID: recipes,
+                itemsWithoutRecipeID: itemsWithoutRecipeID
+            };
     }
 
     private async parseAddRequest(req: Request, res: Response)
@@ -86,9 +130,26 @@ export default class ShoppingListController extends BaseUserController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let isReverse = req.query.isReverse === 'true' ? true : false;
+
         try {
             let user = await this.requestGet(parameters, res)
-            return this.send(ResponseCodes.OK, res, user.shoppingList);
+
+            let responseData: any = user.shoppingList;
+
+            if (req.query.sortByRecipe === 'true') {
+                responseData = this.sortByRecipe(user.shoppingList, isReverse);
+            }
+
+            if (req.query.sortByCategory === 'true') {
+                responseData = this.sortByCategory(user.shoppingList, isReverse);
+            }
+
+            if (req.query.sortByLexicographicalOrder === 'true') {
+                responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
+            }
+
+            return this.send(ResponseCodes.OK, res, responseData);
         } catch (response) {
             return response;
         }
