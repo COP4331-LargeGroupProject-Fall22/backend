@@ -21,11 +21,16 @@ export default class ShoppingListController extends BaseIngredientController {
         this.foodAPI = foodAPI;
     }
 
-    protected sortByRecipe(collection: IShoppingIngredient[]): any {
+    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): any {
         let recipeMap = new Map<string, IShoppingIngredient[]>();
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
 
+        /**
+         * Divide collection on 2 collections.
+         * 1 is a map where K,V => RecipeID, IShoppingIngredient[]
+         * 2 is an array of all ingredients that don't have recipeID assigned to them 
+        */
         collection.forEach(item => {
             if (item.recipeID) {
                 if (!recipeMap.has(item.recipeID.toString())) {
@@ -38,14 +43,24 @@ export default class ShoppingListController extends BaseIngredientController {
             }
         });
 
+        // Converts map to Array and sorts it by recipe id
         let recipes = Array.from(recipeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
+        // Sorts each collection attached to recipeID in lexicographical order
         recipes.forEach(recipe => {
             recipe[1].sort((a, b) => a.name.localeCompare(b.name))
         });
 
+        // Sorts collection of ingredients without recipe id in lexicographical order
+        itemsWithoutRecipeID.sort((a, b) => a.name.localeCompare(b.name));
+
+        if (isReverse) {
+            recipes.reverse();
+            itemsWithoutRecipeID.reverse();
+        }
+
         return {
-            itemsWithRecipeID: Object.fromEntries(recipes),
+            itemsWithRecipeID: recipes,
             itemsWithoutRecipeID: itemsWithoutRecipeID
         };
     }
@@ -127,7 +142,7 @@ export default class ShoppingListController extends BaseIngredientController {
         let responseData: any = user.shoppingList;
 
         if (req.query.sortByRecipe === 'true') {
-            responseData = this.sortByRecipe(user.shoppingList);
+            responseData = this.sortByRecipe(user.shoppingList, isReverse);
         }
 
         if (req.query.sortByCategory === 'true') {

@@ -108,17 +108,17 @@ export default class InventoryController extends BaseIngredientController {
 
         let responseData: any = user.inventory;
 
-        if (sortByExpirationDate) {
-            responseData = this.sortByExpirationDate(user.inventory, isReverse);
-        }
+            if (sortByExpirationDate) {
+                responseData = this.sortByExpirationDate(user.inventory, isReverse);    
+            }
 
-        if (sortByCategory) {
-            responseData = this.sortByCategory(user.inventory, isReverse);
-        }
+            if (sortByCategory) {
+                responseData = this.sortByCategory(user.inventory, isReverse);    
+            }
 
-        if (sortByLexicographicalOrder) {
-            responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);
-        }
+            if (sortByLexicographicalOrder) {
+                responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
+            }
 
         return this.send(ResponseCodes.OK, res, responseData);
     }
