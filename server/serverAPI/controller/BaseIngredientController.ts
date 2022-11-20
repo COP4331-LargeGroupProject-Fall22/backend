@@ -6,7 +6,6 @@ export default class BaseIngredientController extends BaseUserController {
         let itemMap = new Map<string, T[]>();
 
         // Divides collection on map where K,V => Category,T[]
-        
         collection.forEach(item => {
             if (!itemMap.has(item.category)) {
                 itemMap.set(item.category, []);
