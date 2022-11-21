@@ -215,7 +215,6 @@ export default class UserDatabase implements IDatabase<IUser> {
                         "shoppingList": user.shoppingList,
                         "profilePicture": user.profilePicture,
                         "allergens": user.allergens,
-                        "allergens": user.allergens,
                         "favoriteRecipes": user.favoriteRecipes
                     }
                 }
