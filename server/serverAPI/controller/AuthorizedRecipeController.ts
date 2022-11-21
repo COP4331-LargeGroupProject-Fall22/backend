@@ -61,17 +61,21 @@ export default class RecipeController extends BaseUserController {
         }
 
         let recipeSet: Set<number> = new Set();
-
         user.favoriteRecipes.forEach(recipe => recipeSet.add(recipe.id));
+
+        let allergenSet: Set<number> = new Set();
+        user.allergens.forEach(allergen => allergenSet.add(allergen.id));
 
         let userRecipes: UserBaseRecipe[] = [];
 
         recipes.forEach(recipe => {
-            if (recipeSet.has(recipe.id)) {
-                userRecipes.push(new UserBaseRecipe(recipe, true));
-            } else {
-                userRecipes.push(new UserBaseRecipe(recipe, false));
-            }
+            let isFavorite = recipeSet.has(recipe.id);
+    
+            let allergen = recipe.ingredients.find(ingredient => allergenSet.has(ingredient.id))
+    
+            let hasAllergens = allergen !== undefined;
+    
+            userRecipes.push(new UserBaseRecipe(recipe, isFavorite, hasAllergens));
         });
 
         return userRecipes;

@@ -144,10 +144,13 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     }
 
     protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
+        let ingredients: IIngredient[] = this.parseIngredients(recipeObject.nutrition.ingredients);
+
         return {
             id: recipeObject.id,
             name: recipeObject.title,
-            image: await this.parseRecipeImage(recipeObject)
+            image: await this.parseRecipeImage(recipeObject),
+            ingredients: ingredients
         };
     }
 
@@ -169,6 +172,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             diets: recipeObject.diets,
             mealTypes: recipeObject.dishTypes,
             nutritionFacts: this.parseNutrients(recipeObject.nutrition.nutrients),
+            ingredients: instruction.ingredients,
             instruction: instruction,
             instructionSteps: instructionSteps,
             servings: recipeObject.servings,

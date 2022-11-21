@@ -1,4 +1,5 @@
 import IImage from "../image/IImage";
+import IIngredient from "../ingredient/IIngredient";
 import IInstruction from "../instruction/IInstruction";
 import INutrient from "../nutrients/INutrient";
 import IRecipe from "./IRecipe";
@@ -18,6 +19,7 @@ export default class IUserRecipe implements IRecipe {
     id: number;
     name: string;
     image: IImage;
+    ingredients: IIngredient[];
     isFavorite: boolean;
     hasAllergens: boolean;
 
@@ -36,6 +38,7 @@ export default class IUserRecipe implements IRecipe {
         this.id = recipe.id;
         this.name = recipe.name;
         this.image = recipe.image;
+        this.ingredients = recipe.ingredients;
         this.isFavorite = isFavorite;
         this.hasAllergens = hasAllergens;
     }

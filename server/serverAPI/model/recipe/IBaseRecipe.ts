@@ -1,4 +1,5 @@
 import IImage from "../image/IImage";
+import IIngredient from "../ingredient/IIngredient";
 
 export default interface IBaseRecipe {
     /**
@@ -15,4 +16,9 @@ export default interface IBaseRecipe {
      * Recipe image.
      */
     readonly image: IImage;
+
+    /**
+     * Recipe ingredients.
+     */
+    readonly ingredients: IIngredient[]
 }
