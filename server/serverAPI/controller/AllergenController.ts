@@ -1,15 +1,17 @@
 import { Request, Response } from "express";
-import IDatabase from "../../database/IDatabase";
-import { ResponseCodes } from "../../utils/ResponseCodes";
-import IBaseIngredient from "../model/ingredient/IBaseIngredient";
 
-import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
-import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
 import IUser from "../model/user/IUser";
+import IBaseIngredient from "../model/ingredient/IBaseIngredient";
+import IDatabase from "../../database/IDatabase";
+
+import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
+
 import BaseIngredientController from "./BaseIngredientController";
 
+import { ResponseCodes } from "../../utils/ResponseCodes";
+
 /**
- * This class creates several properties responsible for inventory actions 
+ * This class creates several properties responsible for allergens actions 
  * provided to the user.
  */
 export default class AllergenController extends BaseIngredientController {
@@ -62,8 +64,8 @@ export default class AllergenController extends BaseIngredientController {
             }
 
             return this.send(ResponseCodes.OK, res, responseData);
-        } catch (e) {
-            return e;
+        } catch (response) {
+            return response;
         }
     }
 
@@ -115,8 +117,8 @@ export default class AllergenController extends BaseIngredientController {
             }
 
             return this.send(ResponseCodes.OK, res, ingredient);
-        } catch (e) {
-            return e;
+        } catch (response) {
+            return response;
         }
     }
 
@@ -151,8 +153,8 @@ export default class AllergenController extends BaseIngredientController {
 
             let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
             return this.send(ResponseCodes.OK, res, updatedUser.allergens);
-        } catch (e) {
-            return e;
+        } catch (response) {
+            return response;
         }
     }
 }

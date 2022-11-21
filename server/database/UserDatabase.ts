@@ -226,7 +226,9 @@ export default class UserDatabase implements IDatabase<IUser> {
                         "lastName": user.lastName,
                         "lastSeen": user.lastSeen,
                         "inventory": user.inventory,
-                        "shoppingList": user.shoppingList
+                        "shoppingList": user.shoppingList,
+                        "profilePicture": user.profilePicture,
+                        "allergens": user.allergens
                     }
                 }
             ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));
