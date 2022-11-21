@@ -123,7 +123,6 @@ export default class AuthenticationController extends BaseUserController {
         let actualCode = AuthenticationController.verificationCodesMap.get(username);
 
         let user: IUser;
-
         try {
             user = await this.requestGet(new Map([["username", username]]), res)
         } catch (response) {
@@ -134,7 +133,7 @@ export default class AuthenticationController extends BaseUserController {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is either expired or not issued.");
         }
 
-        if (inputCode !== actualCode.code) {
+        if (Number.parseInt(inputCode) !== actualCode.code) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
         }
 
