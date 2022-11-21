@@ -120,7 +120,7 @@ export default class AuthenticationController extends BaseUserController {
         let username = req.body?.username;
         let inputCode = req.body?.verificationCode;
 
-        console.log("Body: " + req.body);
+        console.log("Body: " + JSON.stringify(req.body));
 
         let actualCode = AuthenticationController.verificationCodesMap.get(username);
 
@@ -133,7 +133,7 @@ export default class AuthenticationController extends BaseUserController {
             return response;
         }
 
-        console.log("User: " + user);
+        console.log("User: " + JSON.stringify(user));
 
         if (actualCode === undefined) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is either expired or not issued.");

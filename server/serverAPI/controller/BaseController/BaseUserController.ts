@@ -66,10 +66,10 @@ export default class BaseUserController extends BaseController {
     }
 
     protected async requestGet(parameters: Map<string, any>, res: Response): Promise<IUser> {
-        console.log("Parameters: " + parameters);
+        console.log("Parameters: " + JSON.stringify(parameters));
 
         return this.database.Get(parameters).then(async user => {
-            console.log("User from database: " + user);
+            console.log("User from database: " + JSON.stringify(user));
             if (user === null) {
                 return Promise.reject(this.send(ResponseCodes.NOT_FOUND, res, "User could not be found."));
             }
