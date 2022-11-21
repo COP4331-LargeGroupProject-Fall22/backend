@@ -7,6 +7,7 @@ import IRecipe from "../model/recipe/IRecipe";
 import UserBaseRecipe from "../model/recipe/UserBaseRecipe";
 import UserRecipe from "../model/recipe/UserRecipe";
 import IUser from "../model/user/IUser";
+import AllergenController from "./AllergenController";
 import BaseUserController from "./BaseController/BaseUserController";
 
 /**
@@ -32,16 +33,20 @@ export default class RecipeController extends BaseUserController {
         }
 
         let recipeSet: Set<number> = new Set();
-
         user.favoriteRecipes.forEach(recipe => recipeSet.add(recipe.id));
+
+        let allergenSet: Set<number> = new Set();
+        user.allergens.forEach(allergen => allergenSet.add(allergen.id));
 
         let userRecipe: UserRecipe;
 
-        if (recipeSet.has(recipe.id)) {
-            userRecipe = new UserRecipe(recipe, true);
-        } else {
-            userRecipe = new UserRecipe(recipe, false);
-        }
+        let isFavorite = recipeSet.has(recipe.id);
+
+        let allergen = recipe.instruction.ingredients.find(ingredient => allergenSet.has(ingredient.id))
+
+        let hasAllergens = allergen !== undefined;
+
+        userRecipe = new UserRecipe(recipe, isFavorite, hasAllergens);
 
         return userRecipe;
     }
@@ -122,6 +127,8 @@ export default class RecipeController extends BaseUserController {
             return this.send(ResponseCodes.OK, res, await this.convertToUserBaseRecipe(recipes, req, res));
         }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
+
+
 
     /**
      * Gets information about specific recipe using specified parameters provided in the URL.

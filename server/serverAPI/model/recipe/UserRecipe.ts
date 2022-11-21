@@ -19,8 +19,9 @@ export default class IUserRecipe implements IRecipe {
     name: string;
     image: IImage;
     isFavorite: boolean;
+    hasAllergens: boolean;
 
-    constructor(recipe: IRecipe, isFavorite: boolean) {
+    constructor(recipe: IRecipe, isFavorite: boolean, hasAllergens: boolean) {
         this.cuisines = recipe.cuisines;
         this.diets = recipe.diets;
         this.mealTypes = recipe.mealTypes;
@@ -36,5 +37,6 @@ export default class IUserRecipe implements IRecipe {
         this.name = recipe.name;
         this.image = recipe.image;
         this.isFavorite = isFavorite;
+        this.hasAllergens = hasAllergens;
     }
 }
