@@ -1,6 +1,6 @@
-import UserSchema from "./UserSchema";
+import BaseUserSchema from "./BaseUserSchema";
 
-export default class UserRegistrationSchema extends UserSchema {
+export default class UserRegistrationSchema extends BaseUserSchema {
     constructor(
         firstName: string,
         lastName: string,

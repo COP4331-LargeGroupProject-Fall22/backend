@@ -6,7 +6,6 @@ import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
 import IUser from "../model/user/IUser";
 import BaseIngredientController from "./BaseIngredientController";
-import BaseUserController from "./BaseUserController";
 
 /**
  * This class creates several properties responsible for inventory actions 

@@ -4,7 +4,7 @@ import Encryptor from "../../utils/Encryptor";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import IUser from "../model/user/IUser";
-import UserSchema from "../model/user/requestSchema/UserSchema";
+import BaseUserSchema from "../model/user/requestSchema/BaseUserSchema";
 import BaseUserController from "./BaseUserController";
 
 /**
@@ -17,7 +17,7 @@ export default class UserController extends BaseUserController {
     }
 
     protected async getUserFromRequest(req: Request, res: Response, user: IUser): Promise<IUser> {
-        let userSchema = new UserSchema(
+        let userSchema = new BaseUserSchema(
             this.isStringUndefinedOrEmpty(req.body?.firstName) ? user.firstName : req.body.firstName,
             this.isStringUndefinedOrEmpty(req.body?.lastName) ? user.lastName : req.body.lastName,
             this.isStringUndefinedOrEmpty(req.body?.username) ? user.username : req.body.username,
@@ -36,6 +36,7 @@ export default class UserController extends BaseUserController {
                 email: user.email,
                 password: userSchema.password,
                 username: userSchema.username,
+                allergens: user.allergens,
                 isVerified: user.isVerified
             };
 

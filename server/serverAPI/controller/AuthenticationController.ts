@@ -13,6 +13,8 @@ import IEmailAPI from "../../emailAPI/IEmailAPI";
 import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
 import Random from "../../utils/Random";
 import { ResponseCodes } from "../../utils/ResponseCodes";
+import BaseUserSchema from "../model/user/requestSchema/BaseUserSchema";
+import UserSchema from "../model/user/UserSchema";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -48,17 +50,14 @@ export default class AuthenticationController extends BaseUserController {
     }
 
     private convertToUser(userCredentials: UserRegistrationSchema): IUser {
-        return {
-            username: userCredentials.username,
-            password: userCredentials.password,
-            firstName: userCredentials.firstName,
-            lastName: userCredentials.lastName,
-            lastSeen: userCredentials.lastSeen,
-            inventory: [],
-            shoppingList: [],
-            email: userCredentials.email,
-            isVerified: false
-        }
+        return new UserSchema(
+            userCredentials.firstName,
+            userCredentials.lastName,
+            userCredentials.username,
+            userCredentials.password,
+            userCredentials.email,
+            userCredentials.lastSeen
+        );
     }
 
     /**
@@ -140,7 +139,7 @@ export default class AuthenticationController extends BaseUserController {
             return this.send(ResponseCodes.UNAUTHORIZED, res, "Verification code is either expired or not issued.");
         }
 
-        if (inputCode !== actualCode) {
+        if (inputCode !== actualCode.code) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
         }
 
@@ -289,15 +288,9 @@ export default class AuthenticationController extends BaseUserController {
         try {
             userCredentials = await this.verifySchema(userCredentials, res);
 
-            let user: IUser;
+            let userExists = await this.userExists(userCredentials.username, res);
 
-            try {
-                user = await this.requestGet(new Map([["username", userCredentials.username]]), res);
-            } catch(response) {
-                return response;
-            }
-
-            if (user !== null) {
+            if (userExists) {
                 return this.send(ResponseCodes.BAD_REQUEST, res, `User with such username already exists.`);
             }
 

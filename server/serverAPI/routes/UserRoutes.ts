@@ -16,6 +16,7 @@ import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/Spoonac
 import ShoppingListController from '../controller/ShoppingListController';
 import UserProfilePictureController from '../controller/UserProfilePictureController';
 import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
+import AllergenController from '../controller/AllergenController';
 
 export const userRoute = express.Router();
 
@@ -27,6 +28,8 @@ let spoonacularApiKey = process.env.SPOONACULAR_API_KEY;
 let spoonacularApiHost = process.env.SPOONACULAR_HOST;
 
 let freeImageHostApiKey = process.env.FREE_IMAGE_HOST_API_KEY;
+
+let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
 
 const database = UserDatabase.connect(
     databaseURL,
@@ -46,8 +49,7 @@ const userProfilePictureController = new UserProfilePictureController(
     database,
     new FreeImageHostAPI(freeImageHostApiKey)
 );
-
-let privateKey = process.env.PRIVATE_KEY_FOR_USER_TOKEN;
+const allergenController = new AllergenController(database);
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
@@ -71,3 +73,8 @@ userRoute.delete('/shopping-list/:itemID', shoppingListController.delete);
 userRoute.get('/profile-picture', userProfilePictureController.get);
 userRoute.post('/profile-picture', express.json(), userProfilePictureController.add);
 userRoute.delete('/profile-picture', userProfilePictureController.delete);
+
+userRoute.get('/allergens', allergenController.getAll);
+userRoute.get('/allergens/:ingredientID', allergenController.get);
+userRoute.post('/allergens', express.json(), allergenController.add);
+userRoute.delete('/allergens/:ingredientID', allergenController.delete);
