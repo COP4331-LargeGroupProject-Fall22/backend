@@ -29,6 +29,7 @@ export default class FavoriteRecipeController extends BaseUserController {
             Number.parseInt(jsonPayload.id),
             jsonPayload.name,
             new ImageSchema(jsonPayload.image.srcUrl),
+            jsonPayload.ingredients
         );
 
         try {
