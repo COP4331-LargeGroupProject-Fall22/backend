@@ -134,13 +134,19 @@ export default class UserDatabase implements IDatabase<IUser> {
             filter._id = this.convertToObjectID(filter._id);
         }
 
+        console.log("Database filter: " + filter);
+
         return this.collection.findOne(filter).then(user => {
+            console.log("Database result: " + user);
             if (user === null) {
                 return Promise.resolve(null);
             }
 
             return Promise.resolve(user);
-        }, () => Promise.resolve(null));
+        }, (error) => {
+            console.log("Database Error: "+ error);
+            return Promise.resolve(null);
+        });
     }
 
     /**
