@@ -91,7 +91,7 @@ export default class AuthenticationController extends BaseUserController {
         };
 
         if (!user.isVerified) {
-            this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
+            return this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
         }
 
         let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
