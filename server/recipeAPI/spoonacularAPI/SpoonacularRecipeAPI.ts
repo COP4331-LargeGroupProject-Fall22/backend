@@ -132,7 +132,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         });
 
         searchParameters.append("instructionsRequired", "true");
-        searchParameters.append("addRecipeInformation", "true");
+        searchParameters.append("fillIngredients", "true");
 
         return searchParameters;
     }
@@ -144,7 +144,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     }
 
     protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
-        let ingredients: IIngredient[] = this.parseIngredients(recipeObject.nutrition.ingredients);
+        let ingredients: IIngredient[] = this.parseIngredients(recipeObject.missedIngredients);
 
         return {
             id: recipeObject.id,
