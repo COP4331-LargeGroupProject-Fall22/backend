@@ -9,7 +9,6 @@ process.env.DB_CONNECTION_STRING = process.env.NODE_ENV === "dev" ?
     process.env.MONGODB_CONNECTION_STRING;
 
 import express from 'express';
-import path from 'path';
 
 import Logger from './serverAPI/middleware/logger/Logger';
 import { userRoute } from './serverAPI/routes/UserRoutes';
