@@ -234,14 +234,14 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         let hasAmount = searchParams.has("amount");
         let hasUnit = searchParams.has("unit");
 
-        if (hasAmount !== hasUnit) {
+        // false && false, false && true, true && false
+        if (hasAmount !== hasUnit || !hasAmount && !hasUnit) {
             searchParams.delete("amount");
             searchParams.delete("unit");
 
-            searchParams.set("amount", "1");
-            searchParams.set("unit", "serving");
+            searchParams.set("amount", "200");
+            searchParams.set("unit", "g");
         }
-
         return searchParams;
     }
 
@@ -281,8 +281,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             return Promise.resolve(null);
         }
 
-        let jsonObject = response;
-        let parsedFood = await this.parseFood(jsonObject);
+        let parsedFood = await this.parseFood(response);
 
         return parsedFood;
     }

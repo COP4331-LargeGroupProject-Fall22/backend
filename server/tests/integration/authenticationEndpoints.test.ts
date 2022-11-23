@@ -7,6 +7,8 @@ import supertest from 'supertest';
 import IUser from '../../serverAPI/model/user/IUser';
 
 import UserSchema from '../../serverAPI/model/user/UserSchema';
+import UserRegistrationSchema from '../../serverAPI/model/user/requestSchema/UserRegistrationSchema';
+import UserLoginSchema from '../../serverAPI/model/user/requestSchema/UserLoginSchema';
 
 import UserDatabase from '../../database/UserDatabase';
 
@@ -23,9 +25,7 @@ let collectionName = process.env.DB_USERS_COLLECTION!;
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
-import UserRegistrationSchema from '../../serverAPI/model/user/requestSchema/UserRegistrationSchema';
 import { ResponseCodes } from '../../utils/ResponseCodes';
-import UserLoginSchema from '../../serverAPI/model/user/requestSchema/UserLoginSchema';
 
 let mockRegisterUser: IUser;
 let mockRegisterUserIncorrectSchema: UserRegistrationSchema;

@@ -1,12 +1,12 @@
-export const foodResponse = JSON.stringify({
+export const ingredientGetApiResponse = JSON.stringify({
     "id": 1117,
     "original": "lowfat plain yogurt",
     "originalName": "lowfat plain yogurt",
     "name": "lowfat plain yogurt",
-    "amount": 1,
-    "unit": "grams",
+    "amount": 200,
+    "unit": "g",
     "unitShort": "g",
-    "unitLong": "gram",
+    "unitLong": "grams",
     "possibleUnits": [
         "container",
         "g",
@@ -16,7 +16,7 @@ export const foodResponse = JSON.stringify({
         "tablespoon"
     ],
     "estimatedCost": {
-        "value": 0.44,
+        "value": 88.14,
         "unit": "US Cents"
     },
     "consistency": "liquid",
@@ -31,122 +31,164 @@ export const foodResponse = JSON.stringify({
     "nutrition": {
         "nutrients": [
             {
-                "name": "Folic Acid",
-                "amount": 0,
+                "name": "Vitamin B12",
+                "amount": 1.12,
                 "unit": "µg",
-                "percentOfDailyNeeds": 0
+                "percentOfDailyNeeds": 18.67
             },
             {
-                "name": "Vitamin C",
-                "amount": 0.01,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.01
-            },
-            {
-                "name": "Cholesterol",
-                "amount": 0.06,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.02
-            },
-            {
-                "name": "Alcohol",
-                "amount": 0,
+                "name": "Fat",
+                "amount": 3.1,
                 "unit": "g",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Iron",
-                "amount": 0,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Saturated Fat",
-                "amount": 0.01,
-                "unit": "g",
-                "percentOfDailyNeeds": 0.06
-            },
-            {
-                "name": "Fiber",
-                "amount": 0,
-                "unit": "g",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Carbohydrates",
-                "amount": 0.07,
-                "unit": "g",
-                "percentOfDailyNeeds": 0.02
-            },
-            {
-                "name": "Folate",
-                "amount": 0.11,
-                "unit": "µg",
-                "percentOfDailyNeeds": 0.03
-            },
-            {
-                "name": "Vitamin B5",
-                "amount": 0.01,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.06
-            },
-            {
-                "name": "Selenium",
-                "amount": 0.03,
-                "unit": "µg",
-                "percentOfDailyNeeds": 0.05
-            },
-            {
-                "name": "Vitamin K",
-                "amount": 0,
-                "unit": "µg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Mono Unsaturated Fat",
-                "amount": 0,
-                "unit": "g",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Vitamin B3",
-                "amount": 0,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.01
-            },
-            {
-                "name": "Sugar",
-                "amount": 0.07,
-                "unit": "g",
-                "percentOfDailyNeeds": 0.08
-            },
-            {
-                "name": "Magnesium",
-                "amount": 0.17,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.04
-            },
-            {
-                "name": "Calories",
-                "amount": 0.63,
-                "unit": "kcal",
-                "percentOfDailyNeeds": 0.03
-            },
-            {
-                "name": "Phosphorus",
-                "amount": 1.44,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.14
-            },
-            {
-                "name": "Copper",
-                "amount": 0,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.01
+                "percentOfDailyNeeds": 4.77
             },
             {
                 "name": "Manganese",
+                "amount": 0.01,
+                "unit": "mg",
+                "percentOfDailyNeeds": 0.4
+            },
+            {
+                "name": "Vitamin E",
+                "amount": 0.06,
+                "unit": "mg",
+                "percentOfDailyNeeds": 0.4
+            },
+            {
+                "name": "Vitamin B3",
+                "amount": 0.23,
+                "unit": "mg",
+                "percentOfDailyNeeds": 1.14
+            },
+            {
+                "name": "Vitamin B6",
+                "amount": 0.1,
+                "unit": "mg",
+                "percentOfDailyNeeds": 4.9
+            },
+            {
+                "name": "Iron",
+                "amount": 0.16,
+                "unit": "mg",
+                "percentOfDailyNeeds": 0.89
+            },
+            {
+                "name": "Calcium",
+                "amount": 366,
+                "unit": "mg",
+                "percentOfDailyNeeds": 36.6
+            },
+            {
+                "name": "Vitamin B5",
+                "amount": 1.18,
+                "unit": "mg",
+                "percentOfDailyNeeds": 11.82
+            },
+            {
+                "name": "Protein",
+                "amount": 10.5,
+                "unit": "g",
+                "percentOfDailyNeeds": 21
+            },
+            {
+                "name": "Magnesium",
+                "amount": 34,
+                "unit": "mg",
+                "percentOfDailyNeeds": 8.5
+            },
+            {
+                "name": "Choline",
+                "amount": 30.4,
+                "unit": "mg",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Selenium",
+                "amount": 6.6,
+                "unit": "µg",
+                "percentOfDailyNeeds": 9.43
+            },
+            {
+                "name": "Vitamin D",
                 "amount": 0,
+                "unit": "µg",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Folate",
+                "amount": 22,
+                "unit": "µg",
+                "percentOfDailyNeeds": 5.5
+            },
+            {
+                "name": "Potassium",
+                "amount": 468,
+                "unit": "mg",
+                "percentOfDailyNeeds": 13.37
+            },
+            {
+                "name": "Phosphorus",
+                "amount": 288,
+                "unit": "mg",
+                "percentOfDailyNeeds": 28.8
+            },
+            {
+                "name": "Copper",
+                "amount": 0.03,
+                "unit": "mg",
+                "percentOfDailyNeeds": 1.3
+            },
+            {
+                "name": "Mono Unsaturated Fat",
+                "amount": 0.85,
+                "unit": "g",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Sodium",
+                "amount": 140,
+                "unit": "mg",
+                "percentOfDailyNeeds": 6.09
+            },
+            {
+                "name": "Vitamin A",
+                "amount": 102,
+                "unit": "IU",
+                "percentOfDailyNeeds": 2.04
+            },
+            {
+                "name": "Vitamin B2",
+                "amount": 0.43,
+                "unit": "mg",
+                "percentOfDailyNeeds": 25.18
+            },
+            {
+                "name": "Zinc",
+                "amount": 1.78,
+                "unit": "mg",
+                "percentOfDailyNeeds": 11.87
+            },
+            {
+                "name": "Saturated Fat",
+                "amount": 2,
+                "unit": "g",
+                "percentOfDailyNeeds": 12.5
+            },
+            {
+                "name": "Carbohydrates",
+                "amount": 14.08,
+                "unit": "g",
+                "percentOfDailyNeeds": 4.69
+            },
+            {
+                "name": "Caffeine",
+                "amount": 0,
+                "unit": "mg",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Fluoride",
+                "amount": 24,
                 "unit": "mg",
                 "percentOfDailyNeeds": 0
             },
@@ -157,112 +199,70 @@ export const foodResponse = JSON.stringify({
                 "percentOfDailyNeeds": 0
             },
             {
-                "name": "Potassium",
-                "amount": 2.34,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.07
-            },
-            {
-                "name": "Vitamin B2",
-                "amount": 0,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.13
-            },
-            {
-                "name": "Choline",
-                "amount": 0.15,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Calcium",
-                "amount": 1.83,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.18
-            },
-            {
-                "name": "Fluoride",
-                "amount": 0.12,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Vitamin B12",
-                "amount": 0.01,
-                "unit": "µg",
-                "percentOfDailyNeeds": 0.09
-            },
-            {
-                "name": "Zinc",
-                "amount": 0.01,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.06
-            },
-            {
-                "name": "Vitamin A",
-                "amount": 0.51,
-                "unit": "IU",
-                "percentOfDailyNeeds": 0.01
-            },
-            {
-                "name": "Vitamin D",
-                "amount": 0,
-                "unit": "µg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Fat",
-                "amount": 0.02,
-                "unit": "g",
-                "percentOfDailyNeeds": 0.02
-            },
-            {
-                "name": "Net Carbohydrates",
-                "amount": 0.07,
-                "unit": "g",
-                "percentOfDailyNeeds": 0.03
-            },
-            {
-                "name": "Caffeine",
-                "amount": 0,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Vitamin E",
-                "amount": 0,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0
-            },
-            {
-                "name": "Protein",
-                "amount": 0.05,
-                "unit": "g",
-                "percentOfDailyNeeds": 0.1
-            },
-            {
-                "name": "Sodium",
-                "amount": 0.7,
-                "unit": "mg",
-                "percentOfDailyNeeds": 0.03
-            },
-            {
-                "name": "Poly Unsaturated Fat",
+                "name": "Alcohol",
                 "amount": 0,
                 "unit": "g",
                 "percentOfDailyNeeds": 0
             },
             {
-                "name": "Vitamin B6",
+                "name": "Fiber",
                 "amount": 0,
+                "unit": "g",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Vitamin C",
+                "amount": 1.6,
                 "unit": "mg",
-                "percentOfDailyNeeds": 0.02
+                "percentOfDailyNeeds": 1.94
+            },
+            {
+                "name": "Calories",
+                "amount": 126,
+                "unit": "kcal",
+                "percentOfDailyNeeds": 6.3
             },
             {
                 "name": "Vitamin B1",
-                "amount": 0,
+                "amount": 0.09,
                 "unit": "mg",
-                "percentOfDailyNeeds": 0.03
+                "percentOfDailyNeeds": 5.87
+            },
+            {
+                "name": "Folic Acid",
+                "amount": 0,
+                "unit": "µg",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Sugar",
+                "amount": 14.08,
+                "unit": "g",
+                "percentOfDailyNeeds": 15.64
+            },
+            {
+                "name": "Vitamin K",
+                "amount": 0.4,
+                "unit": "µg",
+                "percentOfDailyNeeds": 0.38
+            },
+            {
+                "name": "Net Carbohydrates",
+                "amount": 14.08,
+                "unit": "g",
+                "percentOfDailyNeeds": 5.12
+            },
+            {
+                "name": "Poly Unsaturated Fat",
+                "amount": 0.09,
+                "unit": "g",
+                "percentOfDailyNeeds": 0
+            },
+            {
+                "name": "Cholesterol",
+                "amount": 12,
+                "unit": "mg",
+                "percentOfDailyNeeds": 4
             }
         ],
         "properties": [
@@ -278,7 +278,7 @@ export const foodResponse = JSON.stringify({
             },
             {
                 "name": "Nutrition Score",
-                "amount": 0.04086956521739131,
+                "amount": 8.217391304347824,
                 "unit": "%"
             }
         ],
@@ -420,12 +420,12 @@ export const foodResponse = JSON.stringify({
             "percentCarbs": 44.62
         },
         "weightPerServing": {
-            "amount": 1,
+            "amount": 200,
             "unit": "g"
         }
     },
     "categoryPath": [
-        "low fat yogurt",
+        "plain yogurt",
         "yogurt"
     ]
 });

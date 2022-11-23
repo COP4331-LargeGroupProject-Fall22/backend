@@ -7,11 +7,6 @@ import IIngredientQuantity from "./IIngredientQuantity";
  */
 export default interface IIngredient extends IBaseIngredient, IIngredientQuantity {   
     /**
-     * Food quantity units.
-     */
-     quantityUnits: string[];
-
-    /**
      * Collection of nutrients that food contains.
      */
     nutrients?: INutrient[];
