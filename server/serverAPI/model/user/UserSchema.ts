@@ -17,7 +17,7 @@ export default class UserSchema extends BaseUserSchema implements IUser {
     
     allergens: IBaseIngredient[];
     
-    favoriteRecipes?: IBaseRecipe[] | undefined;
+    favoriteRecipes: IBaseRecipe[];
 
     constructor(
         firstName: string,
@@ -33,6 +33,7 @@ export default class UserSchema extends BaseUserSchema implements IUser {
         this.inventory = [];
         this.shoppingList = [];
         this.allergens = []
+        this.favoriteRecipes = [];
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

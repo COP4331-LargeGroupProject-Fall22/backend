@@ -1,11 +1,11 @@
-import { IsArray, ValidateNested } from "class-validator";
+import { IsArray, IsDefined, IsNotEmptyObject, IsObject, ValidateNested } from "class-validator";
 import IUnit from "../../unit/IUnit";
 import IShoppingIngredient from "../IShoppingIngredient";
 import BaseIngredientSchema from "./BaseIngredientSchema";
 
 export default class ShoppingIngredientSchema extends BaseIngredientSchema implements IShoppingIngredient {
     itemID?: string;
-    
+
     @ValidateNested()
     quantity: IUnit;
 

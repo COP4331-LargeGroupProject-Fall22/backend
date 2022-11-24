@@ -178,21 +178,7 @@ export default class UserDatabase implements IDatabase<IUser> {
      * @returns Promise filled with IUser object or null if user wasn't created.
      */
     async Create(user: IUser): Promise<IUser | null> {
-        let newUser: IUser = {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
-            password: user.password,
-            inventory: user.inventory,
-            email: user.email,
-            shoppingList: user.shoppingList,
-            isVerified: user.isVerified,
-            allergens: user.allergens,
-            lastSeen: user.lastSeen,
-            profilePicture: user.profilePicture
-        };
-
-        return this.collection.insertOne(newUser).then(result => {
+        return this.collection.insertOne(user).then(result => {
             return this.GetUserByObjectId(result.insertedId);
         }, () => Promise.resolve(null));
     }
@@ -228,7 +214,8 @@ export default class UserDatabase implements IDatabase<IUser> {
                         "inventory": user.inventory,
                         "shoppingList": user.shoppingList,
                         "profilePicture": user.profilePicture,
-                        "allergens": user.allergens
+                        "allergens": user.allergens,
+                        "favoriteRecipes": user.favoriteRecipes
                     }
                 }
             ).then(() => this.GetUserByUsername(user.username), () => Promise.resolve(null));
