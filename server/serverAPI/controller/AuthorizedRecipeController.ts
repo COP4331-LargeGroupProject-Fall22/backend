@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
+import { ResponseCodes } from "../../utils/ResponseCodes";
+
 import IDatabase from "../../database/IDatabase";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
-import { ResponseCodes } from "../../utils/ResponseCodes";
 import IBaseRecipe from "../model/recipe/IBaseRecipe";
 import IRecipe from "../model/recipe/IRecipe";
+import IUser from "../model/user/IUser";
+
 import UserBaseRecipe from "../model/recipe/UserBaseRecipe";
 import UserRecipe from "../model/recipe/UserRecipe";
-import IUser from "../model/user/IUser";
-import AllergenController from "./AllergenController";
+
 import BaseUserController from "./BaseController/BaseUserController";
 
 /**

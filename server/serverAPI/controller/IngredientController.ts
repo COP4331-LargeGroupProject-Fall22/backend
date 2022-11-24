@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
-import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 import { ResponseCodes } from "../../utils/ResponseCodes";
+
+import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
+
 import BaseController from "./BaseController/BaseController";
 
 /**

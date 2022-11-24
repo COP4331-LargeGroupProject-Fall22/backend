@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
+import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IUser from "../model/user/IUser";
 import IDatabase from "../../database/IDatabase";
 import IBaseIngredient from "../model/ingredient/IBaseIngredient";
+
 import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
-
-import { ResponseCodes } from "../../utils/ResponseCodes";
 
 /**
  * This class creates several properties responsible for allergens actions 

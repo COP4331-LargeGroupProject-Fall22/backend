@@ -1,19 +1,24 @@
 import { Request, Response } from "express";
-import IDatabase from "../../database/IDatabase";
+import { ResponseCodes } from "../../utils/ResponseCodes";
+
 import Encryptor from "../../utils/Encryptor";
+import TokenCreator from "../../utils/TokenCreator";
+import Random from "../../utils/Random";
+
+import Token from "../model/token/Token";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
 import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
-import TokenCreator from "../../utils/TokenCreator";
+import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
+import UserSchema from "../model/user/UserSchema";
+
+import IDatabase from "../../database/IDatabase";
 import IIdentification from "../model/user/IIdentification";
 import IUser from "../model/user/IUser";
-import BaseUserController from "./BaseController/BaseUserController";
-import JWTStorage from "../middleware/authentication/JWTStorage";
-import Token from "../model/token/Token";
 import IEmailAPI from "../../emailAPI/IEmailAPI";
-import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
-import Random from "../../utils/Random";
-import { ResponseCodes } from "../../utils/ResponseCodes";
-import UserSchema from "../model/user/UserSchema";
+
+import BaseUserController from "./BaseController/BaseUserController";
+
+import JWTStorage from "../middleware/authentication/JWTStorage";
 
 /**
  * This class creates several properties responsible for authentication actions 

@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
-import IDatabase from "../../database/IDatabase";
 import { ResponseCodes } from "../../utils/ResponseCodes";
+
+import IDatabase from "../../database/IDatabase";
 import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
 import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
 import IUser from "../model/user/IUser";
+
 import BaseIngredientController from "./BaseController/BaseIngredientController";
 
 /**

@@ -1,11 +1,13 @@
-import { isBase64 } from "class-validator";
 import { Request, Response } from "express";
+import { ResponseCodes } from "../../utils/ResponseCodes";
+
+import { isBase64 } from "class-validator";
+
 import IDatabase from "../../database/IDatabase";
 import IImageAPI from "../../imageAPI/IImageAPI";
-import { ResponseCodes } from "../../utils/ResponseCodes";
 import IImage from "../model/image/IImage";
-
 import IUser from "../model/user/IUser";
+
 import BaseUserController from "./BaseController/BaseUserController";
 
 /**

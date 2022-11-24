@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
-import IDatabase from '../../database/IDatabase';
-import Encryptor from "../../utils/Encryptor";
 import { ResponseCodes } from "../../utils/ResponseCodes";
+
+import Encryptor from "../../utils/Encryptor";
+
 import JWTStorage from "../middleware/authentication/JWTStorage";
+
+import IDatabase from '../../database/IDatabase';
 import IUser from "../model/user/IUser";
+
 import BaseUserSchema from "../model/user/requestSchema/BaseUserSchema";
+
 import BaseUserController from "./BaseController/BaseUserController";
 
 /**
