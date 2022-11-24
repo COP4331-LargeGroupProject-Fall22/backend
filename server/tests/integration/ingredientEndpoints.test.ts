@@ -89,7 +89,7 @@ describe('Ingredients', () => {
             expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
         });
     
-        it('Get ingredient with non-existant foodID', async () => {
+        it('Get ingredient with non-existant ingredientID', async () => {
             mockAxios.onGet(getIngredientBaseURL).reply(ResponseCodes.OK, ingredientGetAllApiRespose);
     
             let response = await supertest(app)

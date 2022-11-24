@@ -241,10 +241,12 @@ export default class ShoppingListController extends BaseIngredientController {
             } catch (response) {
                 return response;
             }
+        } else {
+            user.shoppingList.push(ingredientSchema);
         }
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-        
+
         return this.send(ResponseCodes.CREATED, res, updatedUser.shoppingList);
     }
 
