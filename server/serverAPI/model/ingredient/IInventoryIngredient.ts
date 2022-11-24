@@ -1,5 +1,4 @@
 import IBaseIngredient from "./IBaseIngredient";
-import IIngredient from "./IIngredient";
 
 /**
  * IInventoryIngredient interface.

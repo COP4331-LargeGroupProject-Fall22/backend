@@ -8,7 +8,7 @@ import Random from "../../utils/Random";
 import Token from "../model/token/Token";
 import UserLoginSchema from "../model/user/requestSchema/UserLoginSchema";
 import UserRegistrationSchema from "../model/user/requestSchema/UserRegistrationSchema";
-import EmailVerificationTemplateSchema from "../model/emailVerification/EmailVerificationTemplateSchema";
+import EmailVerificationSchema from "../model/emailVerification/EmailVerificationSchema";
 import UserSchema from "../model/user/UserSchema";
 
 import IDatabase from "../../database/IDatabase";
@@ -173,7 +173,7 @@ export default class AuthenticationController extends BaseUserController {
 
         let verificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
 
-        let emailVerificationSchema = new EmailVerificationTemplateSchema(
+        let emailVerificationSchema = new EmailVerificationSchema(
             username,
             verificationCode
         );

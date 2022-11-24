@@ -1,4 +1,4 @@
-export default interface IEmailVerificationTemplate {
+export default interface IEmailVerification {
     username: string;
     confirmationCode: number;
 }

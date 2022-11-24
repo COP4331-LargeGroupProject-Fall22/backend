@@ -1,4 +1,3 @@
-import IUnit from "../unit/IUnit";
 import IBaseIngredient from "./IBaseIngredient";
 import IIngredientQuantity from "./IIngredientQuantity";
 

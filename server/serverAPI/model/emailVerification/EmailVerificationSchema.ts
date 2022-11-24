@@ -1,8 +1,8 @@
 import { IsInt, IsNotEmpty, IsPositive, IsString, validate } from "class-validator";
 import ISchema from "../ISchema";
-import IEmailVerificationTemplate from "./IEmailVerificationTemplate";
+import IEmailVerification from "./IEmailVerification";
 
-export default class EmailVerificationTemplateSchema implements IEmailVerificationTemplate, ISchema {
+export default class EmailVerificationSchema implements IEmailVerification, ISchema {
     @IsString()
     @IsNotEmpty()
     username: string;

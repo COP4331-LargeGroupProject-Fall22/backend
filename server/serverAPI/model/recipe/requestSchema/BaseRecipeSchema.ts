@@ -1,5 +1,4 @@
 import { IsDefined, IsInt, IsNotEmpty, IsPositive, IsString, validate, ValidateNested } from "class-validator";
-import IImage from "../../image/IImage";
 import ImageSchema from "../../image/requestSchema/ImageSchema";
 import IIngredient from "../../ingredient/IIngredient";
 import ISchema from "../../ISchema";

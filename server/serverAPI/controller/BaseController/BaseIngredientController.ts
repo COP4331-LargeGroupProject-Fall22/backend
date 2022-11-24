@@ -1,4 +1,5 @@
 import IBaseIngredient from "../../model/ingredient/IBaseIngredient";
+
 import BaseUserController from "./BaseUserController";
 
 export default class BaseIngredientController extends BaseUserController {
