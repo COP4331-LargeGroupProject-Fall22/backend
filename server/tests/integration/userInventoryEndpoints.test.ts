@@ -23,6 +23,8 @@ import { ResponseCodes } from '../../utils/ResponseCodes';
 
 import IIdentification from '../../serverAPI/model/user/IIdentification';
 import UserSchema from '../../serverAPI/model/user/UserSchema';
+import { ingredientGetResponseDefault } from './responses/ingredients/ingredientGetResponse';
+import IInventoryIngredient from '../../serverAPI/model/ingredient/IInventoryIngredient';
 
 let mockVerifiedUser = new UserSchema(
     "Mikhail",
@@ -50,40 +52,68 @@ jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
 });
 
 let mockUpdatedUser = {
-    firstName: "Alexande",
+    firstName: "Alexander",
     lastName: "Plekunov",
     password: "pass",
-    email: "email@test.com"
+    email: "email@test.com",
 };
 
+let mockInventoryIngredient: IInventoryIngredient;
+
 beforeAll(async () => {
+    mockInventoryIngredient = {
+        id: ingredientGetResponseDefault.id,
+        category: ingredientGetResponseDefault.category,
+        name: ingredientGetResponseDefault.name,
+        expirationDate: Date.now()
+    };
+
     await UserDatabase.getInstance()?.Create(mockVerifiedUser);
 });
 
-describe(`User`, () => {
-    describe('Get responses', () => {
-        it('Get user info', async () => {
+describe(`Inventory`, () => {
+    it('Add responses', async () => {
+        let response = await supertest(app)
+            .post('/user/inventory')
+            .send(mockInventoryIngredient);
+        
+        expect(response.statusCode).toBe(ResponseCodes.CREATED);
+    });
+
+    describe('GetAll responses', () => {
+        it('Get inventory items', async () => {
             let response = await supertest(app)
-                .get(`/user`);
+                .get(`/user/inventory`);
 
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });
 
-    describe('Update responses', () => {
-        it('Update user info', async () => {
+    describe('Get responses', () => {
+        it('Get inventory item', async () => {
             let response = await supertest(app)
-                .put('/user')
-                .send(mockUpdatedUser);
+                .get(`/user/inventory/${mockInventoryIngredient.id}`);
+            
+            expect(response.statusCode).toBe(ResponseCodes.OK);
+        });
+    });
+
+    describe('Update responses', () => {
+        it('Update inventory item', async () => {
+            let response = await supertest(app)
+                .put(`/user/inventory/${mockInventoryIngredient.id}`)
+                .send({
+                    expirationDate: 123321123
+                });
 
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });
 
     describe('Delete responses', () => {
-        it('Delete user', async () => {
+        it('Delete inventory item', async () => {
             let response = await supertest(app)
-                .delete('/user');
+                .delete(`/user/inventory/${mockInventoryIngredient.id}`);
             
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
