@@ -1,4 +1,5 @@
 import { IsArray, IsDefined, IsNotEmptyObject, IsObject, ValidateNested } from "class-validator";
+import IImage from "../../image/IImage";
 import IUnit from "../../unit/IUnit";
 import IShoppingIngredient from "../IShoppingIngredient";
 import BaseIngredientSchema from "./BaseIngredientSchema";
@@ -20,9 +21,10 @@ export default class ShoppingIngredientSchema extends BaseIngredientSchema imple
         category: string,
         quantityUnits: string[],
         quantity: IUnit,
+        image: IImage,
         recipeID?: number
     ) {
-        super(id, name, category);
+        super(id, name, category, image);
         
         this.quantityUnits = quantityUnits;
         this.quantity = quantity;

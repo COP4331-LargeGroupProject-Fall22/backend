@@ -42,7 +42,8 @@ declare global {
             SPOONACULAR_GROCERY_PRODUCT_BASE_URL: string;
             SPOONACULAR_RECIPE_BASE_URL: string;
             SPOONACULAR_CONVERTER_BASE_URL: string;
-            
+            SPOONACULAR_CDN_BASE_URL: string;
+
             SENDGRID_API_KEY: string;
 
             OUTBOUND_VERIFICATION_EMAIL: string;

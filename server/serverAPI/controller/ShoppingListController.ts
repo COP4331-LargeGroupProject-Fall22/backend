@@ -100,6 +100,7 @@ export default class ShoppingListController extends BaseIngredientController {
             existingIngredient.category,
             existingIngredient.quantityUnits,
             existingIngredient.quantity,
+            existingIngredient.image,
             existingIngredient.recipeID
         );
 

@@ -7,6 +7,7 @@ import InventoryIngredientSchema from "../model/ingredient/requestSchema/Invento
 import IUser from "../model/user/IUser";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
+import ImageSchema from "../model/image/requestSchema/ImageSchema";
 
 /**
  * This class creates several properties responsible for inventory actions 
@@ -24,6 +25,7 @@ export default class InventoryController extends BaseIngredientController {
             existingIngredient.id,
             existingIngredient.name,
             existingIngredient.category,
+            existingIngredient.image,
             existingIngredient.expirationDate
         );
 
@@ -40,6 +42,7 @@ export default class InventoryController extends BaseIngredientController {
             Number.parseInt(jsonPayload.id),
             jsonPayload.name,
             jsonPayload.category,
+            new ImageSchema(jsonPayload.image),
             jsonPayload?.expirationDate !== undefined ? Number.parseInt(jsonPayload.expirationDate) : null
         );
 

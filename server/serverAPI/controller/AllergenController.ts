@@ -8,6 +8,7 @@ import IBaseIngredient from "../model/ingredient/IBaseIngredient";
 import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
+import ImageSchema from "../model/image/requestSchema/ImageSchema";
 
 /**
  * This class creates several properties responsible for allergens actions 
@@ -27,6 +28,7 @@ export default class AllergenController extends BaseIngredientController {
             Number.parseInt(jsonPayload.id),
             jsonPayload.name,
             jsonPayload.category,
+            new ImageSchema(jsonPayload.image)
         );
 
         try {

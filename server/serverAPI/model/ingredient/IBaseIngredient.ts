@@ -1,3 +1,5 @@
+import IImage from "../image/IImage";
+
 export default interface IBaseIngredient {
     /**
      * Unique food identifier.
@@ -13,4 +15,6 @@ export default interface IBaseIngredient {
      * Food category.
      */
     category: string;
+
+    image: IImage;
 }

@@ -1,3 +1,4 @@
+import { isURL } from "class-validator";
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import ParameterIsNotAllowed from "../../exceptions/ParameterIsNotAllowed";
@@ -81,7 +82,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         let partialFoods: IBaseIngredient[] = [];
 
         let start: number = 0;
-        
+
         let length = jsonArray.length;
 
         if (resultsPerPage !== undefined && page !== undefined &&
@@ -99,6 +100,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
                 id: parsedFood.id,
                 name: parsedFood.name,
                 category: parsedFood.category,
+                image: parsedFood.image
             });
         }
 
@@ -177,7 +179,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         let name = data.name;
         let category = data.aisle;
         let quantityUnits = data.possibleUnits;
-        let quantity: IUnit = { unit: "", value: 0};
+        let quantity: IUnit = { unit: "", value: 0 };
 
         if (data.amount !== undefined && data.unit !== undefined) {
             quantity = {
@@ -199,13 +201,20 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             });
         });
 
+        let image = (data.image as string);
+
+        let srcUrl = `${process.env.SPOONACULAR_CDN_BASE_URL}/${image.substring(image.lastIndexOf('/') + 1)}`;
+
         return {
             id: id,
             name: name,
             category: category,
             nutrients: nutrients,
             quantityUnits: quantityUnits,
-            quantity: quantity
+            quantity: quantity,
+            image: {
+                srcUrl: srcUrl
+            }
         };
     }
 
@@ -262,7 +271,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             throw new NoParameterFound("id parameter is missing");
         }
 
-        if (!this.isInteger(String(parameters.get("id"))) || 
+        if (!this.isInteger(String(parameters.get("id"))) ||
             Number.parseInt(String(parameters.get("id"))) <= 0) {
             throw new IncorrectIDFormat("IngredientID has incorrect format.");
         }
