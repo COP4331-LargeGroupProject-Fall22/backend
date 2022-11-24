@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
+
+import IUser from "../model/user/IUser";
 import IDatabase from "../../database/IDatabase";
-import { ResponseCodes } from "../../utils/ResponseCodes";
 import IBaseIngredient from "../model/ingredient/IBaseIngredient";
 import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
-import IUser from "../model/user/IUser";
+
 import BaseIngredientController from "./BaseController/BaseIngredientController";
 
+import { ResponseCodes } from "../../utils/ResponseCodes";
+
 /**
- * This class creates several properties responsible for inventory actions 
+ * This class creates several properties responsible for allergens actions 
  * provided to the user.
  */
 export default class AllergenController extends BaseIngredientController {

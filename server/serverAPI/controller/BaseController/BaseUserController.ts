@@ -1,8 +1,11 @@
 import { Response } from "express";
-import IDatabase from "../../../database/IDatabase";
+
 import { ResponseCodes } from "../../../utils/ResponseCodes";
+
+import IDatabase from "../../../database/IDatabase";
 import IUser from "../../model/user/IUser";
 import IUserResponse from "../../model/user/responseSchema/IUserResponse";
+
 import BaseController from "./BaseController";
 
 export default class BaseUserController extends BaseController {
@@ -25,11 +28,7 @@ export default class BaseUserController extends BaseController {
 
     protected async userExists(username: string, res: Response): Promise<boolean> {
         return this.database.Get(new Map([["username", username]])).then(async user => {
-            if (user === null) {
-                return Promise.resolve(false);
-            }
-
-            return Promise.resolve(true);
+            return Promise.resolve(user !== null);
         }, (error) => {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, error))
         });
