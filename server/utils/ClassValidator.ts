@@ -1,6 +1,5 @@
 import { isInt, isNumber, isString, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
-
 const typeValidator = {
     'undefined': function (value: any, args: ValidationArguments) {
         return typeof value === 'undefined';

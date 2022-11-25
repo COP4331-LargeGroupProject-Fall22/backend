@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import RequestLimitReached from "../exceptions/RequestLimitReached";
 
 export default abstract class SpoonacularAPI {

@@ -3,6 +3,7 @@
  */
 
 import superagent from "superagent";
+
 import IIdentification from "../../serverAPI/model/user/IIdentification";
 
 declare module "supertest" {

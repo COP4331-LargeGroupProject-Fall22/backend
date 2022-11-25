@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+
 import JsonWebTokenError from '../exceptions/JsonWebTokenError'
 
 export default class TokenCreator<T extends object> {
