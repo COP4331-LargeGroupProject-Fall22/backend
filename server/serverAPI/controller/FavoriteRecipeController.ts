@@ -6,8 +6,7 @@ import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
 import IUser from "../model/internal/user/IUser";
 
-import ImageSchema from "../model/internal/image/requestSchema/ImageSchema";
-import BaseRecipeSchema from "../model/internal/recipe/requestSchema/BaseRecipeSchema";
+import ImageSchema from "../model/internal/image/ImageSchema";
 import AddRequestSchema from "../model/external/requests/favoriteRecipeList/AddRequest";
 
 import BaseUserController from "./BaseController/BaseUserController";
@@ -26,7 +25,7 @@ export default class FavoriteRecipeController extends BaseUserController {
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
-        let request = new BaseRecipeSchema(
+        let request = new AddRequestSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
             new ImageSchema(req.body?.imageUrl),

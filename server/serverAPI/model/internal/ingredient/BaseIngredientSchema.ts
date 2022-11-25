@@ -1,7 +1,7 @@
 import { IsArray, IsInt, IsNotEmpty, IsPositive, IsString, validate } from "class-validator";
-import IImage from "../../image/IImage";
-import ISchema from "../../../ISchema";
-import IBaseIngredient from "../IBaseIngredient";
+import IImage from "../image/IImage";
+import ISchema from "../../ISchema";
+import IBaseIngredient from "./IBaseIngredient";
 
 export default class BaseIngredientSchema implements IBaseIngredient, ISchema {
     @IsInt()

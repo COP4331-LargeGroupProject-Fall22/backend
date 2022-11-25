@@ -1,4 +1,4 @@
-import BaseUserSchema from "../../../internal/user/requestSchema/BaseUserSchema";
+import BaseUserSchema from "../../../internal/user/BaseUserSchema";
 
 export default class RegisterRequestSchema extends BaseUserSchema {
     constructor(

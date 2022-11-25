@@ -1,6 +1,6 @@
 import { IsDefined, IsUrl, validate } from "class-validator";
-import IImage from "../../image/IImage";
-import ISchema from "../../../ISchema";
+import IImage from "./IImage";
+import ISchema from "../../ISchema";
 
 export default class ImageSchema implements IImage, ISchema {
     @IsDefined()

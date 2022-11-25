@@ -3,13 +3,13 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
 import IInventoryIngredient from "../model/internal/ingredient/IInventoryIngredient";
-import InventoryIngredientSchema from "../model/internal/ingredient/requestSchema/InventoryIngredientSchema";
 import IUser from "../model/internal/user/IUser";
 
-import BaseIngredientController from "./BaseController/BaseIngredientController";
-import ImageSchema from "../model/internal/image/requestSchema/ImageSchema";
+import ImageSchema from "../model/internal/image/ImageSchema";
 import AddRequestSchema from "../model/external/requests/inventory/AddRequest";
 import UpdateRequestSchema from "../model/external/requests/inventory/UpdateRequest";
+
+import BaseIngredientController from "./BaseController/BaseIngredientController";
 
 /**
  * This class creates several properties responsible for inventory actions 
@@ -28,7 +28,7 @@ export default class InventoryController extends BaseIngredientController {
     }
 
     private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
-        let request = new InventoryIngredientSchema(
+        let request = new AddRequestSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
             req.body?.category,

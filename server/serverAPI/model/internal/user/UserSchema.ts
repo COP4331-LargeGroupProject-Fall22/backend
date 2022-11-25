@@ -4,7 +4,7 @@ import IInventoryIngredient from "../ingredient/IInventoryIngredient";
 import IShoppingIngredient from "../ingredient/IShoppingIngredient";
 import IBaseRecipe from "../recipe/IBaseRecipe";
 import IUser from "./IUser";
-import BaseUserSchema from "./requestSchema/BaseUserSchema";
+import BaseUserSchema from "./BaseUserSchema";
 
 export default class UserSchema extends BaseUserSchema implements IUser {
 

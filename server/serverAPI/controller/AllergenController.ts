@@ -5,8 +5,7 @@ import IUser from "../model/internal/user/IUser";
 import IDatabase from "../../database/IDatabase";
 import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
 
-import BaseIngredientSchema from "../model/internal/ingredient/requestSchema/BaseIngredientSchema";
-import ImageSchema from "../model/internal/image/requestSchema/ImageSchema";
+import ImageSchema from "../model/internal/image/ImageSchema";
 import AddRequestSchema from "../model/external/requests/allergen/AddRequest";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
@@ -72,7 +71,7 @@ export default class AllergenController extends BaseIngredientController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
-        let parsedRequest: BaseIngredientSchema;
+        let parsedRequest: AddRequestSchema;
         let user: IUser;
 
         try {

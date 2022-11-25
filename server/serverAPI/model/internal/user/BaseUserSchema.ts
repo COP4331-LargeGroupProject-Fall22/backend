@@ -1,7 +1,7 @@
 import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
-import ISchema from "../../../ISchema";
-import IBaseUser from "../IBaseUser";
-import ICredentials from "../ICredentials";
+import ISchema from "../../ISchema";
+import IBaseUser from "./IBaseUser";
+import ICredentials from "./ICredentials";
 
 export default class BaseUserSchema implements IBaseUser, ICredentials, ISchema {
     @IsString()

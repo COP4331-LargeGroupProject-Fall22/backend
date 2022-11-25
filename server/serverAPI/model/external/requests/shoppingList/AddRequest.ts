@@ -4,7 +4,7 @@ import IImage from "../../../internal/image/IImage";
 import IUnit from "../../../internal/unit/IUnit";
 import IShoppingIngredient from "../../../internal/ingredient/IShoppingIngredient";
 
-import BaseIngredientSchema from "../../../internal/ingredient/requestSchema/BaseIngredientSchema";
+import BaseIngredientSchema from "../../../internal/ingredient/BaseIngredientSchema";
 
 export default class AddRequestSchema extends BaseIngredientSchema implements IShoppingIngredient {
     itemID?: string;

@@ -4,7 +4,7 @@ import { ResponseCodes } from "../../../utils/ResponseCodes";
 
 import IDatabase from "../../../database/IDatabase";
 import IUser from "../../model/internal/user/IUser";
-import IUserResponse from "../../model/internal/user/responseSchema/IUserResponse";
+import IUserResponse from "../../model/external/responses/user/IUserResponse";
 
 import BaseController from "./BaseController";
 

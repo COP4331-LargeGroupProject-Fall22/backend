@@ -1,7 +1,7 @@
 import IInventoryIngredient from "../../../internal/ingredient/IInventoryIngredient";
 import IImage from "../../../internal/image/IImage";
 
-import BaseIngredientSchema from "../../../internal/ingredient/requestSchema/BaseIngredientSchema";
+import BaseIngredientSchema from "../../../internal/ingredient/BaseIngredientSchema";
 
 import IsType from "../../../../../utils/ClassValidator";
 
