@@ -1,4 +1,4 @@
-import Token from "../../model/token/Token";
+import Token from "../../model/internal/token/Token";
 
 export default class JWTStorage {
     private static instance?: JWTStorage;

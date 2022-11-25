@@ -1,14 +1,13 @@
-import { IsDefined, IsUrl, validate } from "class-validator";
-import IImage from "../../image/IImage";
-import ISchema from "../../ISchema";
+import { IsNotEmpty, IsString, validate } from "class-validator";
+import ISchema from "../../../ISchema";
 
-export default class ImageSchema implements IImage, ISchema {
-    @IsDefined()
-    @IsUrl()
-    srcUrl: string;
-    
-    constructor(srcUrl: string) {
-        this.srcUrl = srcUrl;
+export default class RefreshJWTRequestSchema implements ISchema {
+    @IsString()
+    @IsNotEmpty()
+    refreshToken: string;
+
+    constructor(refreshToken: string) {
+        this.refreshToken = refreshToken;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

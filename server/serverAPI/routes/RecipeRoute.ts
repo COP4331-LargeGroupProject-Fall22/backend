@@ -3,15 +3,20 @@
  */
 
 import express from "express";
-import { nextTick } from "process";
+
 import UserDatabase from "../../database/UserDatabase";
+
 import SpoonacularIngredientAPI from "../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI";
 import SpoonacularRecipeAPI from "../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI";
+
 import TokenCreator from "../../utils/TokenCreator";
+
 import AuthorizedRecipeController from "../controller/AuthorizedRecipeController";
 import RecipeController from "../controller/RecipeController";
+
 import JWTAuthenticator from "../middleware/authentication/JWTAuthenticator";
-import IIdentification from "../model/user/IIdentification";
+
+import IIdentification from "../model/internal/user/IIdentification";
 
 export const recipeRoute = express.Router();
 

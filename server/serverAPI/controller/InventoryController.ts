@@ -2,12 +2,14 @@ import { Request, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
-import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
-import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
-import IUser from "../model/user/IUser";
+import IInventoryIngredient from "../model/internal/ingredient/IInventoryIngredient";
+import InventoryIngredientSchema from "../model/internal/ingredient/requestSchema/InventoryIngredientSchema";
+import IUser from "../model/internal/user/IUser";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
-import ImageSchema from "../model/image/requestSchema/ImageSchema";
+import ImageSchema from "../model/internal/image/requestSchema/ImageSchema";
+import AddRequestSchema from "../model/external/requests/inventory/AddRequest";
+import UpdateRequestSchema from "../model/external/requests/inventory/UpdateRequest";
 
 /**
  * This class creates several properties responsible for inventory actions 
@@ -19,40 +21,22 @@ export default class InventoryController extends BaseIngredientController {
         super(database);
     }
 
-    private async parseUpdateRequest(req: Request, existingIngredient: IInventoryIngredient)
-        : Promise<IInventoryIngredient> {
-        let ingredientSchema = new InventoryIngredientSchema(
-            existingIngredient.id,
-            existingIngredient.name,
-            existingIngredient.category,
-            existingIngredient.image,
-            existingIngredient.expirationDate
-        );
+    private parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let request = new UpdateRequestSchema(req.body?.expirationDate);
 
-        ingredientSchema.expirationDate = this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
-            existingIngredient.expirationDate : Number.parseFloat(req.body.expirationDate);
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<IInventoryIngredient> {
-        let jsonPayload = req.body;
-        let ingredientSchema = new InventoryIngredientSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            jsonPayload.category,
-            new ImageSchema(jsonPayload.image),
-            jsonPayload?.expirationDate !== undefined ? Number.parseInt(jsonPayload.expirationDate) : null
+    private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let request = new InventoryIngredientSchema(
+            Number.parseInt(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            new ImageSchema(req.body?.image),
+            req.body?.expirationDate !== undefined ? Number.parseInt(req.body?.expirationDate) : null
         );
 
-        try {
-            ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
     protected sortByExpirationDate(collection: IInventoryIngredient[], isReverse: boolean): any {
@@ -145,15 +129,15 @@ export default class InventoryController extends BaseIngredientController {
             return response;
         }
 
-        let ingredientSchema = await this.parseAddRequest(req, res);
+        let parsedRequest = await this.parseAddRequest(req, res);
 
-        let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === ingredientSchema.id);
+        let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === parsedRequest.id);
 
         if (duplicateingredient !== undefined) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in inventory.");
         }
 
-        user.inventory.push(ingredientSchema);
+        user.inventory.push(parsedRequest);
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
         return this.send(ResponseCodes.CREATED, res, updatedUser.inventory);
@@ -195,9 +179,11 @@ export default class InventoryController extends BaseIngredientController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: UpdateRequestSchema;
         let user: IUser;
 
         try {
+            parsedRequest = await this.parseUpdateRequest(req, res);
             user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
@@ -206,11 +192,9 @@ export default class InventoryController extends BaseIngredientController {
         let isFound: boolean = false;
 
         for (let i = 0; i < user.inventory.length; i++) {
-            let existingIngredient = user.inventory[i];
-
             if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
                 isFound = true;
-                user.inventory[i] = await this.parseUpdateRequest(req, existingIngredient);
+                user.inventory[i].expirationDate = parsedRequest.expirationDate;
             }
         }
 

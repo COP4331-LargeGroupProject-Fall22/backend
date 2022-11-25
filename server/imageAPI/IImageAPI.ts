@@ -1,4 +1,4 @@
-import IImage from "../serverAPI/model/image/IImage";
+import IImage from "../serverAPI/model/internal/image/IImage";
 
 export default interface IImageAPI {
     /**

@@ -3,19 +3,22 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { URLSearchParams } from 'url';
+
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
 import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
+
 import IIngredientAPI from '../../ingredientAPI/IIngredientAPI';
-import IImage from '../../serverAPI/model/image/IImage';
-import IIngredient from '../../serverAPI/model/ingredient/IIngredient';
-import IInstruction from '../../serverAPI/model/instruction/IInstruction';
-import INutrient from '../../serverAPI/model/nutrients/INutrient';
-import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
-import IRecipe from "../../serverAPI/model/recipe/IRecipe";
-import IUnit from '../../serverAPI/model/unit/IUnit';
-import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
+import IImage from '../../serverAPI/model/internal/image/IImage';
+import IIngredient from '../../serverAPI/model/internal/ingredient/IIngredient';
+import IInstruction from '../../serverAPI/model/internal/instruction/IInstruction';
+import INutrient from '../../serverAPI/model/internal/nutrients/INutrient';
+import IBaseRecipe from '../../serverAPI/model/internal/recipe/IBaseRecipe';
+import IRecipe from "../../serverAPI/model/internal/recipe/IRecipe";
+import IUnit from '../../serverAPI/model/internal/unit/IUnit';
 import IRecipeAPI from "../IRecipeAPI";
+
+import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 
 export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected ingredientAPI: IIngredientAPI;

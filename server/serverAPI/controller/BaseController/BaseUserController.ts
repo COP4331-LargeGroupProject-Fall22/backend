@@ -3,8 +3,8 @@ import { Response } from "express";
 import { ResponseCodes } from "../../../utils/ResponseCodes";
 
 import IDatabase from "../../../database/IDatabase";
-import IUser from "../../model/user/IUser";
-import IUserResponse from "../../model/user/responseSchema/IUserResponse";
+import IUser from "../../model/internal/user/IUser";
+import IUserResponse from "../../model/internal/user/responseSchema/IUserResponse";
 
 import BaseController from "./BaseController";
 

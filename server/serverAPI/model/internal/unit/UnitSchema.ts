@@ -1,22 +1,26 @@
-import { IsNotEmpty, IsString, validate } from "class-validator";
+import { IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
 import ISchema from "../../ISchema";
-import ICredentials from "../ICredentials";
+import IUnit from "./IUnit";
 
-export default class UserLoginSchema implements ICredentials, ISchema {
-    @IsString()
+/**
+ * This class implements IUnit interface and provides several built-in validations of its own properties.
+ */
+export default class UnitSchema implements IUnit, ISchema {
     @IsNotEmpty()
-    username: string;
-
     @IsString()
-    @IsNotEmpty()
-    password: string;
+    unit: string;
 
+    @IsNotEmpty()
+    @IsPositive()
+    @IsNumber()
+    value: number;
+    
     constructor(
-        username: string,
-        password: string
+        unit: string,
+        value: number
     ) {
-        this.username = username;
-        this.password = password;
+        this.unit = unit;
+        this.value = value;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

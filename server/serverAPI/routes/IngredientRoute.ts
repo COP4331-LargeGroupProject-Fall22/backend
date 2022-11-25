@@ -3,7 +3,9 @@
  */
 
 import express from "express";
+
 import SpoonacularIngredientAPI from "../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI";
+
 import IngredientController from "../controller/IngredientController";
 
 export const ingredientRoute = express.Router();

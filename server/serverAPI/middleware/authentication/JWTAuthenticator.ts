@@ -5,7 +5,7 @@ import TokenCreator from '../../../utils/TokenCreator';
 
 import BaseController from '../../controller/BaseController/BaseController';
 
-import IIdentification from '../../model/user/IIdentification';
+import IIdentification from '../../model/internal/user/IIdentification';
 
 import JWTStorage from './JWTStorage';
 

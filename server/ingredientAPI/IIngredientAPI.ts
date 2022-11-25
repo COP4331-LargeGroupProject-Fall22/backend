@@ -1,6 +1,6 @@
-import IBaseIngredient from "../serverAPI/model/ingredient/IBaseIngredient";
-import IIngredient from "../serverAPI/model/ingredient/IIngredient";
-import IUnit from "../serverAPI/model/unit/IUnit";
+import IBaseIngredient from "../serverAPI/model/internal/ingredient/IBaseIngredient";
+import IIngredient from "../serverAPI/model/internal/ingredient/IIngredient";
+import IUnit from "../serverAPI/model/internal/unit/IUnit";
 
 export default interface IIngredientAPI {
     /**

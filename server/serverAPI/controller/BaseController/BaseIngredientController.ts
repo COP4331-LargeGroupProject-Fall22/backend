@@ -1,4 +1,4 @@
-import IBaseIngredient from "../../model/ingredient/IBaseIngredient";
+import IBaseIngredient from "../../model/internal/ingredient/IBaseIngredient";
 
 import BaseUserController from "./BaseUserController";
 

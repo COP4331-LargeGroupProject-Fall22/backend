@@ -6,20 +6,25 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+
 import UserController from '../controller/UserController';
-import UserDatabase from '../../database/UserDatabase';
 import InventoryController from '../controller/InventoryController';
-import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
-import TokenCreator from '../../utils/TokenCreator';
-import IIdentification from '../model/user/IIdentification';
-import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
-import ShoppingListController from '../controller/ShoppingListController';
-import UserProfilePictureController from '../controller/UserProfilePictureController';
-import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
-import AllergenController from '../controller/AllergenController';
 import FavoriteRecipeController from '../controller/FavoriteRecipeController';
+import UserProfilePictureController from '../controller/UserProfilePictureController';
+import ShoppingListController from '../controller/ShoppingListController';
+import AllergenController from '../controller/AllergenController';
+
+import UserDatabase from '../../database/UserDatabase';
+
+import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
+
+import TokenCreator from '../../utils/TokenCreator';
+
+import IIdentification from '../model/internal/user/IIdentification';
+
+import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
 import SpoonacularRecipeAPI from '../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI';
-import AuthorizedRecipeController from '../controller/AuthorizedRecipeController';
+import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
 
 export const userRoute = express.Router();
 

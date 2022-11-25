@@ -1,13 +1,14 @@
-import { isURL } from "class-validator";
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import ParameterIsNotAllowed from "../../exceptions/ParameterIsNotAllowed";
-import IBaseIngredient from "../../serverAPI/model/ingredient/IBaseIngredient";
-import IIngredient from "../../serverAPI/model/ingredient/IIngredient";
-import INutrient from "../../serverAPI/model/nutrients/INutrient";
-import IUnit from "../../serverAPI/model/unit/IUnit";
-import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
+
+import IBaseIngredient from "../../serverAPI/model/internal/ingredient/IBaseIngredient";
+import IIngredient from "../../serverAPI/model/internal/ingredient/IIngredient";
+import INutrient from "../../serverAPI/model/internal/nutrients/INutrient";
+import IUnit from "../../serverAPI/model/internal/unit/IUnit";
 import IIngredientAPI from "../IIngredientAPI";
+
+import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
 
 /**
  * This class implements IIngredientAPI interface using Spoonacular API.

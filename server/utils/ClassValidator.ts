@@ -1,4 +1,4 @@
-import { isInt, isNumber, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
+import { isInt, isNumber, isString, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
 
 const typeValidator = {
@@ -13,6 +13,9 @@ const typeValidator = {
     },
     'null': function (value: any, args: ValidationArguments) {
         return value === null;
+    },
+    'string': function (value: any, args: ValidationArguments) {
+        return isString(value);
     }
 };
 

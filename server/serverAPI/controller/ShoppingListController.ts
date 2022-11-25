@@ -5,11 +5,12 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
 import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
-import IShoppingIngredient from "../model/ingredient/IShoppingIngredient";
-import IUser from "../model/user/IUser";
+import IShoppingIngredient from "../model/internal/ingredient/IShoppingIngredient";
+import IUser from "../model/internal/user/IUser";
 
-import ShoppingIngredientSchema from "../model/ingredient/requestSchema/ShoppingIngredientSchema";
-import UnitSchema from "../model/unit/UnitSchema";
+import UnitSchema from "../model/internal/unit/UnitSchema";
+import AddRequestSchema from "../model/external/requests/shoppingList/AddRequest";
+import UpdateRequestSchema from "../model/external/requests/shoppingList/UpdateRequest";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
 
@@ -69,60 +70,30 @@ export default class ShoppingListController extends BaseIngredientController {
         };
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<IShoppingIngredient> {
-        let jsonPayload = req.body;
-        let ingredientSchema = new ShoppingIngredientSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            jsonPayload.category,
-            jsonPayload.quantityUnits,
-            jsonPayload.quantity,
-            jsonPayload.recipeID === undefined ? null : jsonPayload.recipeID
+    private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let request = new AddRequestSchema(
+            Number.parseInt(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            req.body?.quantityUnits,
+            req.body?.quantity,
+            req.body?.recipeID === undefined ? null : req.body?.recipeID
         );
 
-        ingredientSchema.itemID = new ObjectID().toHexString();
+        request.itemID = new ObjectID().toHexString();
 
-        try {
-            ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
-    private async parseUpdateRequest(req: Request, res: Response, existingIngredient: IShoppingIngredient)
-        : Promise<IShoppingIngredient> {
-        let ingredientSchema = new ShoppingIngredientSchema(
-            existingIngredient.id,
-            existingIngredient.name,
-            existingIngredient.category,
-            existingIngredient.quantityUnits,
-            existingIngredient.quantity,
-            existingIngredient.image,
-            existingIngredient.recipeID
+    private parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let request = new UpdateRequestSchema(
+            new UnitSchema(
+                req.body?.unit,
+                Number.parseFloat(req.body?.value)
+            )
         );
 
-        ingredientSchema.itemID = existingIngredient.itemID;
-
-        if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
-            let quantityObject = req.body.quantity;
-
-            let quantitySchema = new UnitSchema(
-                quantityObject.unit,
-                Number.parseFloat(quantityObject.value)
-            );
-
-            try {
-                await this.verifySchema(quantitySchema, res);
-                ingredientSchema.quantity = quantitySchema;
-            } catch (response) {
-                return Promise.reject(response);
-            }
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
     /**
@@ -228,26 +199,26 @@ export default class ShoppingListController extends BaseIngredientController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: AddRequestSchema;
         let user: IUser;
 
         try {
+            parsedRequest = await this.parseAddRequest(req, res);
             user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
 
-        let ingredientSchema = await this.parseAddRequest(req, res);
-
-        let duplicateItem = this.getDuplicateShoppingItem(user.shoppingList, ingredientSchema)
+        let duplicateItem = this.getDuplicateShoppingItem(user.shoppingList, parsedRequest)
 
         if (duplicateItem !== null) {
             try {
-                this.updateShoppingItem(user.shoppingList, ingredientSchema, res);
+                this.updateShoppingItem(user.shoppingList, parsedRequest, res);
             } catch (response) {
                 return response;
             }
         } else {
-            user.shoppingList.push(ingredientSchema);
+            user.shoppingList.push(parsedRequest);
         }
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
@@ -291,9 +262,11 @@ export default class ShoppingListController extends BaseIngredientController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: UpdateRequestSchema;
         let user: IUser;
 
         try {
+            parsedRequest = await this.parseUpdateRequest(req, res);
             user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
@@ -306,9 +279,7 @@ export default class ShoppingListController extends BaseIngredientController {
 
             if (existingIngredient.itemID === req.params.itemID) {
                 listHasItem = true;
-
-                let ingredient = await this.parseUpdateRequest(req, res, existingIngredient);
-                user.shoppingList[i] = ingredient;
+                user.shoppingList[i].quantity = parsedRequest.quantity;
             }
         }
 

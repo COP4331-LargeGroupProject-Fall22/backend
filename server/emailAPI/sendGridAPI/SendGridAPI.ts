@@ -1,6 +1,8 @@
-import IEmailAPI from "../IEmailAPI";
 import SendGrid, { MailDataRequired } from "@sendgrid/mail";
-import IEmailVerification from "../../serverAPI/model/emailVerification/IEmailVerification";
+
+import IEmailAPI from "../IEmailAPI";
+import IEmailVerification from "../../serverAPI/model/internal/email/IVerificationCodeTemplate";
+
 import { isEmail } from "class-validator";
 
 export default class SendGridAPI implements IEmailAPI {

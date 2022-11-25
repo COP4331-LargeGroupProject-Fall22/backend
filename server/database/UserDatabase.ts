@@ -2,11 +2,13 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { MongoClient, Collection, Db, ObjectId, Filter } from 'mongodb';
+
 import { exit } from 'process';
+
 import EmptyID from '../exceptions/EmptyID';
 import IncorrectIDFormat from '../exceptions/IncorrectIDFormat';
-import IUser from '../serverAPI/model/user/IUser';
 
+import IUser from '../serverAPI/model/internal/user/IUser';
 import IDatabase from './IDatabase';
 
 /**

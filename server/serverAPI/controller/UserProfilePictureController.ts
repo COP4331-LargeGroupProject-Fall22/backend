@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
-import { isBase64 } from "class-validator";
-
 import IDatabase from "../../database/IDatabase";
 import IImageAPI from "../../imageAPI/IImageAPI";
-import IImage from "../model/image/IImage";
-import IUser from "../model/user/IUser";
+import IImage from "../model/internal/image/IImage";
+import IUser from "../model/internal/user/IUser";
 
 import BaseUserController from "./BaseController/BaseUserController";
+
+import AddRequestSchema from "../model/external/requests/userProfilePicture/AddRequest";
 
 /**
  * This class creates several properties responsible for profile picture related actions 
@@ -20,6 +20,12 @@ export default class UserProfilePictureController extends BaseUserController {
     constructor(database: IDatabase<IUser>, imageAPI: IImageAPI) {
         super(database);
         this.imageAPI = imageAPI;
+    }
+
+    protected parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let request = new AddRequestSchema(req.body?.imgAsBase64);
+
+        return this.verifySchema(request, res);
     }
 
     get = async (req: Request, res: Response) => {
@@ -48,9 +54,12 @@ export default class UserProfilePictureController extends BaseUserController {
      */
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
-        let imgAsBase64 = req.body?.imgAsBase64;
-
-        if (!isBase64(imgAsBase64)) {
+        
+        let parsedRequest: AddRequestSchema;
+        
+        try {
+            parsedRequest = await this.parseAddRequest(req, res);
+        } catch(response) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Image provided is not in the base64 format.");
         }
 
@@ -65,7 +74,7 @@ export default class UserProfilePictureController extends BaseUserController {
         let image: IImage;
 
         try {
-            image = await this.imageAPI.Get(imgAsBase64);
+            image = await this.imageAPI.Get(parsedRequest.imgAsBase64);
         } catch (error) {
             return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
         }

@@ -1,43 +1,34 @@
 import { Request, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
-import IUser from "../model/user/IUser";
+import IUser from "../model/internal/user/IUser";
 import IDatabase from "../../database/IDatabase";
-import IBaseIngredient from "../model/ingredient/IBaseIngredient";
+import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
 
-import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
+import BaseIngredientSchema from "../model/internal/ingredient/requestSchema/BaseIngredientSchema";
+import ImageSchema from "../model/internal/image/requestSchema/ImageSchema";
+import AddRequestSchema from "../model/external/requests/allergen/AddRequest";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
-import ImageSchema from "../model/image/requestSchema/ImageSchema";
 
 /**
  * This class creates several properties responsible for allergens actions 
  * provided to the user.
  */
 export default class AllergenController extends BaseIngredientController {
-
     constructor(database: IDatabase<IUser>) {
         super(database);
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<BaseIngredientSchema> {
-        let jsonPayload = req.body;
-
-        let ingredientSchema = new BaseIngredientSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            jsonPayload.category,
-            new ImageSchema(jsonPayload.image)
+    protected parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let request = new AddRequestSchema(
+            Number.parseInt(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            new ImageSchema(req.body?.imageUrl)
         );
 
-        try {
-            ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);;
     }
 
     /**
@@ -81,23 +72,24 @@ export default class AllergenController extends BaseIngredientController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: BaseIngredientSchema;
         let user: IUser;
 
         try {
+            parsedRequest = await this.parseAddRequest(req, res);
             user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
 
-        let ingredientSchema = await this.parseAddRequest(req, res);
 
-        let duplicateingredient = user.allergens.find((ingredientItem: IBaseIngredient) => ingredientItem.id === ingredientSchema.id);
+        let duplicateingredient = user.allergens.find((ingredientItem: IBaseIngredient) => ingredientItem.id === parsedRequest.id);
 
         if (duplicateingredient !== undefined) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in allergens.");
         }
 
-        user.allergens.push(ingredientSchema);
+        user.allergens.push(parsedRequest);
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
         return this.send(ResponseCodes.CREATED, res, updatedUser.allergens);

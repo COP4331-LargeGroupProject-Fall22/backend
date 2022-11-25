@@ -3,11 +3,12 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
-import IBaseRecipe from "../model/recipe/IBaseRecipe";
-import IUser from "../model/user/IUser";
+import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
+import IUser from "../model/internal/user/IUser";
 
-import ImageSchema from "../model/image/requestSchema/ImageSchema";
-import BaseRecipeSchema from "../model/recipe/requestSchema/BaseRecipeSchema";
+import ImageSchema from "../model/internal/image/requestSchema/ImageSchema";
+import BaseRecipeSchema from "../model/internal/recipe/requestSchema/BaseRecipeSchema";
+import AddRequestSchema from "../model/external/requests/favoriteRecipeList/AddRequest";
 
 import BaseUserController from "./BaseController/BaseUserController";
 
@@ -24,24 +25,15 @@ export default class FavoriteRecipeController extends BaseUserController {
         this.recipeAPI = recipeAPI;
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<IBaseRecipe> {
-        let jsonPayload = req.body;
-
-        let recipeSchema = new BaseRecipeSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            new ImageSchema(jsonPayload.image.srcUrl),
-            jsonPayload.ingredients
+    private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let request = new BaseRecipeSchema(
+            Number.parseInt(req.body?.id),
+            req.body?.name,
+            new ImageSchema(req.body?.imageUrl),
+            req.body?.ingredients
         );
 
-        try {
-            recipeSchema = await this.verifySchema(recipeSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
-        }
-
-        return recipeSchema;
+        return this.verifySchema(request, res);
     }
 
     /**
@@ -81,15 +73,15 @@ export default class FavoriteRecipeController extends BaseUserController {
             return response;
         }
 
-        let recipeSchema = await this.parseAddRequest(req, res);
+        let parsedRequest = await this.parseAddRequest(req, res);
 
-        let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe) => recipeItem.id === recipeSchema.id);
+        let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe) => recipeItem.id === parsedRequest.id);
 
         if (duplicateRecipe !== undefined) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Recipe already exists in favorite recipes.");
         }
 
-        user.favoriteRecipes.push(recipeSchema);
+        user.favoriteRecipes.push(parsedRequest);
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
 
@@ -121,12 +113,8 @@ export default class FavoriteRecipeController extends BaseUserController {
         }
 
         return this.recipeAPI.Get(new Map([["id", recipe.id]]))
-            .then((recipe) => {
-                return this.send(ResponseCodes.OK, res, recipe);
-            })
-            .catch((error) => {
-                return this.send(ResponseCodes.BAD_REQUEST, res, error);
-            });
+            .then((recipe) => this.send(ResponseCodes.OK, res, recipe))
+            .catch((error) => this.send(ResponseCodes.BAD_REQUEST, res, error));
     }
 
     /**

@@ -1,6 +1,6 @@
 import IInventoryIngredient from "../IInventoryIngredient";
 import BaseIngredientSchema from "./BaseIngredientSchema";
-import IsType from "../../../../utils/ClassValidator";
+import IsType from "../../../../../utils/ClassValidator";
 import IImage from "../../image/IImage";
 
 export default class InventoryIngredientSchema extends BaseIngredientSchema implements IInventoryIngredient {

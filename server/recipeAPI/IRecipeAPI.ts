@@ -1,5 +1,5 @@
-import IBaseRecipe from "../serverAPI/model/recipe/IBaseRecipe";
-import IRecipe from "../serverAPI/model/recipe/IRecipe";
+import IBaseRecipe from "../serverAPI/model/internal/recipe/IBaseRecipe";
+import IRecipe from "../serverAPI/model/internal/recipe/IRecipe";
 
 export default interface IRecipeAPI {
     /**

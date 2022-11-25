@@ -1,5 +1,6 @@
 import axios from "axios";
-import IImage from "../../serverAPI/model/image/IImage";
+
+import IImage from "../../serverAPI/model/internal/image/IImage";
 import IImageAPI from "../IImageAPI";
 
 export default class FreeImageHostAPI implements IImageAPI {

@@ -1,19 +1,22 @@
-import { IsInt, IsNotEmpty, IsPositive, IsString, validate } from "class-validator";
-import ISchema from "../ISchema";
-import IEmailVerification from "./IEmailVerification";
+import { IsNotEmpty, IsString, validate } from "class-validator";
+import ISchema from "../../../ISchema";
+import ICredentials from "../../../internal/user/ICredentials";
 
-export default class EmailVerificationSchema implements IEmailVerification, ISchema {
+export default class LoginRequestSchema implements ICredentials, ISchema {
     @IsString()
     @IsNotEmpty()
     username: string;
-    
-    @IsInt()
-    @IsPositive()
-    confirmationCode: number;
 
-    constructor(username: string, verificationCode: number) {
+    @IsString()
+    @IsNotEmpty()
+    password: string;
+
+    constructor(
+        username: string,
+        password: string
+    ) {
         this.username = username;
-        this.confirmationCode = verificationCode;
+        this.password = password;
     }
 
     async validate(): Promise<{ [type: string]: string; }[]> {

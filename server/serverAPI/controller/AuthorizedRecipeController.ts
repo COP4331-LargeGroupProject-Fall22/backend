@@ -3,12 +3,12 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
-import IBaseRecipe from "../model/recipe/IBaseRecipe";
-import IRecipe from "../model/recipe/IRecipe";
-import IUser from "../model/user/IUser";
+import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
+import IRecipe from "../model/internal/recipe/IRecipe";
+import IUser from "../model/internal/user/IUser";
 
-import UserBaseRecipe from "../model/recipe/UserBaseRecipe";
-import UserRecipe from "../model/recipe/UserRecipe";
+import UserBaseRecipe from "../model/internal/recipe/UserBaseRecipe";
+import UserRecipe from "../model/internal/recipe/UserRecipe";
 
 import BaseUserController from "./BaseController/BaseUserController";
 
