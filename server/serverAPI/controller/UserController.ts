@@ -94,6 +94,11 @@ export default class UserController extends BaseUserController {
             parsedRequest.password = await new Encryptor().encrypt(parsedRequest.password);
         }
 
+        if (parsedRequest.email !== null && parsedRequest.email !== user.email) {
+            JWTStorage.getInstance()?.deleteJWT(user.username);
+            user.isVerified = false;
+        }
+
         let updatedUser = await this.requestUpdate(
             req.serverUser.username,
             this.updateUserObjectWithRequestSchema(
