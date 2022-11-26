@@ -152,6 +152,9 @@ export default class AuthenticationController extends BaseUserController {
             });
         }
 
+        user.lastSeen = Date.now();
+        await this.requestUpdate(user.username, user, res);
+        
         return this.send(ResponseCodes.OK, res, token);
     }
 
