@@ -21,10 +21,11 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 import { app } from '../../App';
 import { ResponseCodes } from '../../utils/ResponseCodes';
 
-import IIdentification from '../../serverAPI/model/user/IIdentification';
-import UserSchema from '../../serverAPI/model/user/UserSchema';
+import IIdentification from '../../serverAPI/model/internal/user/IIdentification';
+import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
 import { ingredientGetResponseDefault } from './responses/ingredients/ingredientGetResponse';
-import IInventoryIngredient from '../../serverAPI/model/ingredient/IInventoryIngredient';
+import IInventoryIngredient from '../../serverAPI/model/internal/ingredient/IInventoryIngredient';
+import ImageSchema from '../../serverAPI/model/internal/image/ImageSchema';
 
 let mockVerifiedUser = new UserSchema(
     "Mikhail",
@@ -65,7 +66,8 @@ beforeAll(async () => {
         id: ingredientGetResponseDefault.id,
         category: ingredientGetResponseDefault.category,
         name: ingredientGetResponseDefault.name,
-        expirationDate: Date.now()
+        expirationDate: Date.now(),
+        image: new ImageSchema("google.com")
     };
 
     await UserDatabase.getInstance()?.Create(mockVerifiedUser);

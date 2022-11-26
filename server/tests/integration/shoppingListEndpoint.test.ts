@@ -21,10 +21,9 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 import { app } from '../../App';
 import { ResponseCodes } from '../../utils/ResponseCodes';
 
-import IIdentification from '../../serverAPI/model/user/IIdentification';
-import UserSchema from '../../serverAPI/model/user/UserSchema';
-import ShoppingIngredientSchema from '../../serverAPI/model/ingredient/requestSchema/ShoppingIngredientSchema';
-import UnitSchema from '../../serverAPI/model/unit/UnitSchema';
+import IIdentification from '../../serverAPI/model/internal/user/IIdentification';
+import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
+import UnitSchema from '../../serverAPI/model/internal/unit/UnitSchema';
 
 import { unitConverterApiResponse } from './responses/unitConverter/unitConverterApiResponse';
 
@@ -55,8 +54,10 @@ jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
 
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import IUnit from '../../serverAPI/model/unit/IUnit';
-import IShoppingIngredient from '../../serverAPI/model/ingredient/IShoppingIngredient';
+import IUnit from '../../serverAPI/model/internal/unit/IUnit';
+import IShoppingIngredient from '../../serverAPI/model/internal/ingredient/IShoppingIngredient';
+import AddRequestSchema from '../../serverAPI/model/external/requests/shoppingList/AddRequest';
+import ImageSchema from '../../serverAPI/model/internal/image/ImageSchema';
 
 let mockAxios = new MockAdapter(axios);
 
@@ -70,12 +71,13 @@ let mockIngredient: IShoppingIngredient;
 beforeAll(async () => {
     mockQuantity = new UnitSchema(unitConverterApiResponse.targetUnit, unitConverterApiResponse.targetAmount);
 
-    mockIngredient = new ShoppingIngredientSchema(
+    mockIngredient = new AddRequestSchema(
         1117,
         "TestIngredient",
         "TestCategory",
         ["kg", "g"],
-        new UnitSchema(unitConverterApiResponse.targetUnit, unitConverterApiResponse.targetAmount)
+        new UnitSchema(unitConverterApiResponse.targetUnit, unitConverterApiResponse.targetAmount),
+        new ImageSchema('google.com')
     );
 
     await UserDatabase.getInstance()?.Create(mockVerifiedUser);

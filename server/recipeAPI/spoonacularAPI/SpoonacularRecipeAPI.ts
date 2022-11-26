@@ -303,9 +303,12 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             value: Number.parseFloat(ingredientObject.amount)
         };
 
-        let image = (ingredientObject.image as string);
-
-        let srcUrl = `${process.env.SPOONACULAR_CDN_BASE_URL}/${image.substring(image.lastIndexOf('/') + 1)}`;
+        let srcUrl: string = "";
+        
+        if (ingredientObject.image !== undefined) {
+            let image = (ingredientObject.image as string);
+            srcUrl = `${process.env.SPOONACULAR_CDN_BASE_URL}/${image.substring(image.lastIndexOf('/') + 1)}`;
+        }
 
         return {
             id: id,

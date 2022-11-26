@@ -281,7 +281,7 @@ export default class AuthenticationController extends BaseUserController {
             return this.send(ResponseCodes.UNAUTHORIZED, res, "Refresh token is invalid.");
         }
 
-        return this.send(ResponseCodes.OK, res, this.createToken(identification));
+        return this.send(ResponseCodes.OK, res, this.createToken({ username: identification.username }));
     }
 
     /**

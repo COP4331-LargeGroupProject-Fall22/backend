@@ -21,8 +21,8 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 import { app } from '../../App';
 import { ResponseCodes } from '../../utils/ResponseCodes';
 
-import IIdentification from '../../serverAPI/model/user/IIdentification';
-import UserSchema from '../../serverAPI/model/user/UserSchema';
+import IIdentification from '../../serverAPI/model/internal/user/IIdentification';
+import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
 
 let mockVerifiedUser = new UserSchema(
     "Mikhail",

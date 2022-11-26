@@ -4,11 +4,9 @@ dotenv.config();
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
 
-import IUser from '../../serverAPI/model/user/IUser';
+import IUser from '../../serverAPI/model/internal/user/IUser';
 
-import UserSchema from '../../serverAPI/model/user/UserSchema';
-import UserRegistrationSchema from '../../serverAPI/model/user/requestSchema/UserRegistrationSchema';
-import UserLoginSchema from '../../serverAPI/model/user/requestSchema/UserLoginSchema';
+import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
 
 import UserDatabase from '../../database/UserDatabase';
 
@@ -26,14 +24,16 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
 import { ResponseCodes } from '../../utils/ResponseCodes';
+import LoginRequestSchema from '../../serverAPI/model/external/requests/authentication/LoginRequest';
+import RegisterRequestSchema from '../../serverAPI/model/external/requests/authentication/RegisterRequest';
 
 let mockRegisterUser: IUser;
-let mockRegisterUserIncorrectSchema: UserRegistrationSchema;
-let mockRegisterUserAlreadyExists: UserRegistrationSchema;
+let mockRegisterUserIncorrectSchema: LoginRequestSchema;
+let mockRegisterUserAlreadyExists: RegisterRequestSchema;
 
-let mockLoginUser: UserLoginSchema;
-let mockLoginUserIncorrectCredentials: UserLoginSchema;
-let mockLoginUserIncorrectSchema: UserLoginSchema;
+let mockLoginUser: LoginRequestSchema;
+let mockLoginUserIncorrectCredentials: LoginRequestSchema;
+let mockLoginUserIncorrectSchema: LoginRequestSchema;
 
 let mockVerifiedUser: UserSchema;
 
@@ -47,7 +47,7 @@ beforeAll(() => {
         Date.now()
     );
 
-    mockRegisterUserIncorrectSchema = new UserRegistrationSchema(
+    mockRegisterUserIncorrectSchema = new RegisterRequestSchema(
         "",
         "",
         "",
@@ -55,7 +55,7 @@ beforeAll(() => {
         ""
     );
 
-    mockRegisterUserAlreadyExists = new UserRegistrationSchema(
+    mockRegisterUserAlreadyExists = new RegisterRequestSchema(
         "Mikhaik",
         "Plekunov",
         "Mekromic",
@@ -63,11 +63,11 @@ beforeAll(() => {
         "email"
     );
 
-    mockLoginUser = new UserLoginSchema("Mekromic", "password");
+    mockLoginUser = new LoginRequestSchema("Mekromic", "password");
 
-    mockLoginUserIncorrectCredentials = new UserLoginSchema("Mekromic", "pass");
+    mockLoginUserIncorrectCredentials = new LoginRequestSchema("Mekromic", "pass");
 
-    mockLoginUserIncorrectSchema = new UserLoginSchema("", "");
+    mockLoginUserIncorrectSchema = new LoginRequestSchema("", "");
 
     mockVerifiedUser = new UserSchema(
         mockRegisterUser.firstName,
@@ -185,7 +185,7 @@ describe('Authentication', () => {
                 .post('/auth/refreshJWT')
                 .send({ refreshToken: "" });
 
-            expect(response.statusCode).toBe(ResponseCodes.UNAUTHORIZED);
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
         });
     });
 
