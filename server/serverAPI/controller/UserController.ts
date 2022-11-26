@@ -26,8 +26,7 @@ export default class UserController extends BaseUserController {
             this.isStringUndefinedOrEmpty(req.body?.lastName) ? null : req.body.lastName,
             this.isStringUndefinedOrEmpty(req.body?.username) ? null : req.body.username,
             this.isStringUndefinedOrEmpty(req.body?.password) ? null : req.body.password,
-            this.isStringUndefinedOrEmpty(req.body?.email) ? null : req.body.email,
-            this.isStringUndefinedOrEmpty(req.body?.lastSeen) ? null : req.body.lastSeen,
+            this.isStringUndefinedOrEmpty(req.body?.email) ? null : req.body.email
         );
 
         return this.verifySchema(request, res);
@@ -39,7 +38,7 @@ export default class UserController extends BaseUserController {
         user.username = parsedRequest.username !== null ? parsedRequest.username : user.username;
         user.password = parsedRequest.password !== null ? parsedRequest.password : user.password;
         user.email = parsedRequest.email !== null ? parsedRequest.email : user.email;
-        user.lastSeen = parsedRequest.lastSeen !== null ? parsedRequest.lastSeen : user.lastSeen;
+        user.lastSeen = user.lastSeen;
 
         return user;
     }

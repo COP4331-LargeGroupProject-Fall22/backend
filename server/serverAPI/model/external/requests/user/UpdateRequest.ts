@@ -18,9 +18,6 @@ export default class UpdateRequestSchema implements ISchema {
     password: string | null;
 
     @IsType(['null', 'string'])
-    lastSeen: number | null;
-
-    @IsType(['null', 'string'])
     email: string | null;
 
     constructor(
@@ -28,14 +25,12 @@ export default class UpdateRequestSchema implements ISchema {
         lastName: string | null,
         username: string | null,
         password: string | null,
-        email: string | null,
-        lastSeen: number | null
+        email: string | null
     ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
         this.password = password;
-        this.lastSeen = lastSeen;
         this.email = email;
     }
 
