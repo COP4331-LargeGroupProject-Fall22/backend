@@ -166,8 +166,8 @@ describe('Authentication', () => {
                 .post('/auth/login')
                 .send(mockLoginUser);
 
-            let accessToken = response.body.accessToken;
-            let refreshToken = response.body.refreshToken;
+            let accessToken = response.body.accessToken.token;
+            let refreshToken = response.body.refreshToken.token;
 
             await new Promise((r) => setTimeout(r, 1000));
 
@@ -195,7 +195,7 @@ describe('Authentication', () => {
                 .post('/auth/login')
                 .send(mockLoginUser);
 
-            let accessToken = response.body.accessToken;
+            let accessToken = response.body.accessToken.token;
 
             response = await supertest(app)
                 .get('/auth/logout')

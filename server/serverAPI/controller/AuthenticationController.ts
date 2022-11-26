@@ -24,6 +24,7 @@ import IVerificationCodeTemplate from "../model/internal/email/IVerificationCode
 import BaseUserController from "./BaseController/BaseUserController";
 
 import JWTStorage from "../middleware/authentication/JWTStorage";
+import UserToken from "../model/internal/userToken/UserToken";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -96,18 +97,23 @@ export default class AuthenticationController extends BaseUserController {
         return this.verifySchema(request, res);
     }
 
-    protected createToken(identification: IIdentification): Token {
+    protected createToken(identification: IIdentification): UserToken {
         let accessToken = this.tokenCreator.sign(identification, this.accessTokenTimeoutInSeconds);
         let refreshToken = this.tokenCreator.sign(identification, this.refreshTokenTimeoutInSeconds);
 
-        let token = new Token(accessToken, refreshToken);
+        let currentTime = Date.now();
+
+        let userToken = new UserToken(
+            new Token(accessToken, currentTime, this.accessTokenTimeoutInSeconds, currentTime + this.accessTokenTimeoutInSeconds),
+            new Token(refreshToken, currentTime, this.refreshTokenTimeoutInSeconds, currentTime + this.refreshTokenTimeoutInSeconds)
+        );
 
         JWTStorage.getInstance().addJWT(
             identification.username,
-            token
+            userToken
         );
 
-        return token;
+        return userToken;
     }
 
     /**
@@ -271,7 +277,7 @@ export default class AuthenticationController extends BaseUserController {
 
         try {
             parsedRequest = await this.parseRefreshJWTRequest(req, res);
-        } catch(response) {
+        } catch (response) {
             return response;
         }
 

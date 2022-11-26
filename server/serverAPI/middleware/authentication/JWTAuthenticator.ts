@@ -30,7 +30,7 @@ export default class JWTAuthenticator extends BaseController {
             }
 
             if (!JWTStorage.getInstance().hasJWT(userIdentification.username) ||
-                JWTStorage.getInstance().getJWT(userIdentification.username)?.accessToken !== accessToken
+                JWTStorage.getInstance().getJWT(userIdentification.username)?.accessToken.token !== accessToken
             ) {
                 return this.send(ResponseCodes.UNAUTHORIZED, res, "Token is not assigned to the user.");
             }

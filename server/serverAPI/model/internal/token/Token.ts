@@ -1,9 +1,18 @@
 export default class Token {
-    accessToken: string;
-    refreshToken: string;
+    token: string;
+    generationDate: number;
+    lifespanInSeconds: number;
+    expirationDate: number;
 
-    constructor(accessToken: string, refreshToken: string) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
+    constructor(
+        token: string,
+        generationDate: number,
+        lifespanInSeconds: number,
+        expirationDate: number
+    ) {
+        this.token = token;
+        this.generationDate = generationDate;
+        this.lifespanInSeconds = lifespanInSeconds;
+        this.expirationDate = expirationDate;
     }
 }
