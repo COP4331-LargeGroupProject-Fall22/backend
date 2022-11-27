@@ -1,18 +1,20 @@
 import { ObjectID } from "bson";
 
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
 import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 import IShoppingIngredient from "../model/internal/ingredient/IShoppingIngredient";
 import IUser from "../model/internal/user/IUser";
+import IUnit from "../model/internal/unit/IUnit";
 
 import UnitSchema from "../model/internal/unit/UnitSchema";
 import AddRequestSchema from "../model/external/requests/shoppingList/AddRequest";
 import UpdateRequestSchema from "../model/external/requests/shoppingList/UpdateRequest";
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
+import PriceSchema from "../model/internal/money/PriceSchema";
 
 /**
  * This class creates several properties responsible for shopping list actions 
@@ -77,6 +79,8 @@ export default class ShoppingListController extends BaseIngredientController {
             req.body?.category,
             req.body?.quantityUnits,
             req.body?.quantity,
+            req.body?.imageUrl,
+            new PriceSchema(Number.parseFloat(req.body?.price), "US Cents"),
             req.body?.recipeID === undefined ? null : req.body?.recipeID
         );
 
@@ -149,47 +153,6 @@ export default class ShoppingListController extends BaseIngredientController {
         return null;
     }
 
-    private async updateShoppingItem(
-        shoppingList: IShoppingIngredient[],
-        newShoppingItem: IShoppingIngredient,
-        res: Response
-    ): Promise<boolean> {
-        for (let i = 0; i < shoppingList.length; i++) {
-            if (this.isEqual(shoppingList[i], newShoppingItem)) {
-                if (newShoppingItem.recipeID !== null) {
-                    return Promise.reject(
-                        this.send(
-                            ResponseCodes.BAD_REQUEST,
-                            res, "Use update endpoint to change the amount of ingredient in the shopping list.")
-                    );
-                }
-
-                let amount = newShoppingItem.quantity;
-
-                if (shoppingList[i].quantity.unit !== newShoppingItem.quantity.unit) {
-                    let convertedUnit =
-                        await this.foodAPI.ConvertUnits(
-                            newShoppingItem.quantity,
-                            shoppingList[i].quantity.unit,
-                            shoppingList[i].name
-                        );
-
-                    if (convertedUnit === null) {
-                        return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Amount units cannot be converted."));
-                    }
-
-                    amount = convertedUnit;
-                }
-
-                shoppingList[i].quantity.value += amount.value;
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
      * Adds food to user's shopping list.
      * 
@@ -212,10 +175,22 @@ export default class ShoppingListController extends BaseIngredientController {
         let duplicateItem = this.getDuplicateShoppingItem(user.shoppingList, parsedRequest)
 
         if (duplicateItem !== null) {
-            try {
-                this.updateShoppingItem(user.shoppingList, parsedRequest, res);
-            } catch (response) {
-                return response;
+            for (let i = 0; i < user.shoppingList.length; i++) {
+                if (this.isEqual(user.shoppingList[i], parsedRequest)) {
+                    if (parsedRequest.recipeID !== null) {
+                        return this.send(
+                            ResponseCodes.BAD_REQUEST,
+                            res,
+                            "Use update endpoint to change the amount of ingredient in the shopping list."
+                        );
+                    }
+
+                    try {
+                        user.shoppingList[i] = await this.updateIngredient(user.shoppingList[i], parsedRequest.quantity);
+                    } catch (error) {
+                        return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+                    }
+                }
             }
         } else {
             user.shoppingList.push(parsedRequest);
@@ -253,6 +228,41 @@ export default class ShoppingListController extends BaseIngredientController {
         return this.send(ResponseCodes.OK, res, ingredient);
     }
 
+    private async updateIngredient(existingItem: IShoppingIngredient, quantity: IUnit): Promise<IShoppingIngredient> {
+        let amount = quantity;
+
+        if (existingItem.quantity.unit !== quantity.unit) {
+            let convertedUnit =
+                await this.foodAPI.ConvertUnits(
+                    quantity,
+                    existingItem.quantity.unit,
+                    existingItem.name
+                );
+
+            if (convertedUnit === null) {
+                return Promise.reject("Amount units cannot be converted.");
+            }
+
+            amount = convertedUnit;
+        }
+
+        existingItem.quantity.value += amount.value;
+
+        let updatedIngredient = await this.foodAPI.Get(new Map<string, any>([
+            ["id", existingItem.id],
+            ["quantity", existingItem.quantity.value],
+            ["unit", existingItem.quantity.unit]
+        ]));
+
+        if (updatedIngredient === null) {
+            return Promise.reject("Could not update ingredient.");
+        }
+
+        existingItem.price = updatedIngredient.price;
+
+        return existingItem;
+    }
+
     /**
      * Updates information of the food item from user's shopping list.
      * 
@@ -279,7 +289,13 @@ export default class ShoppingListController extends BaseIngredientController {
 
             if (existingIngredient.itemID === req.params.itemID) {
                 listHasItem = true;
-                user.shoppingList[i].quantity = parsedRequest.quantity;
+
+                try {
+                    user.shoppingList[i] = await this.updateIngredient(existingIngredient, parsedRequest.quantity);
+                } catch (error) {
+                    console.log(error);
+                    return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+                }
             }
         }
 
@@ -288,6 +304,7 @@ export default class ShoppingListController extends BaseIngredientController {
         }
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+
         return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
     }
 

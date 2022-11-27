@@ -20,7 +20,9 @@ export default class UpdateRequestSchema implements ISchema {
 
         let logs: Array<{ [type: string]: string; }> = [];
         if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
+            errors.forEach(error => {
+                error.children?.forEach(r => logs.push(r.constraints!));
+            });
         }
 
         return await Promise.resolve(logs);
