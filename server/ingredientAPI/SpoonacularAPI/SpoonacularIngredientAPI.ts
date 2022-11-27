@@ -9,6 +9,8 @@ import IUnit from "../../serverAPI/model/internal/unit/IUnit";
 import IIngredientAPI from "../IIngredientAPI";
 
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
+import IImage from "../../serverAPI/model/internal/image/IImage";
+import IPrice from "../../serverAPI/model/internal/money/IPrice";
 
 /**
  * This class implements IIngredientAPI interface using Spoonacular API.
@@ -53,7 +55,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns URLSearchParams filled with parameters.
      */
-    private convertFoodsParameters = (parameters: Map<string, any>): URLSearchParams => {
+    private convertGetAllParameters = (parameters: Map<string, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
@@ -95,7 +97,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         for (let i = start; i < length; i++) {
             let object = jsonArray[i];
 
-            let parsedFood = await this.parseFood(object);
+            let parsedFood = await this.parseIngredient(object);
 
             partialFoods.push({
                 id: parsedFood.id,
@@ -156,7 +158,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
-        let searchParams = this.convertFoodsParameters(parameters);
+        let searchParams = this.convertGetAllParameters(parameters);
 
         searchParams.append("metaInformation", "true");
 
@@ -169,28 +171,9 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         return this.searchPagination(response, parameters.get("resultsPerPage"), parameters.get("page"));
     }
 
-    /**
-     * Parses plain javascript object as IIngredient object.
-     * 
-     * @param data representing food as plain javascript object.
-     * @returns Promise filled with IIngredient object.
-     */
-    private parseFood = async (data: any): Promise<IIngredient> => {
-        let id = data.id;
-        let name = data.name;
-        let category = data.aisle;
-        let quantityUnits = data.possibleUnits;
-        let quantity: IUnit = { unit: "", value: 0 };
-
-        if (data.amount !== undefined && data.unit !== undefined) {
-            quantity = {
-                unit: data.unit,
-                value: data.amount
-            };
-        }
-
+    private parseNutrients = async (data: any): Promise<INutrient[]> => {
         let nutrients: INutrient[] = [];
-
+        
         data?.nutrition?.nutrients.forEach((nutrient: any) => {
             nutrients.push({
                 name: nutrient.name,
@@ -202,20 +185,66 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             });
         });
 
+        return nutrients;
+    }
+
+    private parseQuantity = async (data: any): Promise<IUnit> => {
+        let quantity: IUnit = { unit: "", value: 0 };
+
+        if (data.amount !== undefined && data.unit !== undefined) {
+            quantity = {
+                unit: data.unit,
+                value: data.amount
+            };
+        }
+
+        return quantity;
+    }
+
+    private parseImage = async (data: any): Promise<IImage> => {
         let image = (data.image as string);
 
         let srcUrl = `${process.env.SPOONACULAR_CDN_BASE_URL}/${image.substring(image.lastIndexOf('/') + 1)}`;
 
         return {
+            srcUrl: srcUrl
+        };
+    }
+
+    private parsePrice = async (data: any): Promise<IPrice> => {
+        let price: IPrice = { price: 0, currency: "" };
+
+        if (data.estimatedCost !== undefined) {
+            price = {
+                price: data.estimatedCost.value,
+                currency: data.estimatedCost.unit
+            };
+        }
+
+        return price;
+    }
+
+    /**
+     * Parses plain javascript object as IIngredient object.
+     * 
+     * @param data representing food as plain javascript object.
+     * @returns Promise filled with IIngredient object.
+     */
+    private parseIngredient = async (data: any): Promise<IIngredient> => {
+        let id = data.id;
+        let name = data.name;
+        let category = data.aisle;
+        let quantityUnits = data.possibleUnits;       
+
+        return {
             id: id,
             name: name,
             category: category,
-            nutrients: nutrients,
+            nutrients: await this.parseNutrients(data),
             quantityUnits: quantityUnits,
-            quantity: quantity,
-            image: {
-                srcUrl: srcUrl
-            }
+            quantity: await this.parseQuantity(data),
+            image: await this.parseImage(data),
+            price: await this.parsePrice(data)
         };
     }
 
@@ -227,7 +256,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * 
      * @returns URLSearchParams filled with parameters.
     */
-    private convertFoodParameters = (parameters: Map<string, any>): URLSearchParams => {
+    private convertGetParameters = (parameters: Map<string, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
@@ -283,7 +312,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${foodID}/information`;
 
-        let searchParams = this.convertFoodParameters(parameters);
+        let searchParams = this.convertGetParameters(parameters);
 
         let response = await this.getRequest(foodGetInfoBaseURL, searchParams);
 
@@ -291,7 +320,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             return Promise.resolve(null);
         }
 
-        let parsedFood = await this.parseFood(response);
+        let parsedFood = await this.parseIngredient(response);
 
         return parsedFood;
     }
