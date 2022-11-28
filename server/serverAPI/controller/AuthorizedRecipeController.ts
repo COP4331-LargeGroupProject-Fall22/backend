@@ -54,7 +54,8 @@ export default class RecipeController extends BaseUserController {
         return userRecipe;
     }
 
-    protected async convertToUserBaseRecipe(response: PaginatedResponse<IBaseRecipe>, req: Request, res: Response): Promise<UserBaseRecipe[]> {
+    protected async convertToUserBaseRecipe(response: PaginatedResponse<IBaseRecipe>, req: Request, res: Response)
+        : Promise<PaginatedResponse<UserBaseRecipe>> {
         let user: IUser;
 
         try {
@@ -73,15 +74,15 @@ export default class RecipeController extends BaseUserController {
 
         response.results.forEach(recipe => {
             let isFavorite = recipeSet.has(recipe.id);
-    
+
             let allergen = recipe.ingredients.find(ingredient => allergenSet.has(ingredient.id))
-    
+
             let hasAllergens = allergen !== undefined;
-    
+
             userRecipes.push(new UserBaseRecipe(recipe, isFavorite, hasAllergens));
         });
 
-        return userRecipes;
+        return new PaginatedResponse(response.numOfPages, response.numOfResults, response.currentPage, userRecipes);
     }
 
     /**
