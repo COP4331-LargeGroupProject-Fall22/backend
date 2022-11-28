@@ -11,6 +11,7 @@ import IIngredientAPI from "../IIngredientAPI";
 import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
 import IImage from "../../serverAPI/model/internal/image/IImage";
 import IPrice from "../../serverAPI/model/internal/money/IPrice";
+import PaginatedResponse from "../../serverAPI/model/internal/paginatedResponse/PaginatedResponse";
 
 /**
  * This class implements IIngredientAPI interface using Spoonacular API.
@@ -24,6 +25,9 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
     // Allowed food units for conversion operations
     private foodUnits: Set<string>;
+
+    protected MAX_RESULTS_PER_PAGE = 100;
+    protected DEFAULT_RESULTS_PER_PAGE = 10;
 
     constructor(apiKey: string, apiHost: string) {
         super(apiKey, apiHost);
@@ -72,7 +76,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             }
         });
 
-        searchParams.set("number", "100");
+        searchParams.set("number", this.MAX_RESULTS_PER_PAGE.toString());
 
         return searchParams;
     }
@@ -81,20 +85,21 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         return Number.isInteger(Number.parseInt(number));
     }
 
-    private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<IBaseIngredient[]> {
+    private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<PaginatedResponse<IBaseIngredient>> {
         let partialFoods: IBaseIngredient[] = [];
 
-        let start: number = 0;
+        let offset: number = 0;
 
-        let length = jsonArray.length;
+        let totalResults = jsonArray.length;
 
-        if (resultsPerPage !== undefined && page !== undefined &&
-            this.isInteger(resultsPerPage) && this.isInteger(page)) {
-            start = Number.parseInt(resultsPerPage) * (Number.parseInt(page) - 1);
-            length = Math.min(Number.parseInt(resultsPerPage) + start, jsonArray.length);
-        }
+        let resultsPerPageNumber = resultsPerPage === undefined ? this.DEFAULT_RESULTS_PER_PAGE : Number.parseInt(resultsPerPage);
 
-        for (let i = start; i < length; i++) {
+        let pageNumber = page === undefined ? 0 : Number.parseInt(page);;
+
+        offset = resultsPerPageNumber * pageNumber;
+        totalResults = Math.min(resultsPerPageNumber + offset, jsonArray.length);
+
+        for (let i = offset; i < totalResults; i++) {
             let object = jsonArray[i];
 
             let parsedFood = await this.parseIngredient(object);
@@ -107,7 +112,9 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             });
         }
 
-        return partialFoods;
+        let numOfPages = Math.ceil(jsonArray.length / resultsPerPageNumber);
+
+        return new PaginatedResponse(numOfPages, jsonArray.length, pageNumber, partialFoods);
     }
 
     private async parseUnit(jsonObject: any): Promise<IUnit> {
@@ -155,7 +162,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * @throws RequestLimitReached excpetion when request limit has been reached.
      * @returns Promise filled with an array of IIngredient objects.
      */
-    async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null> {
+    async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseIngredient> | null> {
         let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
         let searchParams = this.convertGetAllParameters(parameters);
@@ -173,7 +180,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
     private parseNutrients = async (data: any): Promise<INutrient[]> => {
         let nutrients: INutrient[] = [];
-        
+
         data?.nutrition?.nutrients.forEach((nutrient: any) => {
             nutrients.push({
                 name: nutrient.name,
@@ -234,7 +241,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         let id = data.id;
         let name = data.name;
         let category = data.aisle;
-        let quantityUnits = data.possibleUnits;       
+        let quantityUnits = data.possibleUnits;
 
         return {
             id: id,

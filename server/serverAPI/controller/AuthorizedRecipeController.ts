@@ -11,6 +11,7 @@ import UserBaseRecipe from "../model/internal/recipe/UserBaseRecipe";
 import UserRecipe from "../model/internal/recipe/UserRecipe";
 
 import BaseUserController from "./BaseController/BaseUserController";
+import PaginatedResponse from "../model/internal/paginatedResponse/PaginatedResponse";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -53,7 +54,7 @@ export default class RecipeController extends BaseUserController {
         return userRecipe;
     }
 
-    protected async convertToUserBaseRecipe(recipes: IBaseRecipe[], req: Request, res: Response): Promise<UserBaseRecipe[]> {
+    protected async convertToUserBaseRecipe(response: PaginatedResponse<IBaseRecipe>, req: Request, res: Response): Promise<UserBaseRecipe[]> {
         let user: IUser;
 
         try {
@@ -70,7 +71,7 @@ export default class RecipeController extends BaseUserController {
 
         let userRecipes: UserBaseRecipe[] = [];
 
-        recipes.forEach(recipe => {
+        response.results.forEach(recipe => {
             let isFavorite = recipeSet.has(recipe.id);
     
             let allergen = recipe.ingredients.find(ingredient => allergenSet.has(ingredient.id))

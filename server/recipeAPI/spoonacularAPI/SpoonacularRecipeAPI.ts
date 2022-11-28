@@ -20,6 +20,7 @@ import IRecipeAPI from "../IRecipeAPI";
 
 import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
 import PriceSchema from '../../serverAPI/model/internal/money/PriceSchema';
+import PaginatedResponse from '../../serverAPI/model/internal/paginatedResponse/PaginatedResponse';
 
 export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected ingredientAPI: IIngredientAPI;
@@ -32,6 +33,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
     // https://spoonacular.com/food-api/docs#Meal-Types
     protected mealTypes: Set<string>;
+
+    protected MAX_OFFSET = 900;
+    protected MAX_RESULTS_PER_PAGE = 100;
+    protected DEFAULT_RESULTS_PER_PAGE = 10;
 
     constructor(apiKey: string, apiHost: string, ingredientAPI: IIngredientAPI) {
         super(apiKey, apiHost);
@@ -79,10 +84,16 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items weren't found.
      */
-    async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null> {
+    async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe> | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
-        let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
+        let urlSearchParameters: URLSearchParams;
+
+        try {
+            urlSearchParameters = await this.convertSearchRecipeParameters(parameters);
+        } catch (error) {
+            return Promise.reject(error);
+        }
 
         let response = await this.getRequest(searchRecipeURL, urlSearchParameters);
 
@@ -94,7 +105,17 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             recipeArray.push(await this.parseBaseRecipe(jsonArray[i]));
         }
 
-        return recipeArray.length === 0 ? null : recipeArray;
+        let resultsPerPage = Number.parseInt(urlSearchParameters.get("number")!);
+
+        let totalResults = Math.min(response.totalResults, this.MAX_OFFSET);
+
+        let numOfPages = Math.ceil(totalResults / resultsPerPage);
+
+        let currentPage = parameters.get("page") === undefined ? 0 : parameters.get("page");
+
+        let result = currentPage >= numOfPages ? [] : recipeArray;
+
+        return recipeArray.length === 0 ? null : new PaginatedResponse(numOfPages, totalResults, currentPage, result);
     }
 
     /**
@@ -113,7 +134,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns 
      */
-    protected convertSearchRecipeParameters(parameters: Map<string, any>): URLSearchParams {
+    protected convertSearchRecipeParameters(parameters: Map<string, any>): Promise<URLSearchParams> {
         let keys = Array.from(parameters.keys());
 
         let searchParameters = new URLSearchParams();
@@ -122,18 +143,22 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             throw new NoParameterFound("recipeName parameter is missing.");
         }
 
+        searchParameters.set("number", this.DEFAULT_RESULTS_PER_PAGE.toString());
+
         keys.forEach(key => {
             if (this.recipeSearchParameters.has(key)) {
                 if (key === 'page') {
-                    let page = parameters.get("page") !== null ? Number.parseInt(parameters.get("page")!) : 0;
-                    let resultsPerPage = parameters.get("resultsPerPage") !== null ? Number.parseInt(parameters.get("resultsPerPage")!) : 10;
+                    let page = parameters.get("page") !== undefined ? Number.parseInt(parameters.get("page")!) : 0;
+                    
+                    let resultsPerPage = parameters.get("resultsPerPage") !== undefined ?
+                        Number.parseInt(parameters.get("resultsPerPage")!) : this.DEFAULT_RESULTS_PER_PAGE;
 
                     let offset = page * resultsPerPage;
 
                     searchParameters.append("offset", offset.toString());
                 }
 
-                searchParameters.append(String(this.recipeSearchParameters.get(key)), parameters.get(key));
+                searchParameters.set(String(this.recipeSearchParameters.get(key)), parameters.get(key));
             } else {
                 throw new ParameterIsNotAllowed(`${key} parameter is not allowed.`);
             }
@@ -142,7 +167,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         searchParameters.append("instructionsRequired", "true");
         searchParameters.append("fillIngredients", "true");
 
-        return searchParameters;
+        return Promise.resolve(searchParameters);
     }
 
     protected async parseRecipeImage(recipeObject: any): Promise<IImage> {

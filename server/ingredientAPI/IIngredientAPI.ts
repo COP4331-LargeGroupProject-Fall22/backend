@@ -1,5 +1,6 @@
 import IBaseIngredient from "../serverAPI/model/internal/ingredient/IBaseIngredient";
 import IIngredient from "../serverAPI/model/internal/ingredient/IIngredient";
+import PaginatedResponse from "../serverAPI/model/internal/paginatedResponse/PaginatedResponse";
 import IUnit from "../serverAPI/model/internal/unit/IUnit";
 
 export default interface IIngredientAPI {
@@ -16,7 +17,7 @@ export default interface IIngredientAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with an array of Iingredient objects.
      */
-    GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null>;
+    GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseIngredient> | null>;
 
     /**
      * Retrieves ingredient item that is specified by searching parameters.

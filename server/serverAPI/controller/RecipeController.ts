@@ -59,15 +59,8 @@ export default class RecipeController extends BaseController {
             parameters.set("mealTypes", req.query.mealTypes);
         }
 
-        return this.recipeAPI.GetAll(parameters).then(recipes => {
-            let response: any[] = []
-
-            recipes?.forEach(recipe => {
-                response.push(recipe);
-            });
-
-            return this.send(ResponseCodes.OK, res, response);
-        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+        return this.recipeAPI.GetAll(parameters).then(recipes => this.send(ResponseCodes.OK, res, recipes), 
+        (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 
     /**
