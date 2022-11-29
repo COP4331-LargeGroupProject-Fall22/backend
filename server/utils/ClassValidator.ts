@@ -10,6 +10,12 @@ const typeValidator = {
             allowInfinity: false
         }) && isInt(value);
     },
+    'positiveFloat': function (value: any, args: ValidationArguments) {
+        return isNumber(value, {
+            allowNaN: false,
+            allowInfinity: false
+        }) && !isInt(value);
+    },
     'null': function (value: any, args: ValidationArguments) {
         return value === null;
     },

@@ -74,14 +74,38 @@ export default class ShoppingListController extends BaseIngredientController {
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let id: number;
+        
+        try {
+            id = Number.parseInt(req.body?.id);
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer."));
+        }
+
+        let price: number;
+
+        try {
+            price = Number.parseFloat(req.body?.price);
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Price should be a positive float"));
+        }
+
+        let value: number;
+
+        try {
+            value = Number.parseFloat(req.body?.value);
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
+        }
+
         let request = new AddRequestSchema(
-            Number.parseInt(req.body?.id),
+            id,
             req.body?.name,
             req.body?.category,
             req.body?.quantityUnits,
-            req.body?.quantity,
+            new UnitSchema(req.body?.quantity?.unit, value),
             new ImageSchema(req.body?.image?.srcUrl),
-            new PriceSchema(Number.parseFloat(req.body?.price), "US Cents"),
+            new PriceSchema(price, "US Cents"),
             req.body?.recipeID === undefined ? null : req.body?.recipeID
         );
 
@@ -91,10 +115,18 @@ export default class ShoppingListController extends BaseIngredientController {
     }
 
     private parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let value: number;
+
+        try {
+            value = Number.parseFloat(req.body?.value);
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
+        }
+
         let request = new UpdateRequestSchema(
             new UnitSchema(
                 req.body?.unit,
-                Number.parseFloat(req.body?.value)
+                value
             )
         );
 

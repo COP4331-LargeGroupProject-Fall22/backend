@@ -4,7 +4,7 @@ import ISchema from "../../ISchema";
 import IPrice from "./IPrice";
 
 export default class PriceSchema implements ISchema, IPrice {
-    @IsType(['positiveInt'])
+    @IsType(['positiveFloat'])
     price: number;
 
     @IsType(['string'])

@@ -20,8 +20,16 @@ export default class AllergenController extends BaseIngredientController {
     }
 
     protected parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let id: number;
+
+        try {
+            id = Number.parseInt(req.body?.id); 
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer"));
+        }
+
         let request = new AddRequestSchema(
-            Number.parseInt(req.body?.id),
+            id,
             req.body?.name,
             req.body?.category,
             new ImageSchema(req.body?.image?.srcUrl)

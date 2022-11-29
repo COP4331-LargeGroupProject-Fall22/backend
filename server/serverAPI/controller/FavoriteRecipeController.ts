@@ -25,8 +25,16 @@ export default class FavoriteRecipeController extends BaseUserController {
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let id: number;
+
+        try {
+            id = Number.parseInt(req.body?.id);
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer."));
+        }
+
         let request = new AddRequestSchema(
-            Number.parseInt(req.body?.id),
+            id,
             req.body?.name,
             new ImageSchema(req.body?.image?.srcUrl),
             req.body?.ingredients

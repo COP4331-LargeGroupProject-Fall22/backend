@@ -22,18 +22,34 @@ export default class InventoryController extends BaseIngredientController {
     }
 
     private parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
-        let request = new UpdateRequestSchema(req.body?.expirationDate);
+        let expirationDate: number | null;
+        
+        try {
+            expirationDate = Number.parseInt(req.body?.expirationDate);
+        } catch(error) {
+            expirationDate = null;
+        }
+
+        let request = new UpdateRequestSchema(expirationDate);
 
         return this.verifySchema(request, res);
     }
 
     private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let expirationDate: number | null;
+        
+        try {
+            expirationDate = Number.parseInt(req.body?.expirationDate);
+        } catch(error) {
+            expirationDate = null;
+        }
+
         let request = new AddRequestSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
             req.body?.category,
             new ImageSchema(req.body?.image?.srcUrl),
-            req.body?.expirationDate !== undefined ? Number.parseInt(req.body?.expirationDate) : null
+            expirationDate
         );
 
         return this.verifySchema(request, res);
