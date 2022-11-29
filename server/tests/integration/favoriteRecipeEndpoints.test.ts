@@ -21,11 +21,11 @@ UserDatabase.connect(databaseURL, databaseName, collectionName);
 import { app } from '../../App';
 import { ResponseCodes } from '../../utils/ResponseCodes';
 
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+
 import IIdentification from '../../serverAPI/model/internal/user/IIdentification';
 import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
-import { ingredientGetResponseDefault } from './responses/ingredients/ingredientGetResponse';
-import IInventoryIngredient from '../../serverAPI/model/internal/ingredient/IInventoryIngredient';
-import ImageSchema from '../../serverAPI/model/internal/image/ImageSchema';
 
 let mockVerifiedUser = new UserSchema(
     "Mikhail",
@@ -52,55 +52,58 @@ jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
     }
 });
 
-let mockInventoryIngredient: IInventoryIngredient;
+import { priceBreakdownApiResponse } from './responses/recipes/priceBreakdownApiResponse';
+
+import { recipeGetApiResponse } from './responses/recipes/recipeGetApiResponse';
+import { recipeGetResponse } from './responses/recipes/recipeGetResponse';
+
+let mockAxios = new MockAdapter(axios);
+
+let getUrl: string;
+let priceWidgetUrl: string;
+
+let mockAddRecipeRequest: any;
 
 beforeAll(async () => {
-    mockInventoryIngredient = {
-        id: ingredientGetResponseDefault.id,
-        category: ingredientGetResponseDefault.category,
-        name: ingredientGetResponseDefault.name,
-        expirationDate: Date.now(),
-        image: new ImageSchema("google.com")
+    mockAddRecipeRequest = {
+        id: recipeGetResponse.id,
+        name: recipeGetResponse.name,
+        imageUrl: recipeGetResponse.image.srcUrl,
+        ingredients: recipeGetResponse.ingredients
     };
+
+    getUrl = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${mockAddRecipeRequest.id}/information`
+    priceWidgetUrl = `${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_BASE_URL}/${mockAddRecipeRequest.id}/${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_WIDGET}`;
 
     await UserDatabase.getInstance()?.Create(mockVerifiedUser);
 });
 
-describe(`Inventory`, () => {
+describe(`Favorite Recipes`, () => {
     it('Add responses', async () => {
         let response = await supertest(app)
-            .post('/user/inventory')
-            .send(mockInventoryIngredient);
+            .post('/user/favorite-recipes')
+            .send(mockAddRecipeRequest);
         
         expect(response.statusCode).toBe(ResponseCodes.CREATED);
     });
 
     describe('GetAll responses', () => {
-        it('Get inventory items', async () => {
+        it('Get favorite recipes', async () => {
             let response = await supertest(app)
-                .get(`/user/inventory`);
+                .get(`/user/favorite-recipes`);
 
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });
 
     describe('Get responses', () => {
-        it('Get inventory item', async () => {
+        it('Get favorite recipe item', async () => {
+            mockAxios.onGet(getUrl).reply(ResponseCodes.OK, recipeGetApiResponse);
+            mockAxios.onGet(priceWidgetUrl).reply(ResponseCodes.OK, priceBreakdownApiResponse);
+
             let response = await supertest(app)
-                .get(`/user/inventory/${mockInventoryIngredient.id}`);
+                .get(`/user/favorite-recipes/${mockAddRecipeRequest.id}`);
             
-            expect(response.statusCode).toBe(ResponseCodes.OK);
-        });
-    });
-
-    describe('Update responses', () => {
-        it('Update inventory item', async () => {
-            let response = await supertest(app)
-                .put(`/user/inventory/${mockInventoryIngredient.id}`)
-                .send({
-                    expirationDate: 123321123
-                });
-
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });
@@ -108,7 +111,7 @@ describe(`Inventory`, () => {
     describe('Delete responses', () => {
         it('Delete inventory item', async () => {
             let response = await supertest(app)
-                .delete(`/user/inventory/${mockInventoryIngredient.id}`);
+                .delete(`/user/favorite-recipes/${mockAddRecipeRequest.id}`);
             
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
