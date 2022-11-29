@@ -2,30 +2,47 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import UserDatabase from "../../database/UserDatabase";
-import IBaseUser from '../../serverAPI/model/user/IBaseUser';
-import IUser from '../../serverAPI/model/user/IUser';
+import IBaseUser from '../../serverAPI/model/internal/user/IBaseUser';
+import IUser from '../../serverAPI/model/internal/user/IUser';
 
 describe('User database functionality', () => {
     let userDB: UserDatabase
-    
+
     let databaseURL = (global as any).__MONGO_URI__;
     let databaseName = process.env.DB_NAME!;
     let collectionName = process.env.DB_USERS_COLLECTION!;
-    
+
     let mockUser: IUser = {
-        inventory: [{
-            expirationDate: 1231123,
-            name: "Test",
-            id: 234,
-            category: "testCategory",
-            quantityUnits: ["g", "kg", "oz"]
-        }],
+        inventory: [
+            {
+                expirationDate: 1231123,
+                name: "Test",
+                id: 234,
+                category: "testCategory",
+                image: { srcUrl: "google.com" }
+            }
+        ],
         firstName: 'Mikhail',
         lastName: 'Plekunov',
         lastSeen: Date.now(),
         password: '123',
         username: 'Mekromic',
-        shoppingCart: []
+        shoppingList: [
+            {
+                name: "Test",
+                id: 234,
+                category: "testCategory",
+                image: { srcUrl: "google.com" },
+                quantity: { unit: "g", value: 123.21},
+                quantityUnits: ["kg", "g"],
+                itemID: "12312312qwe1asdasd12",
+                price: 
+            }
+        ],
+        isVerified: false,
+        allergens: [],
+        favoriteRecipes: [],
+        email: ''
     };
 
     let mockUpdatedUser: IUser = {
@@ -67,15 +84,15 @@ describe('User database functionality', () => {
     describe('create', () => {
         it('create user ', async () => {
             let actual = await userDB.Create(mockUser);
-            
+
             expect(actual).toMatchObject(mockUser);
         });
     });
 
     describe('get', () => {
-        it ('get users summary', async () => {
+        it('get users summary', async () => {
             let actual = await userDB.GetAll();
-            
+
             expect(actual).toMatchObject([mockUserSummary]);
         });
 
@@ -90,15 +107,15 @@ describe('User database functionality', () => {
     });
 
     describe('update', () => {
-        it ('update user info by username', async () => {           
-           let actual = await userDB.Update(mockUser.username, mockUpdatedUser);
+        it('update user info by username', async () => {
+            let actual = await userDB.Update(mockUser.username, mockUpdatedUser);
 
-           expect(actual).toMatchObject(mockUpdatedUser);
+            expect(actual).toMatchObject(mockUpdatedUser);
         });
     });
 
     describe('delete', () => {
-        it ('delete user by username', async () => {
+        it('delete user by username', async () => {
             let actual = await userDB.Delete(mockUpdatedUser.username);
 
             expect(actual).toBeTruthy();

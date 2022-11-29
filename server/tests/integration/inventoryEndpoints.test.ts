@@ -67,12 +67,14 @@ beforeAll(async () => {
 });
 
 describe(`Inventory`, () => {
-    it('Add responses', async () => {
-        let response = await supertest(app)
-            .post('/user/inventory')
-            .send(mockInventoryIngredient);
-        
-        expect(response.statusCode).toBe(ResponseCodes.CREATED);
+    describe('Add responses', () => {
+        it('Add inventory item', async () => {
+            let response = await supertest(app)
+                .post('/user/inventory')
+                .send(mockInventoryIngredient);
+            
+            expect(response.statusCode).toBe(ResponseCodes.CREATED);
+        });
     });
 
     describe('GetAll responses', () => {

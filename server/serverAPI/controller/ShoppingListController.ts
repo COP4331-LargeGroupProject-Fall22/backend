@@ -80,7 +80,7 @@ export default class ShoppingListController extends BaseIngredientController {
             req.body?.category,
             req.body?.quantityUnits,
             req.body?.quantity,
-            new ImageSchema(req.body?.imageUrl),
+            new ImageSchema(req.body?.image?.srcUrl),
             new PriceSchema(Number.parseFloat(req.body?.price), "US Cents"),
             req.body?.recipeID === undefined ? null : req.body?.recipeID
         );
