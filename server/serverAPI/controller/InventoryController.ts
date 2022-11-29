@@ -39,7 +39,7 @@ export default class InventoryController extends BaseIngredientController {
         let expirationDate: number | null;
         
         try {
-            expirationDate = Number.parseInt(req.body?.expirationDate);
+            expirationDate = req.body?.expirationDate !== undefined ? Number.parseInt(req.body?.expirationDate) : null;
         } catch(error) {
             expirationDate = null;
         }
