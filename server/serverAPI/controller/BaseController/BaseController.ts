@@ -30,4 +30,8 @@ export default class BaseController {
     protected isStringUndefinedOrEmpty(data: string): boolean {
         return data === undefined || data.length === 0;
     }
+
+    protected convertResponse<T extends object>(collection: T[]): [string, T[]][] {
+        return Array.from([["unorganized", collection]]);
+    }
 }

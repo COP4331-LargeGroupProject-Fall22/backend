@@ -34,6 +34,8 @@ export default class ShoppingListController extends BaseIngredientController {
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
 
+        let items: [string, [string, IShoppingIngredient[]][] | IShoppingIngredient[]][] = [];
+
         /**
          * Divide collection on 2 collections.
          * 1 is a map where K,V => RecipeID, IShoppingIngredient[]
@@ -67,10 +69,11 @@ export default class ShoppingListController extends BaseIngredientController {
             itemsWithoutRecipeID.reverse();
         }
 
-        return {
-            itemsWithRecipeID: recipes,
-            itemsWithoutRecipeID: itemsWithoutRecipeID
-        };
+
+        items.push(["itemsWithRecipeID", recipes]);
+        items.push(["itemsWithoutRecipeID", itemsWithoutRecipeID]);
+        
+        return items;
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
@@ -152,7 +155,7 @@ export default class ShoppingListController extends BaseIngredientController {
             return response;
         }
 
-        let responseData: any = user.shoppingList;
+        let responseData: any = this.convertResponse(user.shoppingList);
 
         if (req.query.sortByRecipe === 'true') {
             responseData = this.sortByRecipe(user.shoppingList, isReverse);

@@ -57,7 +57,7 @@ export default class AllergenController extends BaseIngredientController {
             return response;
         }
 
-        let responseData: any = user.allergens;
+        let responseData: any = this.convertResponse(user.allergens);
 
         if (req.query.sortByCategory === 'true') {
             responseData = this.sortByCategory(user.allergens, isReverse);

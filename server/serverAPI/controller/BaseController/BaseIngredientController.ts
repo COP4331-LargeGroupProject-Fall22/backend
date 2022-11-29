@@ -30,13 +30,20 @@ export default class BaseIngredientController extends BaseUserController {
         return items;
     }
 
-    protected sortByLexicographicalOrder<T extends IBaseIngredient>(collections: T[], isReverse: boolean): any {
-        collections.sort((a, b) => a.name.localeCompare(b.name));
+    protected sortByLexicographicalOrder<T extends IBaseIngredient>(collection: T[], isReverse: boolean): any {
+        let items: [string, T[]][] = [];
 
+        let key = "A-Z";
+
+        collection.sort((a, b) => a.name.localeCompare(b.name));
+        
         if (isReverse) {
-            collections.reverse();
+            collection.reverse();
+            key = "Z-A";
         }
 
-        return collections;
+        items.push([key, collection]);
+
+        return items;
     }
 }
