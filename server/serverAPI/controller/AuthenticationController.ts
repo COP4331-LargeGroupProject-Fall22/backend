@@ -104,8 +104,8 @@ export default class AuthenticationController extends BaseUserController {
         let currentTime = Date.now();
 
         let userToken = new UserToken(
-            new Token(accessToken, currentTime, this.accessTokenTimeoutInSeconds, currentTime + this.accessTokenTimeoutInSeconds),
-            new Token(refreshToken, currentTime, this.refreshTokenTimeoutInSeconds, currentTime + this.refreshTokenTimeoutInSeconds)
+            new Token(accessToken, currentTime, this.accessTokenTimeoutInSeconds, currentTime + this.accessTokenTimeoutInSeconds * 1000),
+            new Token(refreshToken, currentTime, this.refreshTokenTimeoutInSeconds, currentTime + this.refreshTokenTimeoutInSeconds * 1000)
         );
 
         JWTStorage.getInstance().addJWT(
