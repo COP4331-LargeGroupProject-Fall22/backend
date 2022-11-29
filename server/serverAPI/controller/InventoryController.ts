@@ -32,7 +32,7 @@ export default class InventoryController extends BaseIngredientController {
             Number.parseInt(req.body?.id),
             req.body?.name,
             req.body?.category,
-            new ImageSchema(req.body?.image),
+            new ImageSchema(req.body?.imageUrl),
             req.body?.expirationDate !== undefined ? Number.parseInt(req.body?.expirationDate) : null
         );
 
