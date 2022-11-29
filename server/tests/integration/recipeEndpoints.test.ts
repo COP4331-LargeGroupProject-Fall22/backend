@@ -34,6 +34,9 @@ let mockAxios = new MockAdapter(axios);
 
 import { recipeGetAllApiResponse } from './responses/recipes/recipeGetAllApiResponse';
 import { recipeGetAllResponse } from './responses/recipes/recipeGetAllResponse';
+
+import { priceBreakdownApiResponse } from './responses/recipes/priceBreakdownApiResponse';
+
 import { recipeGetApiResponse } from './responses/recipes/recipeGetApiResponse';
 import { recipeGetResponse } from './responses/recipes/recipeGetResponse';
 
@@ -42,11 +45,14 @@ let getURL: string;
 
 let mockRecipeID: number;
 
+let priceWidgetUrl: string;
+
 beforeAll(() => {
     mockRecipeID = recipeGetResponse.id;
 
     getAllURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/complexSearch`;
     getURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${mockRecipeID}/information`
+    priceWidgetUrl = `${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_BASE_URL}/${recipeGetApiResponse.id}/${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_WIDGET}`;
 });
 
 describe('Recipe endpoints', () => {
@@ -69,7 +75,8 @@ describe('Recipe endpoints', () => {
     describe('Get responses', () => {
         it('Get recipe using correct id', async () => {
             mockAxios.onGet(getURL).reply(ResponseCodes.OK, recipeGetApiResponse);
-
+            mockAxios.onGet(priceWidgetUrl).reply(ResponseCodes.OK, priceBreakdownApiResponse);
+            
             let response = await supertest(app)
                 .get(`/recipes/${mockRecipeID}`);
 

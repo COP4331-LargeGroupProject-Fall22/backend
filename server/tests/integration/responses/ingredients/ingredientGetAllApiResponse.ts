@@ -134,5 +134,98 @@ export const ingredientGetAllApiRespose = JSON.stringify([
             "serving",
             "tablespoon"
         ]
+    },
+    {
+        "name": "plain greek yogurt",
+        "image": "white-cream.png",
+        "id": 1001256,
+        "aisle": "Milk, Eggs, Other Dairy",
+        "possibleUnits": [
+            "container",
+            "tub",
+            "g",
+            "oz",
+            "cup",
+            "serving",
+            "tablespoon"
+        ]
+    },
+    {
+        "name": "low fat greek yogurt",
+        "image": "white-cream.png",
+        "id": 93652,
+        "aisle": "Milk, Eggs, Other Dairy",
+        "possibleUnits": [
+            "container",
+            "package",
+            "g",
+            "oz",
+            "cup",
+            "serving",
+            "tablespoon"
+        ]
+    },
+    {
+        "name": "fat free vanilla yogurt",
+        "image": "vanilla-yogurt.png",
+        "id": 43261,
+        "aisle": "Milk, Eggs, Other Dairy",
+        "possibleUnits": [
+            "container",
+            "g",
+            "oz",
+            "cup"
+        ]
+    },
+    {
+        "name": "vanilla frozen yogurt",
+        "image": "frozen-yogurt.png",
+        "id": 19293,
+        "aisle": "Frozen",
+        "possibleUnits": [
+            "scoop",
+            "g",
+            "oz",
+            "cup",
+            "serving"
+        ]
+    },
+    {
+        "name": "low fat vanilla yogurt",
+        "image": "vanilla-yogurt.png",
+        "id": 1001119,
+        "aisle": "Milk, Eggs, Other Dairy",
+        "possibleUnits": [
+            "container",
+            "g",
+            "oz",
+            "teaspoon",
+            "cup",
+            "tablespoon"
+        ]
+    },
+    {
+        "name": "fat free vanilla greek yogurt",
+        "image": "vanilla-yogurt.png",
+        "id": 99033,
+        "aisle": "Milk, Eggs, Other Dairy",
+        "possibleUnits": [
+            "container",
+            "g",
+            "oz",
+            "cup"
+        ]
+    },
+    {
+        "name": "low fat vanilla greek yogurt",
+        "image": "vanilla-yogurt.png",
+        "id": 99212,
+        "aisle": "Milk, Eggs, Other Dairy",
+        "possibleUnits": [
+            "container",
+            "g",
+            "oz",
+            "cup"
+        ]
     }
 ]);

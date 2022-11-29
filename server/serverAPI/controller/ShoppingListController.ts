@@ -15,6 +15,7 @@ import UpdateRequestSchema from "../model/external/requests/shoppingList/UpdateR
 
 import BaseIngredientController from "./BaseController/BaseIngredientController";
 import PriceSchema from "../model/internal/money/PriceSchema";
+import ImageSchema from "../model/internal/image/ImageSchema";
 
 /**
  * This class creates several properties responsible for shopping list actions 
@@ -79,7 +80,7 @@ export default class ShoppingListController extends BaseIngredientController {
             req.body?.category,
             req.body?.quantityUnits,
             req.body?.quantity,
-            req.body?.imageUrl,
+            new ImageSchema(req.body?.imageUrl),
             new PriceSchema(Number.parseFloat(req.body?.price), "US Cents"),
             req.body?.recipeID === undefined ? null : req.body?.recipeID
         );
@@ -293,7 +294,6 @@ export default class ShoppingListController extends BaseIngredientController {
                 try {
                     user.shoppingList[i] = await this.updateIngredient(existingIngredient, parsedRequest.quantity);
                 } catch (error) {
-                    console.log(error);
                     return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
                 }
             }

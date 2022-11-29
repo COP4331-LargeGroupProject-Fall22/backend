@@ -27,8 +27,8 @@ import { ResponseCodes } from '../../utils/ResponseCodes';
 import LoginRequestSchema from '../../serverAPI/model/external/requests/authentication/LoginRequest';
 import RegisterRequestSchema from '../../serverAPI/model/external/requests/authentication/RegisterRequest';
 
-let mockRegisterUser: IUser;
-let mockRegisterUserIncorrectSchema: LoginRequestSchema;
+let mockRegisterUser: RegisterRequestSchema;
+let mockRegisterUserIncorrectSchema: RegisterRequestSchema;
 let mockRegisterUserAlreadyExists: RegisterRequestSchema;
 
 let mockLoginUser: LoginRequestSchema;
@@ -38,13 +38,12 @@ let mockLoginUserIncorrectSchema: LoginRequestSchema;
 let mockVerifiedUser: UserSchema;
 
 beforeAll(() => {
-    mockRegisterUser = new UserSchema(
+    mockRegisterUser = new RegisterRequestSchema(
         "Mikhail",
         "Plekunov",
         "Mekromic",
         "password",
-        "test@gmail.com",
-        Date.now()
+        "test@gmail.com"
     );
 
     mockRegisterUserIncorrectSchema = new RegisterRequestSchema(

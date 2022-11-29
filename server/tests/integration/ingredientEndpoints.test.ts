@@ -37,7 +37,7 @@ let getIngredientBaseURL: string;
 
 let ingredientID: number;
 
-import { ingredientGetResponseDefault, ingredientGetResponse100KG } from './responses/ingredients/ingredientGetResponse';
+import { ingredientGetResponseDefault } from './responses/ingredients/ingredientGetResponse';
 import { ingredientGetAllResponse } from './responses/ingredients/ingredientGetAllResponse';
 import { ingredientGetAllApiRespose } from './responses/ingredients/ingredientGetAllApiResponse';
 import { ingredientGetApiResponse } from './responses/ingredients/ingredientGetApiResponse';
@@ -95,7 +95,7 @@ describe('Ingredients', () => {
             let response = await supertest(app)
                 .get(`/ingredients/123123123123123123`);
     
-            expect(response.statusCode).toBe(ResponseCodes.NOT_FOUND);
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
         });
     });
 

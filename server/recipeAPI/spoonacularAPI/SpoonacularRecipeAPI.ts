@@ -87,15 +87,21 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe> | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
-        let urlSearchParameters: URLSearchParams;
+        let searchParameters: URLSearchParams;
 
         try {
-            urlSearchParameters = await this.convertSearchRecipeParameters(parameters);
+            searchParameters = await this.convertSearchRecipeParameters(parameters);
         } catch (error) {
             return Promise.reject(error);
         }
 
-        let response = await this.getRequest(searchRecipeURL, urlSearchParameters);
+        let response: any;
+
+        try {
+            response = await this.getRequest(searchRecipeURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the GetAllRecipes." + error);
+        }
 
         let jsonArray: any[] = response.results;
 
@@ -105,7 +111,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             recipeArray.push(await this.parseBaseRecipe(jsonArray[i]));
         }
 
-        let resultsPerPage = Number.parseInt(urlSearchParameters.get("number")!);
+        let resultsPerPage = Number.parseInt(searchParameters.get("number")!);
 
         let totalResults = Math.min(response.totalResults, this.MAX_OFFSET);
 
@@ -149,7 +155,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             if (this.recipeSearchParameters.has(key)) {
                 if (key === 'page') {
                     let page = parameters.get("page") !== undefined ? Number.parseInt(parameters.get("page")!) : 0;
-                    
+
                     let resultsPerPage = parameters.get("resultsPerPage") !== undefined ?
                         Number.parseInt(parameters.get("resultsPerPage")!) : this.DEFAULT_RESULTS_PER_PAGE;
 
@@ -219,7 +225,13 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
     private async addPriceToIngredients(recipeID: number, ingredients: IIngredient[]): Promise<IIngredient[]> {
         let priceWidgetURL = `${this.API_INGREDIENTS_BASE_URL}/${recipeID}/${this.PRICE_WIDGET}`;
 
-        let response = await this.getRequest(priceWidgetURL);
+        let response: any;
+
+        try {
+            response = await this.getRequest(priceWidgetURL);
+        } catch (error) {
+            return Promise.reject("Call was made to the PriceBreakdownWidget. " + error);
+        }
 
         let ingredientPrices: [string, number][] = [];
 
@@ -440,7 +452,13 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         let searchParameters = new URLSearchParams();
         searchParameters.set("includeNutrition", "true");
 
-        let response = await this.getRequest(getRecipeURL, searchParameters);
+        let response: any;
+        
+        try {
+            response = await this.getRequest(getRecipeURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the getRecipe. " + error);
+        }
 
         let parsedRecipe = this.parseRecipe(response);
 

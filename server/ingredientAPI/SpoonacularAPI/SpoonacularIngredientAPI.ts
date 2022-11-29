@@ -137,7 +137,13 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         searchParams.set("sourceUnit", oldAmount.unit);
         searchParams.set("ingredientName", ingredientName);
 
-        let response = await this.getRequest(converterBaseURL, searchParams);
+        let response: any;
+
+        try {
+            response = await this.getRequest(converterBaseURL, searchParams);
+        } catch(error) {
+            return Promise.reject("Call was made to convertUnits. " + error);
+        }
 
         if (response === null) {
             return null;
@@ -163,13 +169,19 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * @returns Promise filled with an array of IIngredient objects.
      */
     async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseIngredient> | null> {
-        let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
+        let searchIngredientsBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
-        let searchParams = this.convertGetAllParameters(parameters);
+        let searchParameters = this.convertGetAllParameters(parameters);
 
-        searchParams.append("metaInformation", "true");
+        searchParameters.append("metaInformation", "true");
 
-        let response = await this.getRequest(foodSearchBaseURL, searchParams);
+        let response: any;
+
+        try {
+            response = await this.getRequest(searchIngredientsBaseURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the getAllIngredients. " + error);
+        }
 
         if (response === null) {
             return null;
@@ -313,23 +325,29 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             throw new IncorrectIDFormat("IngredientID has incorrect format.");
         }
 
-        let foodID = Number.parseInt(parameters.get("id"));
+        let ingredientID = Number.parseInt(parameters.get("id"));
         // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
 
-        let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${foodID}/information`;
+        let getIngredientBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${ingredientID}/information`;
 
-        let searchParams = this.convertGetParameters(parameters);
+        let searchParameters = this.convertGetParameters(parameters);
 
-        let response = await this.getRequest(foodGetInfoBaseURL, searchParams);
+        let response: any;
+
+        try {
+            response = await this.getRequest(getIngredientBaseURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the getIngredient. " + error);
+        }
 
         if (response == null) {
             return Promise.resolve(null);
         }
 
-        let parsedFood = await this.parseIngredient(response);
+        let parsedIngredient = await this.parseIngredient(response);
 
-        return parsedFood;
+        return parsedIngredient;
     }
 
     // TODO(#57): Add support for finding food items by UPC

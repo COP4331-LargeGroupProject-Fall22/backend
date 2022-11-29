@@ -274,7 +274,7 @@ export const recipeGetResponse = {
         {
             "id": 10410123,
             "name": "pancetta",
-            "category": "",
+            "category": "Meat",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -595,12 +595,19 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "ounces",
                 "value": 1.5
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/pancetta.png"
+            },
+            "price": {
+                "price": 680.39,
+                "currency": "US Cents"
             }
         },
         {
             "id": 1022027,
             "name": "italian seasoning",
-            "category": "",
+            "category": "Spices and Seasonings",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -921,12 +928,19 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "teaspoon",
                 "value": 0.25
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/dried-herbs.png"
+            },
+            "price": {
+                "price": 9.64,
+                "currency": "US Cents"
             }
         },
         {
             "id": 1032009,
             "name": "red pepper flakes",
-            "category": "",
+            "category": "Spices and Seasonings",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -1247,12 +1261,19 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "teaspoon",
                 "value": 0.13
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/red-pepper-flakes.jpg"
+            },
+            "price": {
+                "price": 5.18,
+                "currency": "US Cents"
             }
         },
         {
             "id": 11215,
             "name": "garlic",
-            "category": "",
+            "category": "Produce",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -1565,12 +1586,19 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "cloves",
                 "value": 0.75
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/garlic.png"
+            },
+            "price": {
+                "price": 20,
+                "currency": "US Cents"
             }
         },
         {
             "id": 6172,
             "name": "chicken stock",
-            "category": "",
+            "category": "Canned and Jarred",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -1867,12 +1895,19 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "cups",
                 "value": 0.5
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/chicken-broth.png"
+            },
+            "price": {
+                "price": 154.29,
+                "currency": "US Cents"
             }
         },
         {
             "id": 1033,
             "name": "parmesan cheese",
-            "category": "",
+            "category": "Cheese",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -2185,12 +2220,19 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "ounces",
                 "value": 0.5
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/parmesan.jpg"
+            },
+            "price": {
+                "price": 119.47,
+                "currency": "US Cents"
             }
         },
         {
             "id": 2044,
             "name": "fresh basil",
-            "category": "",
+            "category": "Produce",
             "nutrients": [
                 {
                     "name": "Vitamin B12",
@@ -2503,6 +2545,13 @@ export const recipeGetResponse = {
             "quantity": {
                 "unit": "cup",
                 "value": 0.25
+            },
+            "image": {
+                "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/fresh-basil.jpg"
+            },
+            "price": {
+                "price": 94.29,
+                "currency": "US Cents"
             }
         }
     ],
@@ -2512,7 +2561,7 @@ export const recipeGetResponse = {
             {
                 "id": 10410123,
                 "name": "pancetta",
-                "category": "",
+                "category": "Meat",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -2833,12 +2882,19 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "ounces",
                     "value": 1.5
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/pancetta.png"
+                },
+                "price": {
+                    "price": 680.39,
+                    "currency": "US Cents"
                 }
             },
             {
                 "id": 1022027,
                 "name": "italian seasoning",
-                "category": "",
+                "category": "Spices and Seasonings",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -3159,12 +3215,19 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "teaspoon",
                     "value": 0.25
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/dried-herbs.png"
+                },
+                "price": {
+                    "price": 9.64,
+                    "currency": "US Cents"
                 }
             },
             {
                 "id": 1032009,
                 "name": "red pepper flakes",
-                "category": "",
+                "category": "Spices and Seasonings",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -3485,12 +3548,19 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "teaspoon",
                     "value": 0.13
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/red-pepper-flakes.jpg"
+                },
+                "price": {
+                    "price": 5.18,
+                    "currency": "US Cents"
                 }
             },
             {
                 "id": 11215,
                 "name": "garlic",
-                "category": "",
+                "category": "Produce",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -3803,12 +3873,19 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "cloves",
                     "value": 0.75
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/garlic.png"
+                },
+                "price": {
+                    "price": 20,
+                    "currency": "US Cents"
                 }
             },
             {
                 "id": 6172,
                 "name": "chicken stock",
-                "category": "",
+                "category": "Canned and Jarred",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -4105,12 +4182,19 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "cups",
                     "value": 0.5
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/chicken-broth.png"
+                },
+                "price": {
+                    "price": 154.29,
+                    "currency": "US Cents"
                 }
             },
             {
                 "id": 1033,
                 "name": "parmesan cheese",
-                "category": "",
+                "category": "Cheese",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -4423,12 +4507,19 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "ounces",
                     "value": 0.5
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/parmesan.jpg"
+                },
+                "price": {
+                    "price": 119.47,
+                    "currency": "US Cents"
                 }
             },
             {
                 "id": 2044,
                 "name": "fresh basil",
-                "category": "",
+                "category": "Produce",
                 "nutrients": [
                     {
                         "name": "Vitamin B12",
@@ -4741,6 +4832,13 @@ export const recipeGetResponse = {
                 "quantity": {
                     "unit": "cup",
                     "value": 0.25
+                },
+                "image": {
+                    "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/fresh-basil.jpg"
+                },
+                "price": {
+                    "price": 94.29,
+                    "currency": "US Cents"
                 }
             }
         ]
@@ -4752,7 +4850,7 @@ export const recipeGetResponse = {
                 {
                     "id": 10410123,
                     "name": "pancetta",
-                    "category": "",
+                    "category": "Meat",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -5073,6 +5171,13 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "ounces",
                         "value": 1.5
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/pancetta.png"
+                    },
+                    "price": {
+                        "price": 680.39,
+                        "currency": "US Cents"
                     }
                 }
             ]
@@ -5083,7 +5188,7 @@ export const recipeGetResponse = {
                 {
                     "id": 10410123,
                     "name": "pancetta",
-                    "category": "",
+                    "category": "Meat",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -5404,6 +5509,13 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "ounces",
                         "value": 1.5
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/pancetta.png"
+                    },
+                    "price": {
+                        "price": 680.39,
+                        "currency": "US Cents"
                     }
                 }
             ]
@@ -5414,7 +5526,7 @@ export const recipeGetResponse = {
                 {
                     "id": 1022027,
                     "name": "italian seasoning",
-                    "category": "",
+                    "category": "Spices and Seasonings",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -5735,12 +5847,19 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "teaspoon",
                         "value": 0.25
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/dried-herbs.png"
+                    },
+                    "price": {
+                        "price": 9.64,
+                        "currency": "US Cents"
                     }
                 },
                 {
                     "id": 1032009,
                     "name": "red pepper flakes",
-                    "category": "",
+                    "category": "Spices and Seasonings",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -6061,6 +6180,13 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "teaspoon",
                         "value": 0.13
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/red-pepper-flakes.jpg"
+                    },
+                    "price": {
+                        "price": 5.18,
+                        "currency": "US Cents"
                     }
                 }
             ]
@@ -6071,7 +6197,7 @@ export const recipeGetResponse = {
                 {
                     "id": 11215,
                     "name": "garlic",
-                    "category": "",
+                    "category": "Produce",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -6384,6 +6510,13 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "cloves",
                         "value": 0.75
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/garlic.png"
+                    },
+                    "price": {
+                        "price": 20,
+                        "currency": "US Cents"
                     }
                 }
             ]
@@ -6398,7 +6531,7 @@ export const recipeGetResponse = {
                 {
                     "id": 6172,
                     "name": "chicken stock",
-                    "category": "",
+                    "category": "Canned and Jarred",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -6695,6 +6828,13 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "cups",
                         "value": 0.5
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/chicken-broth.png"
+                    },
+                    "price": {
+                        "price": 154.29,
+                        "currency": "US Cents"
                     }
                 }
             ]
@@ -6709,7 +6849,7 @@ export const recipeGetResponse = {
                 {
                     "id": 10410123,
                     "name": "pancetta",
-                    "category": "",
+                    "category": "Meat",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -7030,12 +7170,19 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "ounces",
                         "value": 1.5
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/pancetta.png"
+                    },
+                    "price": {
+                        "price": 680.39,
+                        "currency": "US Cents"
                     }
                 },
                 {
                     "id": 1033,
                     "name": "parmesan cheese",
-                    "category": "",
+                    "category": "Cheese",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -7348,12 +7495,19 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "ounces",
                         "value": 0.5
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/parmesan.jpg"
+                    },
+                    "price": {
+                        "price": 119.47,
+                        "currency": "US Cents"
                     }
                 },
                 {
                     "id": 2044,
                     "name": "fresh basil",
-                    "category": "",
+                    "category": "Produce",
                     "nutrients": [
                         {
                             "name": "Vitamin B12",
@@ -7666,6 +7820,13 @@ export const recipeGetResponse = {
                     "quantity": {
                         "unit": "cup",
                         "value": 0.25
+                    },
+                    "image": {
+                        "srcUrl": "https://spoonacular.com/cdn/ingredients_250x250/fresh-basil.jpg"
+                    },
+                    "price": {
+                        "price": 94.29,
+                        "currency": "US Cents"
                     }
                 }
             ]

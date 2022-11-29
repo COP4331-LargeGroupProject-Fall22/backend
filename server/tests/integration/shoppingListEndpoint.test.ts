@@ -54,31 +54,40 @@ jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
 
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import IUnit from '../../serverAPI/model/internal/unit/IUnit';
 import IShoppingIngredient from '../../serverAPI/model/internal/ingredient/IShoppingIngredient';
 import AddRequestSchema from '../../serverAPI/model/external/requests/shoppingList/AddRequest';
 import ImageSchema from '../../serverAPI/model/internal/image/ImageSchema';
+import PriceSchema from '../../serverAPI/model/internal/money/PriceSchema';
+
+import { ingredientGetApiResponse } from './responses/ingredients/ingredientGetApiResponse';
 
 let mockAxios = new MockAdapter(axios);
 
 let mockItemID: string;
 
 let converterBaseUrl = process.env.SPOONACULAR_CONVERTER_BASE_URL;
+let getIngredientBaseUrl: string;
 
-let mockQuantity: IUnit;
-let mockIngredient: IShoppingIngredient;
+let mockQuantity: any;
+let mockAddIngredientRequest: any;
 
 beforeAll(async () => {
-    mockQuantity = new UnitSchema(unitConverterApiResponse.targetUnit, unitConverterApiResponse.targetAmount);
+    mockQuantity = {
+        unit: unitConverterApiResponse.targetUnit, 
+        value: unitConverterApiResponse.targetAmount
+    };
 
-    mockIngredient = new AddRequestSchema(
-        1117,
-        "TestIngredient",
-        "TestCategory",
-        ["kg", "g"],
-        new UnitSchema(unitConverterApiResponse.targetUnit, unitConverterApiResponse.targetAmount),
-        new ImageSchema('google.com')
-    );
+    mockAddIngredientRequest = {
+        id: 1117,
+        name: "TestIngredient",
+        category: "TestCategory",
+        quantityUnits: ["kg", "g"],
+        quantity: new UnitSchema(unitConverterApiResponse.targetUnit, unitConverterApiResponse.targetAmount),
+        imageUrl: 'google.com',
+        price: 13.21
+    };
+
+    getIngredientBaseUrl = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${mockAddIngredientRequest.id}/information`;
 
     await UserDatabase.getInstance()?.Create(mockVerifiedUser);
 });
@@ -88,7 +97,7 @@ describe(`Shopping list`, () => {
         it('Add ingredient (correct ingredient information)', async () => {
             let response = await supertest(app)
                 .post(`/user/shopping-list`)
-                .send(mockIngredient);
+                .send(mockAddIngredientRequest);
 
             mockItemID = response.body[0].itemID;
             expect(response.statusCode).toBe(ResponseCodes.CREATED);
@@ -116,6 +125,7 @@ describe(`Shopping list`, () => {
     describe('Update responses', () => {
         it('Update ingredient', async () => {
             mockAxios.onGet(converterBaseUrl).reply(ResponseCodes.OK, unitConverterApiResponse);
+            mockAxios.onGet(getIngredientBaseUrl).reply(ResponseCodes.OK, ingredientGetApiResponse);
 
             let response = await supertest(app)
                 .put(`/user/shopping-list/${mockItemID}`)
