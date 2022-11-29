@@ -57,11 +57,9 @@ export default class InventoryController extends BaseIngredientController {
         return this.verifySchema(request, res);
     }
 
-    protected sortByExpirationDate(collection: IInventoryIngredient[], isReverse: boolean): any {
+    protected sortByExpirationDate(collection: IInventoryIngredient[], isReverse: boolean): [string, IInventoryIngredient[]][] {
         let itemsWithExpirationDate: IInventoryIngredient[] = [];
         let itemsWithoutExpirationDate: IInventoryIngredient[] = [];
-
-        let items: [string, IInventoryIngredient[]][] = [];
 
         collection.forEach(item => {
             if (item.expirationDate) {
@@ -80,10 +78,7 @@ export default class InventoryController extends BaseIngredientController {
             itemsWithExpirationDate.reverse();
         }
 
-        items.push(["itemsWithExpirationDate", itemsWithExpirationDate]);
-        items.push(["itemsWithoutExpirationDate", itemsWithoutExpirationDate]);
-
-        return items;
+        return Array.from([["itemsWithExpirationDate", itemsWithExpirationDate], ["itemsWithoutExpirationDate", itemsWithoutExpirationDate]]);
     }
 
     /**

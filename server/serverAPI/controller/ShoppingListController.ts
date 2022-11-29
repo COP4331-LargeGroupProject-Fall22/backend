@@ -29,12 +29,10 @@ export default class ShoppingListController extends BaseIngredientController {
         this.foodAPI = foodAPI;
     }
 
-    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): any {
+    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): [string, [string, IShoppingIngredient[]][]][] {
         let recipeMap = new Map<string, IShoppingIngredient[]>();
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
-
-        let items: [string, [string, IShoppingIngredient[]][] | IShoppingIngredient[]][] = [];
 
         /**
          * Divide collection on 2 collections.
@@ -69,19 +67,15 @@ export default class ShoppingListController extends BaseIngredientController {
             itemsWithoutRecipeID.reverse();
         }
 
-
-        items.push(["itemsWithRecipeID", recipes]);
-        items.push(["itemsWithoutRecipeID", itemsWithoutRecipeID]);
-        
-        return items;
+        return Array.from([["itemsWithRecipeID", recipes], ["itemsWithoutRecipeID", [["N/A", itemsWithoutRecipeID]]]]);
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
         let id: number;
-        
+
         try {
             id = Number.parseInt(req.body?.id);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer."));
         }
 
@@ -89,7 +83,7 @@ export default class ShoppingListController extends BaseIngredientController {
 
         try {
             price = Number.parseFloat(req.body?.price);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Price should be a positive float"));
         }
 
@@ -97,8 +91,18 @@ export default class ShoppingListController extends BaseIngredientController {
 
         try {
             value = Number.parseFloat(req.body?.value);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
+        }
+
+        let recipeID: number | undefined = undefined;
+
+        if (req.body?.recipeID !== undefined) {
+            try {
+                recipeID = Number.parseInt(req.body?.recipeID);
+            } catch (error) {
+                return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "RecipeID should be a positive integer or undefined."));
+            }
         }
 
         let request = new AddRequestSchema(
@@ -109,7 +113,8 @@ export default class ShoppingListController extends BaseIngredientController {
             new UnitSchema(req.body?.quantity?.unit, value),
             new ImageSchema(req.body?.image?.srcUrl),
             new PriceSchema(price, "US Cents"),
-            req.body?.recipeID === undefined ? null : req.body?.recipeID
+            recipeID,
+            req.body?.recipeName === undefined ? null : req.body?.recipeName
         );
 
         request.itemID = new ObjectID().toHexString();
@@ -122,7 +127,7 @@ export default class ShoppingListController extends BaseIngredientController {
 
         try {
             value = Number.parseFloat(req.body?.value);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
         }
 
@@ -172,13 +177,13 @@ export default class ShoppingListController extends BaseIngredientController {
         return this.send(ResponseCodes.OK, res, responseData);
     }
 
-    private isEqual(src: IShoppingIngredient, target: IShoppingIngredient): boolean {
-        return src.id === target.id && src.recipeID === target.recipeID;
+    private isEqual(src: IShoppingIngredient, target: AddRequestSchema): boolean {
+        return src.id === target.id && src.recipeID === target.recipeID && src.recipeName === target.recipeName;
     }
 
     private getDuplicateShoppingItem(
         shoppingList: IShoppingIngredient[],
-        ingredientItem: IShoppingIngredient
+        ingredientItem: AddRequestSchema
     ): IShoppingIngredient | null {
         for (let i = 0; i < shoppingList.length; i++) {
             if (this.isEqual(shoppingList[i], ingredientItem)) {
@@ -213,7 +218,7 @@ export default class ShoppingListController extends BaseIngredientController {
         if (duplicateItem !== null) {
             for (let i = 0; i < user.shoppingList.length; i++) {
                 if (this.isEqual(user.shoppingList[i], parsedRequest)) {
-                    if (parsedRequest.recipeID !== null) {
+                    if (parsedRequest.recipeID !== null || parsedRequest.recipeName !== null) {
                         return this.send(
                             ResponseCodes.BAD_REQUEST,
                             res,

@@ -3,7 +3,7 @@ import IBaseIngredient from "../../model/internal/ingredient/IBaseIngredient";
 import BaseUserController from "./BaseUserController";
 
 export default class BaseIngredientController extends BaseUserController {
-    protected sortByCategory<T extends IBaseIngredient>(collection: T[], isReverse: boolean): any {
+    protected sortByCategory<T extends IBaseIngredient>(collection: T[], isReverse: boolean): [string, T[]][] {
         let itemMap = new Map<string, T[]>();
 
         // Divides collection on map where K,V => Category,T[]
@@ -30,9 +30,7 @@ export default class BaseIngredientController extends BaseUserController {
         return items;
     }
 
-    protected sortByLexicographicalOrder<T extends IBaseIngredient>(collection: T[], isReverse: boolean): any {
-        let items: [string, T[]][] = [];
-
+    protected sortByLexicographicalOrder<T extends IBaseIngredient>(collection: T[], isReverse: boolean): [string, T[]][] {
         let key = "A-Z";
 
         collection.sort((a, b) => a.name.localeCompare(b.name));
@@ -42,8 +40,6 @@ export default class BaseIngredientController extends BaseUserController {
             key = "Z-A";
         }
 
-        items.push([key, collection]);
-
-        return items;
+        return Array.from([[key, collection]]);
     }
 }

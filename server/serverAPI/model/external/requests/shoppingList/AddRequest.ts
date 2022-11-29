@@ -18,6 +18,8 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
 
     recipeID?: number;
 
+    recipeName?: string;
+
     price?: IPrice;
     
     constructor(
@@ -28,13 +30,15 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
         quantity: IUnit,
         image: IImage,
         price: IPrice,
-        recipeID?: number
+        recipeID?: number,
+        recipeName?: string
     ) {
         super(id, name, category, image);
         
         this.quantityUnits = quantityUnits;
         this.quantity = quantity;
         this.recipeID = recipeID;
+        this.recipeName = recipeName;
         this.price = price;
     }
 }
