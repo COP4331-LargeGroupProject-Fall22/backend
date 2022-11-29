@@ -45,7 +45,7 @@ export default class InventoryController extends BaseIngredientController {
         }
 
         console.log(req.body);
-        
+
         let request = new AddRequestSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
@@ -53,6 +53,8 @@ export default class InventoryController extends BaseIngredientController {
             new ImageSchema(req.body?.image?.srcUrl),
             expirationDate
         );
+
+        console.log(request);
 
         return this.verifySchema(request, res);
     }
