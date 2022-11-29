@@ -29,7 +29,7 @@ export default class FreeImageHostAPI implements IImageAPI {
                 srcUrl: response.data.image.file.resource.chain.image
             };
         }).catch((error) => {
-            return Promise.reject(error);
+            return Promise.reject("Call was made to the getImage. " + error.message);
         });
     }
 }

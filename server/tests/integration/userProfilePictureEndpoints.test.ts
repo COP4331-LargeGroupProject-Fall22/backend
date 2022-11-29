@@ -52,69 +52,63 @@ jest.mock('../../serverAPI/middleware/authentication/JWTAuthenticator', () => {
     }
 });
 
-import { priceBreakdownApiResponse } from './responses/recipes/priceBreakdownApiResponse';
-
-import { recipeGetApiResponse } from './responses/recipes/recipeGetApiResponse';
-import { recipeGetResponse } from './responses/recipes/recipeGetResponse';
+import { profileImage } from './responses/image/profileImage';
 
 let mockAxios = new MockAdapter(axios);
 
-let getUrl: string;
-let priceWidgetUrl: string;
+let postUrl: string;
 
-let mockAddRecipeRequest: any;
+let mockAddProfileImageRequest: any;
 
 beforeAll(async () => {
-    mockAddRecipeRequest = {
-        id: recipeGetResponse.id,
-        name: recipeGetResponse.name,
-        imageUrl: recipeGetResponse.image.srcUrl,
-        ingredients: recipeGetResponse.ingredients
+    mockAddProfileImageRequest = {
+        imgAsBase64: profileImage
     };
 
-    getUrl = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${mockAddRecipeRequest.id}/information`
-    priceWidgetUrl = `${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_BASE_URL}/${mockAddRecipeRequest.id}/${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_WIDGET}`;
+    postUrl = process.env.FREE_IMAGE_HOST_BASE_URL!;
 
     await UserDatabase.getInstance()?.Create(mockVerifiedUser);
 });
 
-describe(`Favorite Recipes`, () => {
-    describe('Add responses', () => {
-        it('Add favorite recipe', async () => {
+describe(`Profile Picture`, () => {
+    describe('Add profile picture', () => {
+        it('Add responses', async () => {
+            mockAxios.onPost(postUrl).reply(ResponseCodes.OK,
+                {
+                    image: {
+                        file: {
+                            resource: {
+                                chain: {
+                                    image: 'google.com'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
             let response = await supertest(app)
-                .post('/user/favorite-recipes')
-                .send(mockAddRecipeRequest);
-            
+                .post('/user/profile-picture')
+                .send(mockAddProfileImageRequest);
+
             expect(response.statusCode).toBe(ResponseCodes.CREATED);
         });
     });
 
-    describe('GetAll responses', () => {
-        it('Get favorite recipes', async () => {
-            let response = await supertest(app)
-                .get(`/user/favorite-recipes`);
-
-            expect(response.statusCode).toBe(ResponseCodes.OK);
-        });
-    });
-
     describe('Get responses', () => {
-        it('Get favorite recipe item', async () => {
-            mockAxios.onGet(getUrl).reply(ResponseCodes.OK, recipeGetApiResponse);
-            mockAxios.onGet(priceWidgetUrl).reply(ResponseCodes.OK, priceBreakdownApiResponse);
-
+        it('Get profile picture', async () => {
             let response = await supertest(app)
-                .get(`/user/favorite-recipes/${mockAddRecipeRequest.id}`);
-            
+                .get(`/user/profile-picture`);
+
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });
 
     describe('Delete responses', () => {
-        it('Delete inventory item', async () => {
+        it('Delete profile picture', async () => {
             let response = await supertest(app)
-                .delete(`/user/favorite-recipes/${mockAddRecipeRequest.id}`);
-            
+                .delete(`/user/profile-picture`);
+
             expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });

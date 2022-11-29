@@ -85,13 +85,13 @@ export default class AuthenticationController extends BaseUserController {
         return this.verifySchema(request, res);
     }
 
-    protected async parseSendCodeRequest(req: Request, res: Response): Promise<SendCodeRequestSchema> {
+    protected parseSendCodeRequest(req: Request, res: Response): Promise<SendCodeRequestSchema> {
         let request = new SendCodeRequestSchema(req.body?.username);
 
         return this.verifySchema(request, res);
     }
 
-    protected async parseRefreshJWTRequest(req: Request, res: Response): Promise<RefreshJWTRequestSchema> {
+    protected parseRefreshJWTRequest(req: Request, res: Response): Promise<RefreshJWTRequestSchema> {
         let request = new RefreshJWTRequestSchema(req.body?.refreshToken);
 
         return this.verifySchema(request, res);
@@ -153,8 +153,13 @@ export default class AuthenticationController extends BaseUserController {
         }
 
         user.lastSeen = Date.now();
-        await this.requestUpdate(user.username, user, res);
-        
+
+        try {
+            await this.requestUpdate(user.username, user, res);
+        } catch (response) {
+            return response;
+        }
+
         return this.send(ResponseCodes.OK, res, token);
     }
 
@@ -251,7 +256,7 @@ export default class AuthenticationController extends BaseUserController {
             // Each verification code created will self-destruct after specified time
             setTimeout(() => {
                 AuthenticationController.verificationCodesMap.delete(parsedRequest.username);
-            }, this.verificationCodeLifetimeInMilliseconds);
+            }, this.verificationCodeLifetimeInMilliseconds).unref();
         }
 
         // After all procedure on verificationCodeInfo, we update our data structure with changed info

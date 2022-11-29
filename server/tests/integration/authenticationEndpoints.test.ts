@@ -4,8 +4,6 @@ dotenv.config();
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
 
-import IUser from '../../serverAPI/model/internal/user/IUser';
-
 import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
 
 import UserDatabase from '../../database/UserDatabase';

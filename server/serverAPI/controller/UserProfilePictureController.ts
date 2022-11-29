@@ -60,7 +60,7 @@ export default class UserProfilePictureController extends BaseUserController {
         try {
             parsedRequest = await this.parseAddRequest(req, res);
         } catch(response) {
-            return this.send(ResponseCodes.BAD_REQUEST, res, "Image provided is not in the base64 format.");
+            return response;
         }
 
         let user: IUser;
@@ -83,7 +83,7 @@ export default class UserProfilePictureController extends BaseUserController {
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
 
-        return this.send(ResponseCodes.OK, res, updatedUser.profilePicture);
+        return this.send(ResponseCodes.CREATED, res, updatedUser.profilePicture);
     }
 
     /**
