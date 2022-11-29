@@ -44,6 +44,8 @@ export default class InventoryController extends BaseIngredientController {
             expirationDate = null;
         }
 
+        console.log(req.body);
+        
         let request = new AddRequestSchema(
             Number.parseInt(req.body?.id),
             req.body?.name,
