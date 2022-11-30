@@ -149,6 +149,8 @@ export default class ShoppingListController extends BaseIngredientController {
         } catch(error) {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "DateAdded should be an integer."));
         }
+        
+        console.log(dateAdded);
 
         let request = new AddRequestSchema(
             id,
