@@ -73,7 +73,12 @@ export default class FavoriteRecipeController extends BaseUserController {
             return response;
         }
 
-        let parsedRequest = await this.parseAddRequest(req, res);
+        let parsedRequest: AddRequestSchema;
+        try {
+            parsedRequest = await this.parseAddRequest(req, res);
+        } catch (response) {
+            return response;
+        }
 
         let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe<IBaseIngredient>) => recipeItem.id === parsedRequest.id);
 

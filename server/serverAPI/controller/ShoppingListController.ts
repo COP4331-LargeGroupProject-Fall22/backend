@@ -29,7 +29,7 @@ export default class ShoppingListController extends BaseIngredientController {
     }
 
     protected sortByDate(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
-        // Sorts from earliest to latest expiration date
+        // Sorts from earliest to latest date
         let items = collection.sort((a, b) => Number(a.dateAdded) - Number(b.dateAdded));
 
         let key = "Added first";

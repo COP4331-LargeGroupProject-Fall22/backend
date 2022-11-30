@@ -126,8 +126,13 @@ export default class InventoryController extends BaseIngredientController {
             return response;
         }
 
-        let parsedRequest = await this.parseAddRequest(req, res);
-
+        let parsedRequest: AddRequestSchema;
+        try {
+            parsedRequest = await this.parseAddRequest(req, res);
+        } catch(response) {
+            return response;
+        }
+        
         let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === parsedRequest.id);
 
         if (duplicateingredient !== undefined) {
