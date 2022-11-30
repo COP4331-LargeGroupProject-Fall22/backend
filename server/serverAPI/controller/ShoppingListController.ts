@@ -91,6 +91,9 @@ export default class ShoppingListController extends BaseIngredientController {
         let recipeIdExist = req.body?.recipeID !== undefined;
         let recipeNameExist = req.body?.recipeName !== undefined;
 
+        let recipeId: null | number = req.body?.recipeID !== undefined ? Number(req.body?.dateAdded) : null;
+        let recipeName: null | string = req.body?.recipeName !== undefined ? req.body?.recipeName : null;
+
         if (recipeIdExist !== recipeNameExist && !recipeIdExist !== !recipeNameExist) {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Both recipeID and recipeName should be provided"));
         }
@@ -104,8 +107,8 @@ export default class ShoppingListController extends BaseIngredientController {
             new ImageSchema(req.body?.image?.srcUrl),
             new PriceSchema(Number(req.body?.price), "US Cents"),
             Number(req.body?.dateAdded),
-            Number(req.body?.recipeID),
-            req.body?.recipeName
+            recipeId,
+            recipeName
         );
 
         request.itemID = new ObjectID().toHexString();

@@ -17,9 +17,11 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
     @IsArray()
     quantityUnits: string[];
 
-    recipeID?: number;
+    @IsType(['null', 'positiveInt'])
+    recipeID: number | null;
 
-    recipeName?: string;
+    @IsType(['null', 'string'])
+    recipeName: string | null;
 
     @ValidateNested()
     price: IPrice;
@@ -36,8 +38,8 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
         image: IImage,
         price: IPrice,
         dateAdded: number,
-        recipeID?: number,
-        recipeName?: string
+        recipeID: number | null,
+        recipeName: string | null
     ) {
         super(id, name, category, image);
         

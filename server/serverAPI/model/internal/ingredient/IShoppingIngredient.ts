@@ -10,8 +10,8 @@ export default interface IShoppingIngredient extends IBaseIngredient, IIngredien
     itemID?: string;
 
     // Unique recipe identifier.
-    recipeID?: number;
-    recipeName?: string;
+    recipeID: number | null;
+    recipeName: string | null;
 
     dateAdded: number;
 }

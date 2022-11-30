@@ -22,18 +22,18 @@ export default class InventoryController extends BaseIngredientController {
     }
 
     private async parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
-        let request = new UpdateRequestSchema(Number(req.body?.expirationDate));
+        let expirationDate: null | number = req.body?.expirationDate !== undefined ?
+            Number(req.body?.expirationDate) : null;
+
+        let request = new UpdateRequestSchema(expirationDate);
 
         return this.verifySchema(request, res);
     }
 
     private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
-        let expirationDate: null | number = null;
+        let expirationDate: null | number = req.body?.expirationDate !== undefined ?
+            Number(req.body?.expirationDate) : null;
 
-        if (req.body?.expirationDate !== undefined) {
-            expirationDate = Number(req.body?.expirationDate);
-        }  
-        
         let request = new AddRequestSchema(
             Number(req.body?.id),
             req.body?.name,
@@ -100,17 +100,17 @@ export default class InventoryController extends BaseIngredientController {
 
         let responseData: any = this.convertResponse(user.inventory);
 
-            if (sortByExpirationDate) {
-                responseData = this.sortByExpirationDate(user.inventory, isReverse);    
-            }
+        if (sortByExpirationDate) {
+            responseData = this.sortByExpirationDate(user.inventory, isReverse);
+        }
 
-            if (sortByCategory) {
-                responseData = this.sortByCategory(user.inventory, isReverse);    
-            }
+        if (sortByCategory) {
+            responseData = this.sortByCategory(user.inventory, isReverse);
+        }
 
-            if (sortByLexicographicalOrder) {
-                responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
-            }
+        if (sortByLexicographicalOrder) {
+            responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);
+        }
 
         return this.send(ResponseCodes.OK, res, responseData);
     }
@@ -135,7 +135,7 @@ export default class InventoryController extends BaseIngredientController {
         let parsedRequest: AddRequestSchema;
         try {
             parsedRequest = await this.parseAddRequest(req, res);
-        } catch(response) {
+        } catch (response) {
             return response;
         }
 
