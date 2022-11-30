@@ -29,8 +29,35 @@ export default class ShoppingListController extends BaseIngredientController {
         this.foodAPI = foodAPI;
     }
 
-    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): [string, [string, IShoppingIngredient[]][]][] {
-        let recipeMap = new Map<string, IShoppingIngredient[]>();
+    protected sortByDate(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
+        let dateMap = new Map<string, IShoppingIngredient[]>();
+
+        collection.forEach(ingredient => {
+            let dateAsString = ingredient.dateAdded.toString();
+
+            if (!dateMap.has(dateAsString)) {
+                dateMap.set(dateAsString, []);
+            }
+
+            dateMap.get(dateAsString)?.push(ingredient);
+        });
+
+        // Sorts from earliest to latest expiration date
+        let items = Array.from(dateMap.entries()).sort((a, b) => Number.parseInt(a[0]) - Number.parseInt(b[0]));
+
+         // Sorts each collection related to category in lexicographical order
+        items.forEach(item => item[1].sort((a, b) => a.name.localeCompare(b.name)));
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return items;
+    }
+
+    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
+        let recipeMapById = new Map<string, IShoppingIngredient[]>();
+        let recipeIdToNameMap = new Map<string, string>();
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
 
@@ -41,33 +68,36 @@ export default class ShoppingListController extends BaseIngredientController {
         */
         collection.forEach(item => {
             if (item.recipeID) {
-                if (!recipeMap.has(item.recipeID.toString())) {
-                    recipeMap.set(item.recipeID.toString(), []);
+                let recipeIdAsString = item.recipeID.toString();
+
+                if (!recipeMapById.has(recipeIdAsString)) {
+                    recipeMapById.set(recipeIdAsString, []);
+                    recipeIdToNameMap.set(recipeIdAsString, item.recipeName!);
                 }
 
-                recipeMap.get(item.recipeID.toString())?.push(item);
+                recipeMapById.get(item.recipeID.toString())?.push(item);
             } else {
                 itemsWithoutRecipeID.push(item);
             }
         });
 
-        // Converts map to Array and sorts it by recipe id
-        let recipes = Array.from(recipeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
-        // Sorts each collection attached to recipeID in lexicographical order
-        recipes.forEach(recipe => {
-            recipe[1].sort((a, b) => a.name.localeCompare(b.name))
-        });
+        let items: [string, IShoppingIngredient[]][] = [];
+
+        // Converts map to Array
+        recipeMapById.forEach((value, key) => items.push([recipeIdToNameMap.get(key)!, value]));
 
         // Sorts collection of ingredients without recipe id in lexicographical order
+        items.forEach(recipe => recipe[1].sort((a, b) => a.name.localeCompare(b.name)));
         itemsWithoutRecipeID.sort((a, b) => a.name.localeCompare(b.name));
 
+        items.push(["N/A", itemsWithoutRecipeID]);
+
         if (isReverse) {
-            recipes.reverse();
-            itemsWithoutRecipeID.reverse();
+            items.reverse();
         }
 
-        return Array.from([["itemsWithRecipeID", recipes], ["itemsWithoutRecipeID", [["N/A", itemsWithoutRecipeID]]]]);
+        return items;
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
@@ -95,6 +125,13 @@ export default class ShoppingListController extends BaseIngredientController {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
         }
 
+        let recipeIdExist = req.body?.recipeID !== undefined;
+        let recipeNameExist = req.body?.recipeName !== undefined;
+
+        if (recipeIdExist !== recipeNameExist && !recipeIdExist !== !recipeNameExist) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Both recipeID and recipeName should be provided"));
+        }
+
         let recipeID: number | undefined = undefined;
 
         if (req.body?.recipeID !== undefined) {
@@ -105,6 +142,14 @@ export default class ShoppingListController extends BaseIngredientController {
             }
         }
 
+        let dateAdded: number;
+
+        try {
+            dateAdded = Number.parseInt(req.body?.dateAdded);
+        } catch(error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "DateAdded should be an integer."));
+        }
+
         let request = new AddRequestSchema(
             id,
             req.body?.name,
@@ -113,6 +158,7 @@ export default class ShoppingListController extends BaseIngredientController {
             new UnitSchema(req.body?.quantity?.unit, value),
             new ImageSchema(req.body?.image?.srcUrl),
             new PriceSchema(price, "US Cents"),
+            dateAdded,
             recipeID,
             req.body?.recipeName === undefined ? null : req.body?.recipeName
         );

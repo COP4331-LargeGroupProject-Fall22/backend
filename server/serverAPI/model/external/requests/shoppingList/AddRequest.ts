@@ -6,6 +6,7 @@ import IShoppingIngredient from "../../../internal/ingredient/IShoppingIngredien
 import IPrice from "../../../internal/money/IPrice";
 
 import BaseIngredientSchema from "../../../internal/ingredient/BaseIngredientSchema";
+import IsType from "../../../../../utils/ClassValidator";
 
 export default class AddRequestSchema extends BaseIngredientSchema implements IShoppingIngredient {
     itemID?: string;
@@ -21,6 +22,9 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
     recipeName?: string;
 
     price?: IPrice;
+
+    @IsType(['positiveInt'])
+    dateAdded: number;
     
     constructor(
         id: number,
@@ -30,6 +34,7 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
         quantity: IUnit,
         image: IImage,
         price: IPrice,
+        dateAdded: number,
         recipeID?: number,
         recipeName?: string
     ) {
@@ -38,6 +43,7 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
         this.quantityUnits = quantityUnits;
         this.quantity = quantity;
         this.recipeID = recipeID;
+        this.dateAdded = dateAdded;
         this.recipeName = recipeName;
         this.price = price;
     }
