@@ -29,29 +29,18 @@ export default class ShoppingListController extends BaseIngredientController {
     }
 
     protected sortByDate(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
-        let dateMap = new Map<string, IShoppingIngredient[]>();
-
-        collection.forEach(ingredient => {
-            let dateAsString = ingredient.dateAdded.toString();
-
-            if (!dateMap.has(dateAsString)) {
-                dateMap.set(dateAsString, []);
-            }
-
-            dateMap.get(dateAsString)?.push(ingredient);
-        });
-
         // Sorts from earliest to latest expiration date
-        let items = Array.from(dateMap.entries()).sort((a, b) => Number(a[0]) - Number(b[0]));
+        let items = collection.sort((a, b) => Number(a.dateAdded) - Number(b.dateAdded));
 
-         // Sorts each collection related to category in lexicographical order
-        items.forEach(item => item[1].sort((a, b) => a.name.localeCompare(b.name)));
+        let key = "Added first";
 
         if (isReverse) {
+            key = "Added most recently";
+
             items.reverse();
         }
 
-        return items;
+        return Array.from([[key, items]]);
     }
 
     protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
