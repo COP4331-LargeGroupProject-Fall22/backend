@@ -19,17 +19,9 @@ export default class AllergenController extends BaseIngredientController {
         super(database);
     }
 
-    protected parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
-        let id: number;
-
-        try {
-            id = Number.parseInt(req.body?.id); 
-        } catch(error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer"));
-        }
-
+    protected async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
         let request = new AddRequestSchema(
-            id,
+            Number(req.body?.id),
             req.body?.name,
             req.body?.category,
             new ImageSchema(req.body?.image?.srcUrl)
@@ -47,6 +39,14 @@ export default class AllergenController extends BaseIngredientController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let sortByCategory = req.query.sortByCategory === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+        
+        let truthyCount = Number(sortByCategory) + Number(sortByLexicographicalOrder);
+        
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
         let user: IUser;

@@ -81,7 +81,6 @@ export default class ShoppingListController extends BaseIngredientController {
             }
         });
 
-
         let items: [string, IShoppingIngredient[]][] = [];
 
         // Converts map to Array
@@ -100,31 +99,7 @@ export default class ShoppingListController extends BaseIngredientController {
         return items;
     }
 
-    private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
-        let id: number;
-
-        try {
-            id = Number.parseInt(req.body?.id);
-        } catch (error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer."));
-        }
-
-        let price: number;
-
-        try {
-            price = Number.parseFloat(req.body?.price);
-        } catch (error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Price should be a positive float"));
-        }
-
-        let value: number;
-
-        try {
-            value = Number.parseFloat(req.body?.value);
-        } catch (error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
-        }
-
+    private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
         let recipeIdExist = req.body?.recipeID !== undefined;
         let recipeNameExist = req.body?.recipeName !== undefined;
 
@@ -132,35 +107,17 @@ export default class ShoppingListController extends BaseIngredientController {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Both recipeID and recipeName should be provided"));
         }
 
-        let recipeID: number | undefined = undefined;
-
-        if (req.body?.recipeID !== undefined) {
-            try {
-                recipeID = Number.parseInt(req.body?.recipeID);
-            } catch (error) {
-                return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "RecipeID should be a positive integer or undefined."));
-            }
-        }
-
-        let dateAdded: number;
-
-        try {
-            dateAdded = Number.parseInt(req.body?.dateAdded);
-        } catch(error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "DateAdded should be an integer."));
-        }
-        
         let request = new AddRequestSchema(
-            id,
+            Number(req.body?.id),
             req.body?.name,
             req.body?.category,
             req.body?.quantityUnits,
-            new UnitSchema(req.body?.quantity?.unit, value),
+            new UnitSchema(req.body?.quantity?.unit, Number(req.body?.value)),
             new ImageSchema(req.body?.image?.srcUrl),
-            new PriceSchema(price, "US Cents"),
-            dateAdded,
-            recipeID,
-            req.body?.recipeName === undefined ? null : req.body?.recipeName
+            new PriceSchema(Number(req.body?.price), "US Cents"),
+            Number(req.body?.dateAdded),
+            Number(req.body?.recipeID),
+            req.body?.recipeName
         );
 
         request.itemID = new ObjectID().toHexString();
@@ -168,19 +125,11 @@ export default class ShoppingListController extends BaseIngredientController {
         return this.verifySchema(request, res);
     }
 
-    private parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
-        let value: number;
-
-        try {
-            value = Number.parseFloat(req.body?.value);
-        } catch (error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be a positive number."));
-        }
-
+    private async parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
         let request = new UpdateRequestSchema(
             new UnitSchema(
                 req.body?.unit,
-                value
+                Number(req.body?.value)
             )
         );
 
@@ -196,6 +145,19 @@ export default class ShoppingListController extends BaseIngredientController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let sortByCategory = req.query.sortByCategory === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+        let sortByRecipe = req.query.sortByRecipe === 'true';
+        let sortByDate = req.query.sortByDate === 'true'; 
+        
+        let truthyCount = 
+            Number(sortByCategory) + Number(sortByLexicographicalOrder) +
+            Number(sortByRecipe) + Number(sortByDate);
+
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
+
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
         let user: IUser;
@@ -208,19 +170,19 @@ export default class ShoppingListController extends BaseIngredientController {
 
         let responseData: any = this.convertResponse(user.shoppingList);
 
-        if (req.query.sortByRecipe === 'true') {
+        if (sortByRecipe) {
             responseData = this.sortByRecipe(user.shoppingList, isReverse);
         }
 
-        if (req.query.sortByCategory === 'true') {
+        if (sortByCategory) {
             responseData = this.sortByCategory(user.shoppingList, isReverse);
         }
 
-        if (req.query.sortByLexicographicalOrder === 'true') {
+        if (sortByLexicographicalOrder) {
             responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
         }
 
-        if (req.query.sortByDate === 'true') {
+        if (sortByDate) {
             responseData = this.sortByDate(user.shoppingList, isReverse);
         }
 
