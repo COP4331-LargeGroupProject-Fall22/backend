@@ -28,12 +28,18 @@ export default class InventoryController extends BaseIngredientController {
     }
 
     private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let expirationDate: null | number = null;
+
+        if (req.body?.expirationDate !== undefined) {
+            expirationDate = Number(req.body?.expirationDate);
+        }  
+        
         let request = new AddRequestSchema(
             Number(req.body?.id),
             req.body?.name,
             req.body?.category,
             new ImageSchema(req.body?.image?.srcUrl),
-            Number(req.body?.expirationDate)
+            expirationDate
         );
 
         return this.verifySchema(request, res);
@@ -132,7 +138,7 @@ export default class InventoryController extends BaseIngredientController {
         } catch(response) {
             return response;
         }
-        
+
         let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === parsedRequest.id);
 
         if (duplicateingredient !== undefined) {
