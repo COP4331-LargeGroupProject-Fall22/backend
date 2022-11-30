@@ -31,23 +31,6 @@ export default class BaseController {
         return data === undefined || data.length === 0;
     }
 
-
-    protected parseInteger(data: string, res: Response, message: string): Promise<number> {
-        try {
-            return Promise.resolve(Number.parseInt(data));
-        } catch (error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, message))
-        }
-    }
-
-    protected parseFloat(data: string, res: Response, message: string): Promise<number> {
-        try {
-            return Promise.resolve(Number.parseFloat(data));
-        } catch (error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, message))
-        }
-    }
-
     protected convertResponse<T extends object>(collection: T[]): [string, T[]][] {
         return Array.from([["unorganized", collection]]);
     }
