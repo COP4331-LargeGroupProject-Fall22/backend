@@ -31,15 +31,26 @@ export default class BaseIngredientController extends BaseUserController {
     }
 
     protected sortByLexicographicalOrder<T extends IBaseIngredient>(collection: T[], isReverse: boolean): [string, T[]][] {
-        let key = "A-Z";
+        let itemMap = new Map<string, T[]>();
 
-        collection.sort((a, b) => a.name.localeCompare(b.name));
+        collection.forEach((item) => {
+            let firstLetter = item.name.charAt(0).toLocaleUpperCase(); 
+            
+            if (!itemMap.has(firstLetter)) {
+                itemMap.set(firstLetter, []);
+            }
+
+            itemMap.get(firstLetter)?.push(item);
+        });
+
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        items.forEach((item) => item[1].sort((a, b) => a.name.localeCompare(b.name)));
         
         if (isReverse) {
-            collection.reverse();
-            key = "Z-A";
+            items.reverse();
         }
 
-        return Array.from([[key, collection]]);
+        return items;
     }
 }
