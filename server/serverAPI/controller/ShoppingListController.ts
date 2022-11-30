@@ -150,8 +150,6 @@ export default class ShoppingListController extends BaseIngredientController {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "DateAdded should be an integer."));
         }
         
-        console.log(dateAdded);
-
         let request = new AddRequestSchema(
             id,
             req.body?.name,
@@ -220,6 +218,10 @@ export default class ShoppingListController extends BaseIngredientController {
 
         if (req.query.sortByLexicographicalOrder === 'true') {
             responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
+        }
+
+        if (req.query.sortByDate === 'true') {
+            responseData = this.sortByDate(user.shoppingList, isReverse);
         }
 
         return this.send(ResponseCodes.OK, res, responseData);
