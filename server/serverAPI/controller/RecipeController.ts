@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
-import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import { ResponseCodes } from "../../utils/ResponseCodes";
-import BaseController from "./BaseController";
+
+import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
+
+import BaseController from "./BaseController/BaseController";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -50,22 +52,15 @@ export default class RecipeController extends BaseController {
         }
 
         if (req.query?.diets !== undefined) {
-            parameters.set("diets", req.query.cusines);
+            parameters.set("diets", req.query.diets);
         }
 
         if (req.query?.mealTypes !== undefined) {
             parameters.set("mealTypes", req.query.mealTypes);
         }
 
-        return this.recipeAPI.GetAll(parameters).then(recipes => {
-            let response: any[] = []
-
-            recipes?.forEach(recipe => {
-                response.push(recipe);
-            });
-
-            return this.send(ResponseCodes.OK, res, response);
-        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+        return this.recipeAPI.GetAll(parameters).then(recipes => this.send(ResponseCodes.OK, res, recipes), 
+        (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
     }
 
     /**

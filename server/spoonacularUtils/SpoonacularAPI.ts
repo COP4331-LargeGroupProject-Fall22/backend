@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import RequestLimitReached from "../exceptions/RequestLimitReached";
 
 export default abstract class SpoonacularAPI {
@@ -46,8 +47,8 @@ export default abstract class SpoonacularAPI {
             this.updateRequestCounters(response.headers);
             
             return response.data;
-        }, () => {
-            return Promise.resolve(null);
+        }, (error) => {
+            return Promise.reject(error.message);
         });
     }
 }

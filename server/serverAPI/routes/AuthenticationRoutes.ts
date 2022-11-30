@@ -3,11 +3,16 @@
  */
 
 import express from 'express';
+
 import AuthenticationController from '../controller/AuthenticationController';
+
 import UserDatabase from '../../database/UserDatabase';
+
 import Encryptor from '../../utils/Encryptor';
 import TokenCreator from '../../utils/TokenCreator';
+
 import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
+
 import SendGridAPI from '../../emailAPI/sendGridAPI/SendGridAPI';
 
 export const authenticationRoute = express.Router();

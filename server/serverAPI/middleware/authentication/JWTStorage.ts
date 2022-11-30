@@ -1,9 +1,9 @@
-import Token from "../../model/token/Token";
+import UserToken from "../../model/internal/userToken/UserToken";
 
 export default class JWTStorage {
     private static instance?: JWTStorage;
 
-    private map: Map<string, Token>;
+    private map: Map<string, UserToken>;
 
     private constructor() {
         this.map = new Map();
@@ -26,7 +26,7 @@ export default class JWTStorage {
         return this.map.has(key);
     }
 
-    getJWT(key: string): Token | undefined {
+    getJWT(key: string): UserToken | undefined {
         return this.map.get(key);
     }
 
@@ -34,7 +34,7 @@ export default class JWTStorage {
         return this.map.delete(key);
     }
 
-    addJWT(key:string, token: Token) {
+    addJWT(key:string, token: UserToken) {
         this.map.set(key, token);
     }
 }

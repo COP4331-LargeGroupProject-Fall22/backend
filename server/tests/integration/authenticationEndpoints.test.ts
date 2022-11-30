@@ -1,19 +1,12 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import UserDatabase from '../../database/UserDatabase';
 import { NextFunction, Request, Response } from 'express';
 import supertest from 'supertest';
 
-let mockUser: IUser = {
-    inventory: [],
-    firstName: 'Mikhail',
-    lastName: 'Plekunov',
-    lastSeen: Date.now(),
-    password: '123',
-    username: 'Mekromic',
-    shoppingCart: []
-};
+import UserSchema from '../../serverAPI/model/internal/user/UserSchema';
+
+import UserDatabase from '../../database/UserDatabase';
 
 jest.mock('../../serverAPI/middleware/logger/Logger', () => {
     return {
@@ -28,98 +21,184 @@ let collectionName = process.env.DB_USERS_COLLECTION!;
 UserDatabase.connect(databaseURL, databaseName, collectionName);
 
 import { app } from '../../App';
-import IUser from '../../serverAPI/model/user/IUser';
-import IIdentification from '../../serverAPI/model/user/IIdentification';
+import { ResponseCodes } from '../../utils/ResponseCodes';
+import LoginRequestSchema from '../../serverAPI/model/external/requests/authentication/LoginRequest';
+import RegisterRequestSchema from '../../serverAPI/model/external/requests/authentication/RegisterRequest';
 
-describe('Authentication endpoints', () => {
-    describe('Post Requests', () => {
-        it('Register with incorrect field formats', async () => {
+let mockRegisterUser: RegisterRequestSchema;
+let mockRegisterUserIncorrectSchema: RegisterRequestSchema;
+let mockRegisterUserAlreadyExists: RegisterRequestSchema;
+
+let mockLoginUser: LoginRequestSchema;
+let mockLoginUserIncorrectCredentials: LoginRequestSchema;
+let mockLoginUserIncorrectSchema: LoginRequestSchema;
+
+let mockVerifiedUser: UserSchema;
+
+beforeAll(() => {
+    mockRegisterUser = new RegisterRequestSchema(
+        "Mikhail",
+        "Plekunov",
+        "Mekromic",
+        "password",
+        "test@gmail.com"
+    );
+
+    mockRegisterUserIncorrectSchema = new RegisterRequestSchema(
+        "",
+        "",
+        "",
+        "",
+        ""
+    );
+
+    mockRegisterUserAlreadyExists = new RegisterRequestSchema(
+        "Mikhaik",
+        "Plekunov",
+        "Mekromic",
+        "password",
+        "email"
+    );
+
+    mockLoginUser = new LoginRequestSchema("Mekromic", "password");
+
+    mockLoginUserIncorrectCredentials = new LoginRequestSchema("Mekromic", "pass");
+
+    mockLoginUserIncorrectSchema = new LoginRequestSchema("", "");
+
+    mockVerifiedUser = new UserSchema(
+        mockRegisterUser.firstName,
+        mockRegisterUser.lastName,
+        mockRegisterUser.username,
+        mockRegisterUser.password,
+        mockRegisterUser.email,
+        mockRegisterUser.lastSeen
+    );
+
+    mockVerifiedUser.isVerified = true;
+});
+
+describe('Authentication', () => {
+    describe('Register responses', () => {
+        it('Register with incorrect schema', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .send({
-                    firstName: "",
-                    lastName: "",
-                    username: "",
-                    password: ""
-                });
+                .send(mockRegisterUserIncorrectSchema);
 
-            expect(response.statusCode).toBe(400);
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
         });
 
-        it('Register with correct information', async () => {
+        it('Register with correct schema', async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .send({
-                    firstName: mockUser.firstName,
-                    lastName: mockUser.lastName,
-                    username: mockUser.username,
-                    password: mockUser.password
-                });
+                .send(mockRegisterUser);
 
-            expect(response.statusCode).toBe(200);
+            expect(response.statusCode).toBe(ResponseCodes.OK);
         });
 
         it(`Register with already existing username`, async () => {
             let response = await supertest(app)
                 .post('/auth/register')
-                .send({
-                    firstName: mockUser.firstName,
-                    lastName: mockUser.lastName,
-                    username: mockUser.username,
-                    password: mockUser.password
-                });
+                .send(mockRegisterUserAlreadyExists);
 
-            expect(response.statusCode).toBe(400);
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
         });
     });
 
-    describe('Get Requests', () => {
-        it('Login with correct credentials', async () => {
+    describe('Login responses', () => {
+        it('Login with incorrect credentials', async () => {
             let response = await supertest(app)
                 .post('/auth/login')
-                .send({
-                    username: mockUser.username,
-                    password: mockUser.password
-                });
+                .send(mockLoginUserIncorrectCredentials);
 
-            expect(response.statusCode).toBe(200);
+            expect(response.statusCode).toBe(ResponseCodes.UNAUTHORIZED);
         });
 
-        it('Login with incorrect credentials (username)', async () => {
+        it('Login with incorrect schema', async () => {
             let response = await supertest(app)
                 .post('/auth/login')
-                .set('Authorization', 'accessToken')
-                .send({
-                    username: "pff",
-                    password: mockUser.password
-                });
+                .send(mockLoginUserIncorrectSchema);
 
-            expect(response.statusCode).toBe(404);
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
         });
 
-        it('Login with incorrect credentials (password)', async () => {
+        it('Login with correct credentials (unverified account)', async () => {
             let response = await supertest(app)
                 .post('/auth/login')
-                .set('Authorization', 'accessToken')
-                .send({
-                    username: mockUser.username,
-                    password: "pff"
-                });
+                .send(mockLoginUser);
 
-            expect(response.statusCode).toBe(403);
+            expect(response.statusCode).toBe(ResponseCodes.FORBIDDEN);
         });
 
+        it('Login with correct credentials (verified account)', async () => {
+            let user = await UserDatabase.getInstance()?.Get(new Map([["username", mockLoginUser.username]]));
 
-        it('Login with incorrect credentials (both)', async () => {
+            let userSchema = new UserSchema(
+                user?.firstName!,
+                user?.lastName!,
+                user?.username!,
+                user?.password!,
+                user?.email!,
+                user?.lastSeen!
+            );
+
+            userSchema.isVerified = true;
+
+            await UserDatabase.getInstance()?.Update(
+                mockLoginUser.username,
+                userSchema
+            );
+
             let response = await supertest(app)
                 .post('/auth/login')
-                .set('Authorization', 'accessToken')
-                .send({
-                    username: "pff",
-                    password: "pff"
-                });
+                .send(mockLoginUser);
 
-            expect(response.statusCode).toBe(404);
+            expect(response.statusCode).toBe(ResponseCodes.OK);
+        });
+    });
+
+    describe('RefreshJWT Responses', () => {
+        it('Refresh JWT with correct refresh token', async () => {
+            let response = await supertest(app)
+                .post('/auth/login')
+                .send(mockLoginUser);
+
+            let accessToken = response.body.accessToken.token;
+            let refreshToken = response.body.refreshToken.token;
+
+            await new Promise((r) => setTimeout(r, 1000));
+
+            response = await supertest(app)
+                .post('/auth/refreshJWT')
+                .send({ refreshToken: refreshToken });
+
+            expect(response.body.refreshToken).not.toBe(refreshToken);
+            expect(response.body.accessToken).not.toBe(accessToken);
+            expect(response.statusCode).toBe(ResponseCodes.OK);
+        });
+
+        it('Refresh JWT with incorrect refresh token', async () => {
+            let response = await supertest(app)
+                .post('/auth/refreshJWT')
+                .send({ refreshToken: "" });
+
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
+        });
+    });
+
+    describe('Logout Responses', () => {
+        it('Logout works as expected', async () => {
+            let response = await supertest(app)
+                .post('/auth/login')
+                .send(mockLoginUser);
+
+            let accessToken = response.body.accessToken.token;
+
+            response = await supertest(app)
+                .get('/auth/logout')
+                .set("Authorization", accessToken);
+
+            expect(response.statusCode).toBe(ResponseCodes.OK);
         });
     });
 });

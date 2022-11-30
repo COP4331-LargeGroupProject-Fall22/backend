@@ -1,11 +1,15 @@
 import { Request, Response } from "express";
-import IDatabase from "../../database/IDatabase";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
-import IInventoryIngredient from "../model/ingredient/IInventoryIngredient";
-import InventoryIngredientSchema from "../model/ingredient/requestSchema/InventoryIngredientSchema";
-import IUser from "../model/user/IUser";
-import BaseIngredientController from "./BaseIngredientController";
+import IDatabase from "../../database/IDatabase";
+import IInventoryIngredient from "../model/internal/ingredient/IInventoryIngredient";
+import IUser from "../model/internal/user/IUser";
+
+import ImageSchema from "../model/internal/image/ImageSchema";
+import AddRequestSchema from "../model/external/requests/inventory/AddRequest";
+import UpdateRequestSchema from "../model/external/requests/inventory/UpdateRequest";
+
+import BaseIngredientController from "./BaseController/BaseIngredientController";
 
 /**
  * This class creates several properties responsible for inventory actions 
@@ -17,44 +21,34 @@ export default class InventoryController extends BaseIngredientController {
         super(database);
     }
 
-    private async parseUpdateRequest(req: Request, existingIngredient: IInventoryIngredient)
-        : Promise<IInventoryIngredient> {
-        let ingredientSchema = new InventoryIngredientSchema(
-            existingIngredient.id,
-            existingIngredient.name,
-            existingIngredient.category,
-            existingIngredient.expirationDate
-        );
+    private async parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let expirationDate: null | number = req.body?.expirationDate !== undefined ?
+            Number(req.body?.expirationDate) : null;
 
-        ingredientSchema.expirationDate = this.isStringUndefinedOrEmpty(req.body.expirationDate) ?
-            existingIngredient.expirationDate : Number.parseFloat(req.body.expirationDate);
+        let request = new UpdateRequestSchema(expirationDate);
 
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<IInventoryIngredient> {
-        let jsonPayload = req.body;
-        let ingredientSchema = new InventoryIngredientSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            jsonPayload.category,
-            jsonPayload?.expirationDate !== undefined ? Number.parseInt(jsonPayload.expirationDate) : null
+    private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let expirationDate: null | number = req.body?.expirationDate !== undefined ?
+            Number(req.body?.expirationDate) : null;
+
+        let request = new AddRequestSchema(
+            Number(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            new ImageSchema(req.body?.image?.srcUrl),
+            expirationDate
         );
 
-        try {
-            ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
-    protected sortByExpirationDate(collection: IInventoryIngredient[], isReverse: boolean): any {
+    protected sortByExpirationDate(collection: IInventoryIngredient[], isReverse: boolean): [string, IInventoryIngredient[]][] {
         let itemsWithExpirationDate: IInventoryIngredient[] = [];
         let itemsWithoutExpirationDate: IInventoryIngredient[] = [];
-        
+
         collection.forEach(item => {
             if (item.expirationDate) {
                 itemsWithExpirationDate.push(item);
@@ -72,10 +66,7 @@ export default class InventoryController extends BaseIngredientController {
             itemsWithExpirationDate.reverse();
         }
 
-        return {
-            hasExpirationDate: itemsWithExpirationDate,
-            noExpirationDate: itemsWithoutExpirationDate 
-        }
+        return Array.from([["itemsWithExpirationDate", itemsWithExpirationDate], ["itemsWithoutExpirationDate", itemsWithoutExpirationDate]]);
     }
 
     /**
@@ -86,7 +77,7 @@ export default class InventoryController extends BaseIngredientController {
      */
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
-        
+
         let sortByExpirationDate = req.query.sortByExpirationDate === 'true';
         let sortByCategory = req.query.sortByCategory === 'true';
         let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
@@ -99,27 +90,29 @@ export default class InventoryController extends BaseIngredientController {
 
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-
-            let responseData: any = user.inventory;
-
-            if (sortByExpirationDate) {
-                responseData = this.sortByExpirationDate(user.inventory, isReverse);    
-            }
-
-            if (sortByCategory) {
-                responseData = this.sortByCategory(user.inventory, isReverse);    
-            }
-
-            if (sortByLexicographicalOrder) {
-                responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);    
-            }
-
-            return this.send(ResponseCodes.OK, res, responseData);
-        } catch (e) {
-            return e;
+            user = await this.requestGet(parameters, res)
+        } catch (response) {
+            return response;
         }
+
+        let responseData: any = this.convertResponse(user.inventory);
+
+        if (sortByExpirationDate) {
+            responseData = this.sortByExpirationDate(user.inventory, isReverse);
+        }
+
+        if (sortByCategory) {
+            responseData = this.sortByCategory(user.inventory, isReverse);
+        }
+
+        if (sortByLexicographicalOrder) {
+            responseData = this.sortByLexicographicalOrder(user.inventory, isReverse);
+        }
+
+        return this.send(ResponseCodes.OK, res, responseData);
     }
 
     /**
@@ -131,24 +124,31 @@ export default class InventoryController extends BaseIngredientController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            let ingredientSchema = await this.parseAddRequest(req, res);
-
-            let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === ingredientSchema.id);
-
-            if (duplicateingredient !== undefined) {
-                return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in inventory.");
-            }
-
-            user.inventory.push(ingredientSchema);
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.CREATED, res, updatedUser.inventory);
+            user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
+
+        let parsedRequest: AddRequestSchema;
+        try {
+            parsedRequest = await this.parseAddRequest(req, res);
+        } catch (response) {
+            return response;
+        }
+
+        let duplicateingredient = user.inventory.find((ingredientItem: IInventoryIngredient) => ingredientItem.id === parsedRequest.id);
+
+        if (duplicateingredient !== undefined) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in inventory.");
+        }
+
+        user.inventory.push(parsedRequest);
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+        return this.send(ResponseCodes.CREATED, res, updatedUser.inventory);
     }
 
     /**
@@ -160,19 +160,22 @@ export default class InventoryController extends BaseIngredientController {
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let ingredient = user.inventory
-                .find((ingredientItem: IInventoryIngredient) => ingredientItem.id === Number.parseInt(req.params.ingredientID));
-
-            if (ingredient === undefined) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in inventory.");
-            }
-
-            return this.send(ResponseCodes.OK, res, ingredient);
-        } catch (e) {
-            return e;
+            user = await this.requestGet(parameters, res)
+        } catch (response) {
+            return response;
         }
+
+        let ingredient = user.inventory
+            .find((ingredientItem: IInventoryIngredient) => ingredientItem.id === Number(req.params.ingredientID));
+
+        if (ingredient === undefined) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found.");
+        }
+
+        return this.send(ResponseCodes.OK, res, ingredient);
     }
 
     /**
@@ -184,29 +187,32 @@ export default class InventoryController extends BaseIngredientController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: UpdateRequestSchema;
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            let isFound: boolean = false;
-
-            for (let i = 0; i < user.inventory.length; i++) {
-                let existingIngredient = user.inventory[i];
-
-                if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
-                    isFound = true;
-                    user.inventory[i] = await this.parseUpdateRequest(req, existingIngredient);
-                }
-            }
-
-            if (!isFound) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found.");
-            }
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.OK, res, updatedUser.inventory);
-        } catch (e) {
-            return e;
+            parsedRequest = await this.parseUpdateRequest(req, res);
+            user = await this.requestGet(parameters, res);
+        } catch (response) {
+            return response;
         }
+
+        let isFound: boolean = false;
+
+        for (let i = 0; i < user.inventory.length; i++) {
+            if (user.inventory[i].id === Number(req.params.ingredientID)) {
+                isFound = true;
+                user.inventory[i].expirationDate = parsedRequest.expirationDate;
+            }
+        }
+
+        if (!isFound) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found.");
+        }
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+
+        return this.send(ResponseCodes.OK, res, updatedUser.inventory);
     }
 
     /**
@@ -218,30 +224,34 @@ export default class InventoryController extends BaseIngredientController {
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let isFound: boolean = false;
-
-            let newInventory: IInventoryIngredient[] = [];
-
-            for (let i = 0; i < user.inventory.length; i++) {
-                if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
-                    isFound = true;
-                } else {
-                    newInventory.push(user.inventory[i]);
-                }
-            }
-
-            if (!isFound) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in inventory.");
-            }
-
-            user.inventory = newInventory;
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.send(ResponseCodes.OK, res, updatedUser.inventory);
-        } catch (e) {
-            return e;
+            user = await this.requestGet(parameters, res)
+        } catch (response) {
+            return response;
         }
+
+        let isFound: boolean = false;
+
+        let newInventory: IInventoryIngredient[] = [];
+
+        for (let i = 0; i < user.inventory.length; i++) {
+            if (user.inventory[i].id === Number(req.params.ingredientID)) {
+                isFound = true;
+            } else {
+                newInventory.push(user.inventory[i]);
+            }
+        }
+
+        if (!isFound) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found.");
+        }
+
+        user.inventory = newInventory;
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+
+        return this.send(ResponseCodes.OK, res, updatedUser.inventory);
     }
 }

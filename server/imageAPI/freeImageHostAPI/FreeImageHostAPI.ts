@@ -1,5 +1,6 @@
 import axios from "axios";
-import IImage from "../../serverAPI/model/image/IImage";
+
+import IImage from "../../serverAPI/model/internal/image/IImage";
 import IImageAPI from "../IImageAPI";
 
 export default class FreeImageHostAPI implements IImageAPI {
@@ -28,7 +29,7 @@ export default class FreeImageHostAPI implements IImageAPI {
                 srcUrl: response.data.image.file.resource.chain.image
             };
         }).catch((error) => {
-            return Promise.reject(error);
+            return Promise.reject("Call was made to the getImage. " + error.message);
         });
     }
 }

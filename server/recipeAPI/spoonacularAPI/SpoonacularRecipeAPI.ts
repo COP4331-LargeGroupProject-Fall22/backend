@@ -1,29 +1,45 @@
+import { isURL } from 'class-validator';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { URLSearchParams } from 'url';
+
 import IncorrectIDFormat from '../../exceptions/IncorrectIDFormat';
 import NoParameterFound from '../../exceptions/NoParameterFound';
 import ParameterIsNotAllowed from '../../exceptions/ParameterIsNotAllowed';
+
 import IIngredientAPI from '../../ingredientAPI/IIngredientAPI';
-import IImage from '../../serverAPI/model/image/IImage';
-import IIngredient from '../../serverAPI/model/ingredient/IIngredient';
-import IInstruction from '../../serverAPI/model/instruction/IInstruction';
-import INutrient from '../../serverAPI/model/nutrients/INutrient';
-import IBaseRecipe from '../../serverAPI/model/recipe/IBaseRecipe';
-import IRecipe from "../../serverAPI/model/recipe/IRecipe";
-import IUnit from '../../serverAPI/model/unit/IUnit';
-import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
+import IImage from '../../serverAPI/model/internal/image/IImage';
+import IIngredient from '../../serverAPI/model/internal/ingredient/IIngredient';
+import IInstruction from '../../serverAPI/model/internal/instruction/IInstruction';
+import INutrient from '../../serverAPI/model/internal/nutrients/INutrient';
+import IBaseRecipe from '../../serverAPI/model/internal/recipe/IBaseRecipe';
+import IRecipe from "../../serverAPI/model/internal/recipe/IRecipe";
+import IUnit from '../../serverAPI/model/internal/unit/IUnit';
 import IRecipeAPI from "../IRecipeAPI";
+
+import SpoonacularAPI from '../../spoonacularUtils/SpoonacularAPI';
+import PriceSchema from '../../serverAPI/model/internal/money/PriceSchema';
+import PaginatedResponse from '../../serverAPI/model/internal/paginatedResponse/PaginatedResponse';
+import IBaseIngredient from '../../serverAPI/model/internal/ingredient/IBaseIngredient';
+import IIngredientQuantity from '../../serverAPI/model/internal/ingredient/IIngredientQuantity';
+import IIngredientCost from '../../serverAPI/model/internal/ingredient/IIngredientCost';
 
 export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRecipeAPI {
     protected ingredientAPI: IIngredientAPI;
+
+    protected PRICE_WIDGET = process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_WIDGET;
+    protected API_INGREDIENTS_BASE_URL = process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_BASE_URL;
 
     // https://spoonacular.com/food-api/docs#Search-Recipes-Complex
     protected recipeSearchParameters: Map<string, string>;
 
     // https://spoonacular.com/food-api/docs#Meal-Types
     protected mealTypes: Set<string>;
+
+    protected MAX_OFFSET = 900;
+    protected MAX_RESULTS_PER_PAGE = 100;
+    protected DEFAULT_RESULTS_PER_PAGE = 10;
 
     constructor(apiKey: string, apiHost: string, ingredientAPI: IIngredientAPI) {
         super(apiKey, apiHost);
@@ -71,22 +87,44 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items weren't found.
      */
-    async GetAll(parameters: Map<string, any>): Promise<IBaseRecipe[] | null> {
+    async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe<IBaseIngredient>> | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
-        let urlSearchParameters = this.convertSearchRecipeParameters(parameters);
+        let searchParameters: URLSearchParams;
 
-        let response = await this.getRequest(searchRecipeURL, urlSearchParameters);
+        try {
+            searchParameters = await this.convertSearchRecipeParameters(parameters);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+
+        let response: any;
+
+        try {
+            response = await this.getRequest(searchRecipeURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the GetAllRecipes." + error);
+        }
 
         let jsonArray: any[] = response.results;
 
-        let recipeArray: IBaseRecipe[] = [];
+        let recipeArray: IBaseRecipe<IBaseIngredient>[] = [];
 
         for (let i = 0; i < jsonArray.length; i++) {
             recipeArray.push(await this.parseBaseRecipe(jsonArray[i]));
         }
 
-        return recipeArray.length === 0 ? null : recipeArray;
+        let resultsPerPage = Number(searchParameters.get("number")!);
+
+        let totalResults = Math.min(response.totalResults, this.MAX_OFFSET);
+
+        let numOfPages = Math.ceil(totalResults / resultsPerPage);
+
+        let currentPage = parameters.get("page") === undefined ? 0 : parameters.get("page");
+
+        let result = currentPage >= numOfPages ? [] : recipeArray;
+
+        return recipeArray.length === 0 ? null : new PaginatedResponse(numOfPages, totalResults, currentPage, result);
     }
 
     /**
@@ -105,7 +143,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns 
      */
-    protected convertSearchRecipeParameters(parameters: Map<string, any>): URLSearchParams {
+    protected convertSearchRecipeParameters(parameters: Map<string, any>): Promise<URLSearchParams> {
         let keys = Array.from(parameters.keys());
 
         let searchParameters = new URLSearchParams();
@@ -114,27 +152,31 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             throw new NoParameterFound("recipeName parameter is missing.");
         }
 
+        searchParameters.set("number", this.DEFAULT_RESULTS_PER_PAGE.toString());
+
         keys.forEach(key => {
             if (this.recipeSearchParameters.has(key)) {
                 if (key === 'page') {
-                    let page = parameters.get("page") !== null ? Number.parseInt(parameters.get("page")!) : 0;
-                    let resultsPerPage = parameters.get("resultsPerPage") !== null ? Number.parseInt(parameters.get("resultsPerPage")!) : 10;
-            
+                    let page = parameters.get("page") !== undefined ? Number(parameters.get("page")!) : 0;
+
+                    let resultsPerPage = parameters.get("resultsPerPage") !== undefined ?
+                        Number(parameters.get("resultsPerPage")!) : this.DEFAULT_RESULTS_PER_PAGE;
+
                     let offset = page * resultsPerPage;
 
                     searchParameters.append("offset", offset.toString());
                 }
 
-                searchParameters.append(String(this.recipeSearchParameters.get(key)), parameters.get(key));
+                searchParameters.set(String(this.recipeSearchParameters.get(key)), parameters.get(key));
             } else {
                 throw new ParameterIsNotAllowed(`${key} parameter is not allowed.`);
             }
         });
 
         searchParameters.append("instructionsRequired", "true");
-        searchParameters.append("addRecipeInformation", "true");
+        searchParameters.append("fillIngredients", "true");
 
-        return searchParameters;
+        return Promise.resolve(searchParameters);
     }
 
     protected async parseRecipeImage(recipeObject: any): Promise<IImage> {
@@ -143,11 +185,14 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         };
     }
 
-    protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe> {
+    protected async parseBaseRecipe(recipeObject: any): Promise<IBaseRecipe<IBaseIngredient>> {
+        let ingredients: IBaseIngredient[] = this.parseIngredientsForBaseRecipe(recipeObject);
+
         return {
             id: recipeObject.id,
             name: recipeObject.title,
-            image: await this.parseRecipeImage(recipeObject)
+            image: await this.parseRecipeImage(recipeObject),
+            ingredients: ingredients
         };
     }
 
@@ -169,6 +214,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             diets: recipeObject.diets,
             mealTypes: recipeObject.dishTypes,
             nutritionFacts: this.parseNutrients(recipeObject.nutrition.nutrients),
+            ingredients: instruction.ingredients,
             instruction: instruction,
             instructionSteps: instructionSteps,
             servings: recipeObject.servings,
@@ -179,13 +225,28 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         };
     }
 
-    private parseIngredients(ingredientObjects: any[]): IIngredient[] {
-        let ingredients: IIngredient[] = [];
+    private async addPriceToIngredients(recipeID: number, ingredients: IIngredient[]): Promise<IIngredient[]> {
+        let priceWidgetURL = `${this.API_INGREDIENTS_BASE_URL}/${recipeID}/${this.PRICE_WIDGET}`;
 
-        for (let i = 0; i < ingredientObjects.length; i++) {
-            ingredients.push(
-                this.parseIngredient(ingredientObjects[i])
-            );
+        let response: any;
+
+        try {
+            response = await this.getRequest(priceWidgetURL);
+        } catch (error) {
+            return Promise.reject("Call was made to the PriceBreakdownWidget. " + error);
+        }
+
+        let ingredientPrices: [string, number][] = [];
+
+        response.ingredients.forEach((ingredient: any) => ingredientPrices.push([ingredient.name, ingredient.price]));
+
+        for (let i = 0; i < ingredients.length; i++) {
+            for (let j = 0; j < ingredientPrices.length; j++) {
+                if (ingredientPrices[j][0].includes(ingredients[i].name)) {
+                    ingredients[i].price = new PriceSchema(ingredientPrices[j][1], "US Cents");
+                    break;
+                }
+            }
         }
 
         return ingredients;
@@ -199,7 +260,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      */
     protected async parseInstructionSteps(recipeObject: any): Promise<IInstruction[]> {
         let instructions: any[] = recipeObject.analyzedInstructions[0].steps;
-        let ingredients: IIngredient[] = this.parseIngredients(recipeObject.nutrition.ingredients);
+        let ingredients: IIngredient[] = await this.parseIngredientsForRecipe(recipeObject);
 
         let ingredientMap: Map<number, IIngredient> = new Map();
 
@@ -216,7 +277,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             let parsedIngredients: IIngredient[] = [];
 
             for (let j = 0; j < stepIngredients.length; j++) {
-                let key = Number.parseInt(stepIngredients[j].id);
+                let key = Number(stepIngredients[j].id);
 
                 if (ingredientMap.has(key)) {
                     parsedIngredients.push(ingredientMap.get(key)!);
@@ -270,15 +331,26 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 name: nutrient.name,
                 unit: {
                     unit: nutrient.unit,
-                    value: Number.parseFloat(nutrient.amount)
+                    value: Number(nutrient.amount)
                 },
-                percentOfDaily: Number.parseFloat(nutrient.percentOfDailyNeeds)
+                percentOfDaily: Number(nutrient.percentOfDailyNeeds)
             });
         });
 
         return nutrients;
     }
 
+    private parseImage(imageName: string): IImage {
+        let srcUrl = "";
+
+        if (imageName !== null && imageName !== undefined) {
+            srcUrl = `${process.env.SPOONACULAR_CDN_BASE_URL}/${imageName.substring(imageName.lastIndexOf('/') + 1)}`;
+        }
+
+        return {
+            srcUrl: srcUrl
+        };
+    }
 
     /**
      * Looks for an ingredient through ingredientAPI.
@@ -286,27 +358,105 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @param ingredientObject json object that represents ingredient in the API.
      * @returns Promise filled with Iingredient object.
      */
-    protected parseIngredient(ingredientObject: any): IIngredient {
-        let id = ingredientObject.id;
-        let name = ingredientObject.name;
-        let category = "";
-        let quantity: IUnit = {
-            unit: ingredientObject.unit,
-            value: Number.parseFloat(ingredientObject.amount)
-        };
+    protected parseIngredientsForBaseRecipe(recipeObject: any): IBaseIngredient[] {
+        let ingredients: IBaseIngredient[] = [];
 
-        return {
-            id: id,
-            name: name,
-            category: category,
-            nutrients: this.parseNutrients(ingredientObject?.nutrients),
-            quantityUnits: [quantity.unit],
-            quantity: quantity
-        };
+        recipeObject.missedIngredients.forEach((ingredientObject: any) => {
+            let id = ingredientObject.id;
+            let name = ingredientObject.name;
+            let category = ingredientObject.aisle;
+
+            ingredients.push({
+                id: id,
+                name: name,
+                category: category,
+                image: this.parseImage(ingredientObject?.image)
+            });
+        })
+
+        return ingredients;
+    }
+
+    private parseIngredientCost(response: any): Map<string, IIngredientCost> {
+        let costMap: Map<string, IIngredientCost> = new Map();
+        response.ingredients.forEach((ingredient: any) => {
+            costMap.set(ingredient.name, {
+                price: {
+                    price: ingredient.price,
+                    currency: "US Cents"
+                }
+            });
+        });
+
+        return costMap;
+    }
+
+    private parseIngredientQuantity(response: any): Map<string, IIngredientQuantity> {
+        let quantityMap: Map<string, IIngredientQuantity> = new Map();
+        response.ingredients.forEach((ingredient: any) => {
+            quantityMap.set(ingredient.name, {
+                quantityUnits: [ingredient.amount.metric.unit, ingredient.amount.us.unit],
+                quantity: {
+                    unit: ingredient.amount.us.unit,
+                    value: ingredient.amount.us.value
+                }
+            });
+        });
+
+        return quantityMap;
+    }
+
+    protected async parseIngredientsForRecipe(recipeObject: any): Promise<IIngredient[]> {
+        let ingredients: IIngredient[] = [];
+
+        let nutritionMap: Map<number, INutrient[]> = new Map();
+        recipeObject.nutrition.ingredients.forEach((ingredientObject: any) => {
+            nutritionMap.set(Number(ingredientObject.id), this.parseNutrients(ingredientObject?.nutrients))
+        });
+
+        let baseInfoMap: Map<number, IBaseIngredient> = new Map();
+        recipeObject.extendedIngredients.forEach((ingredientObject: any) => {
+            baseInfoMap.set(
+                ingredientObject.id,
+                {
+                    id: ingredientObject.id,
+                    name: ingredientObject.name,
+                    category: ingredientObject.aisle,
+                    image: this.parseImage(ingredientObject.image)
+                }
+            );
+        });
+
+        let priceWidgetURL = `${this.API_INGREDIENTS_BASE_URL}/${Number(recipeObject.id)}/${this.PRICE_WIDGET}`;
+
+        let response: any;
+        try {
+            response = await this.getRequest(priceWidgetURL);
+        } catch (error) {
+            return Promise.reject("Call was made to the PriceBreakdownWidget. " + error);
+        }
+
+        let costMap = this.parseIngredientCost(response);
+        let quantityMap = this.parseIngredientQuantity(response);
+
+        baseInfoMap.forEach((value, key) => {
+            ingredients.push({
+                id: value.id,
+                name: value.name,
+                category: value.category,
+                image: value.image,
+                nutrients: nutritionMap.get(key),
+                quantityUnits: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantityUnits : [],
+                quantity: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantity : { unit: "", value: 0 },
+                price: costMap.has(value.name) ? costMap.get(value.name)!.price : { price: 0, currency: "US Cents" }
+            });
+        })
+
+        return ingredients;
     }
 
     private isIngteger(number: string): boolean {
-        return Number.isInteger(Number.parseInt(number));
+        return Number.isInteger(Number(number));
     }
 
     /**
@@ -324,18 +474,24 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         }
 
         if (!this.isIngteger(String(parameters.get("id"))) ||
-            Number.parseInt(String(parameters.get("id"))) <= 0) {
+            Number(String(parameters.get("id"))) <= 0) {
             throw new IncorrectIDFormat("ID has incorrect format.");
         }
 
-        let recipeID = Number.parseInt(parameters.get("id"));
+        let recipeID = Number(parameters.get("id"));
 
         let getRecipeURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${recipeID}/information`;
 
         let searchParameters = new URLSearchParams();
         searchParameters.set("includeNutrition", "true");
 
-        let response = await this.getRequest(getRecipeURL, searchParameters);
+        let response: any;
+        
+        try {
+            response = await this.getRequest(getRecipeURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the getRecipe. " + error);
+        }
 
         let parsedRecipe = this.parseRecipe(response);
 

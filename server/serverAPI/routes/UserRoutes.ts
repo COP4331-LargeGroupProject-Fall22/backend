@@ -6,19 +6,25 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+
 import UserController from '../controller/UserController';
-import UserDatabase from '../../database/UserDatabase';
 import InventoryController from '../controller/InventoryController';
-import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
-import TokenCreator from '../../utils/TokenCreator';
-import IIdentification from '../model/user/IIdentification';
-import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
-import ShoppingListController from '../controller/ShoppingListController';
+import FavoriteRecipeController from '../controller/FavoriteRecipeController';
 import UserProfilePictureController from '../controller/UserProfilePictureController';
-import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
+import ShoppingListController from '../controller/ShoppingListController';
 import AllergenController from '../controller/AllergenController';
-import FavoriteRecipesController from '../controller/FavoriteRecipesController';
+
+import UserDatabase from '../../database/UserDatabase';
+
+import JWTAuthenticator from '../middleware/authentication/JWTAuthenticator';
+
+import TokenCreator from '../../utils/TokenCreator';
+
+import IIdentification from '../model/internal/user/IIdentification';
+
+import FreeImageHostAPI from '../../imageAPI/freeImageHostAPI/FreeImageHostAPI';
 import SpoonacularRecipeAPI from '../../recipeAPI/spoonacularAPI/SpoonacularRecipeAPI';
+import SpoonacularIngredientAPI from '../../ingredientAPI/SpoonacularAPI/SpoonacularIngredientAPI';
 
 export const userRoute = express.Router();
 
@@ -40,6 +46,7 @@ const database = UserDatabase.connect(
 );
 
 const ingredientAPI = new SpoonacularIngredientAPI(spoonacularApiKey, spoonacularApiHost);
+const recipeAPI = new SpoonacularRecipeAPI(spoonacularApiKey, spoonacularApiHost, ingredientAPI);
 
 const userController = new UserController(database);
 const inventoryController = new InventoryController(
@@ -54,7 +61,7 @@ const userProfilePictureController = new UserProfilePictureController(
     new FreeImageHostAPI(freeImageHostApiKey)
 );
 const allergenController = new AllergenController(database);
-const favoriteRecipesController = new FavoriteRecipesController(
+const favoriteRecipesController = new FavoriteRecipeController(
     database,
     new SpoonacularRecipeAPI(
         spoonacularApiKey, 
@@ -83,7 +90,7 @@ userRoute.put('/shopping-list/:itemID', express.json(), shoppingListController.u
 userRoute.delete('/shopping-list/:itemID', shoppingListController.delete);
 
 userRoute.get('/profile-picture', userProfilePictureController.get);
-userRoute.post('/profile-picture', express.json(), userProfilePictureController.add);
+userRoute.post('/profile-picture', express.json({ limit: '10mb' }), userProfilePictureController.add);
 userRoute.delete('/profile-picture', userProfilePictureController.delete);
 
 userRoute.get('/allergens', allergenController.getAll);

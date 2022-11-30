@@ -1,19 +1,21 @@
 import { ObjectID } from "bson";
 
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
 import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
-import IShoppingIngredient from "../model/ingredient/IShoppingIngredient";
-import IUser from "../model/user/IUser";
+import IShoppingIngredient from "../model/internal/ingredient/IShoppingIngredient";
+import IUser from "../model/internal/user/IUser";
+import IUnit from "../model/internal/unit/IUnit";
 
-import ShoppingIngredientSchema from "../model/ingredient/requestSchema/ShoppingIngredientSchema";
+import UnitSchema from "../model/internal/unit/UnitSchema";
+import AddRequestSchema from "../model/external/requests/shoppingList/AddRequest";
+import UpdateRequestSchema from "../model/external/requests/shoppingList/UpdateRequest";
+import PriceSchema from "../model/internal/money/PriceSchema";
+import ImageSchema from "../model/internal/image/ImageSchema";
 
-import UnitSchema from "../model/unit/UnitSchema";
-
-import BaseIngredientController from "./BaseIngredientController";
-
+import BaseIngredientController from "./BaseController/BaseIngredientController";
 /**
  * This class creates several properties responsible for shopping list actions 
  * provided to the user.
@@ -26,8 +28,24 @@ export default class ShoppingListController extends BaseIngredientController {
         this.foodAPI = foodAPI;
     }
 
-    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): any {
-        let recipeMap = new Map<string, IShoppingIngredient[]>();
+    protected sortByDate(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
+        // Sorts from earliest to latest date
+        let items = collection.sort((a, b) => Number(a.dateAdded) - Number(b.dateAdded));
+
+        let key = "Added first";
+
+        if (isReverse) {
+            key = "Added most recently";
+
+            items.reverse();
+        }
+
+        return Array.from([[key, items]]);
+    }
+
+    protected sortByRecipe(collection: IShoppingIngredient[], isReverse: boolean): [string, IShoppingIngredient[]][] {
+        let recipeMapById = new Map<string, IShoppingIngredient[]>();
+        let recipeIdToNameMap = new Map<string, string>();
 
         let itemsWithoutRecipeID: IShoppingIngredient[] = [];
 
@@ -38,91 +56,75 @@ export default class ShoppingListController extends BaseIngredientController {
         */
         collection.forEach(item => {
             if (item.recipeID) {
-                if (!recipeMap.has(item.recipeID.toString())) {
-                    recipeMap.set(item.recipeID.toString(), []);
+                let recipeIdAsString = item.recipeID.toString();
+
+                if (!recipeMapById.has(recipeIdAsString)) {
+                    recipeMapById.set(recipeIdAsString, []);
+                    recipeIdToNameMap.set(recipeIdAsString, item.recipeName!);
                 }
 
-                recipeMap.get(item.recipeID.toString())?.push(item);
+                recipeMapById.get(item.recipeID.toString())?.push(item);
             } else {
                 itemsWithoutRecipeID.push(item);
             }
         });
 
-        // Converts map to Array and sorts it by recipe id
-        let recipes = Array.from(recipeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+        let items: [string, IShoppingIngredient[]][] = [];
 
-        // Sorts each collection attached to recipeID in lexicographical order
-        recipes.forEach(recipe => {
-            recipe[1].sort((a, b) => a.name.localeCompare(b.name))
-        });
+        // Converts map to Array
+        recipeMapById.forEach((value, key) => items.push([recipeIdToNameMap.get(key)!, value]));
 
         // Sorts collection of ingredients without recipe id in lexicographical order
+        items.forEach(recipe => recipe[1].sort((a, b) => a.name.localeCompare(b.name)));
         itemsWithoutRecipeID.sort((a, b) => a.name.localeCompare(b.name));
 
+        items.push(["N/A", itemsWithoutRecipeID]);
+
         if (isReverse) {
-            recipes.reverse();
-            itemsWithoutRecipeID.reverse();
+            items.reverse();
         }
 
-        return {
-                itemsWithRecipeID: recipes,
-                itemsWithoutRecipeID: itemsWithoutRecipeID
-            };
+        return items;
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<IShoppingIngredient> {
-        let jsonPayload = req.body;
-        let ingredientSchema = new ShoppingIngredientSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            jsonPayload.category,
-            jsonPayload.quantityUnits,
-            jsonPayload.quantity,
-            jsonPayload.recipeID === undefined ? null : jsonPayload.recipeID
-        );
+    private async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let recipeIdExist = req.body?.recipeID !== undefined;
+        let recipeNameExist = req.body?.recipeName !== undefined;
 
-        ingredientSchema.itemID = new ObjectID().toHexString();
+        let recipeId: null | number = req.body?.recipeID !== undefined ? Number(req.body?.dateAdded) : null;
+        let recipeName: null | string = req.body?.recipeName !== undefined ? req.body?.recipeName : null;
 
-        try {
-            ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
+        if (recipeIdExist !== recipeNameExist && !recipeIdExist !== !recipeNameExist) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Both recipeID and recipeName should be provided"));
         }
 
-        return ingredientSchema;
+        let request = new AddRequestSchema(
+            Number(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            req.body?.quantityUnits,
+            new UnitSchema(req.body?.quantity?.unit, Number(req.body?.quantity?.value)),
+            new ImageSchema(req.body?.image?.srcUrl),
+            new PriceSchema(Number(req.body?.price), "US Cents"),
+            Number(req.body?.dateAdded),
+            recipeId,
+            recipeName
+        );
+
+        request.itemID = new ObjectID().toHexString();
+
+        return this.verifySchema(request, res);
     }
 
-    private async parseUpdateRequest(req: Request, res: Response, existingIngredient: IShoppingIngredient)
-        : Promise<IShoppingIngredient> {
-        let ingredientSchema = new ShoppingIngredientSchema(
-            existingIngredient.id,
-            existingIngredient.name,
-            existingIngredient.category,
-            existingIngredient.quantityUnits,
-            existingIngredient.quantity,
-            existingIngredient.recipeID
+    private async parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let request = new UpdateRequestSchema(
+            new UnitSchema(
+                req.body?.unit,
+                Number(req.body?.value)
+            )
         );
 
-        ingredientSchema.itemID = existingIngredient.itemID;
-
-        if (!this.isStringUndefinedOrEmpty(req.body.quantity)) {
-            let quantityObject = req.body.quantity;
-
-            let quantitySchema = new UnitSchema(
-                quantityObject.unit,
-                Number.parseFloat(quantityObject.value)
-            );
-
-            try {
-                await this.verifySchema(quantitySchema, res);
-                ingredientSchema.quantity = quantitySchema;
-            } catch (response) {
-                return Promise.reject(response);
-            }
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);
     }
 
     /**
@@ -134,29 +136,65 @@ export default class ShoppingListController extends BaseIngredientController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let sortByCategory = req.query.sortByCategory === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+        let sortByRecipe = req.query.sortByRecipe === 'true';
+        let sortByDate = req.query.sortByDate === 'true'; 
+        
+        let truthyCount = 
+            Number(sortByCategory) + Number(sortByLexicographicalOrder) +
+            Number(sortByRecipe) + Number(sortByDate);
+
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
+
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-
-            let responseData: any = user.shoppingList;
-
-            if (req.query.sortByRecipe === 'true') {
-                responseData = this.sortByRecipe(user.shoppingList, isReverse);
-            }
-
-            if (req.query.sortByCategory === 'true') {
-                responseData = this.sortByCategory(user.shoppingList, isReverse);
-            }
-
-            if (req.query.sortByLexicographicalOrder === 'true') {
-                responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
-            }
-
-            return this.send(ResponseCodes.OK, res, responseData);
+            user = await this.requestGet(parameters, res)
         } catch (response) {
             return response;
         }
+
+        let responseData: any = this.convertResponse(user.shoppingList);
+
+        if (sortByRecipe) {
+            responseData = this.sortByRecipe(user.shoppingList, isReverse);
+        }
+
+        if (sortByCategory) {
+            responseData = this.sortByCategory(user.shoppingList, isReverse);
+        }
+
+        if (sortByLexicographicalOrder) {
+            responseData = this.sortByLexicographicalOrder(user.shoppingList, isReverse);
+        }
+
+        if (sortByDate) {
+            responseData = this.sortByDate(user.shoppingList, isReverse);
+        }
+
+        return this.send(ResponseCodes.OK, res, responseData);
+    }
+
+    private isEqual(src: IShoppingIngredient, target: AddRequestSchema): boolean {
+        return src.id === target.id && src.recipeID === target.recipeID && src.recipeName === target.recipeName;
+    }
+
+    private getDuplicateShoppingItem(
+        shoppingList: IShoppingIngredient[],
+        ingredientItem: AddRequestSchema
+    ): IShoppingIngredient | null {
+        for (let i = 0; i < shoppingList.length; i++) {
+            if (this.isEqual(shoppingList[i], ingredientItem)) {
+                return shoppingList[i];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -168,56 +206,43 @@ export default class ShoppingListController extends BaseIngredientController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: AddRequestSchema;
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            let ingredientSchema = await this.parseAddRequest(req, res);
-
-            let listAlreadyHasItem: boolean = false;
-
-            for (let i = 0; i < user.shoppingList.length; i++) {
-                let existingItem = user.shoppingList[i];
-
-                if (existingItem.id === ingredientSchema.id &&
-                    existingItem.recipeID === ingredientSchema.recipeID) {
-                    listAlreadyHasItem = true;
-
-                    if (existingItem.recipeID !== null) {
-                        return this.send(ResponseCodes.BAD_REQUEST, res, "Use update endpoint to change the amount of ingredient in the shopping list.");
-                    }
-
-                    let amount = ingredientSchema.quantity;
-
-                    if (existingItem.quantity.unit !== ingredientSchema.quantity.unit) {
-                        let convertedUnit =
-                            await this.foodAPI.ConvertUnits(
-                                ingredientSchema.quantity,
-                                existingItem.quantity.unit,
-                                existingItem.name
-                            );
-
-                        if (convertedUnit === null) {
-                            return this.send(ResponseCodes.BAD_REQUEST, res, "Amount units cannot be converted.");
-                        }
-
-                        amount = convertedUnit;
-                    }
-
-                    user.shoppingList[i].quantity.value += amount.value;
-
-                    break;
-                }
-            }
-
-            if (!listAlreadyHasItem) {
-                user.shoppingList.push(ingredientSchema);
-            }
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.CREATED, res, updatedUser.shoppingList);
+            parsedRequest = await this.parseAddRequest(req, res);
+            user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
+
+        let duplicateItem = this.getDuplicateShoppingItem(user.shoppingList, parsedRequest)
+
+        if (duplicateItem !== null) {
+            for (let i = 0; i < user.shoppingList.length; i++) {
+                if (this.isEqual(user.shoppingList[i], parsedRequest)) {
+                    if (parsedRequest.recipeID !== null || parsedRequest.recipeName !== null) {
+                        return this.send(
+                            ResponseCodes.BAD_REQUEST,
+                            res,
+                            "Use update endpoint to change the amount of ingredient in the shopping list."
+                        );
+                    }
+
+                    try {
+                        user.shoppingList[i] = await this.updateIngredient(user.shoppingList[i], parsedRequest.quantity);
+                    } catch (error) {
+                        return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+                    }
+                }
+            }
+        } else {
+            user.shoppingList.push(parsedRequest);
+        }
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+
+        return this.send(ResponseCodes.CREATED, res, updatedUser.shoppingList);
     }
 
     /**
@@ -229,19 +254,57 @@ export default class ShoppingListController extends BaseIngredientController {
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let ingredient = user.shoppingList
-                .find((foodItem: IShoppingIngredient) => foodItem.itemID === req.params.itemID);
-
-            if (ingredient === undefined) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in shopping list.");
-            }
-
-            return this.send(ResponseCodes.OK, res, ingredient);
+            user = await this.requestGet(parameters, res)
         } catch (response) {
             return response;
         }
+
+        let ingredient = user.shoppingList
+            .find((foodItem: IShoppingIngredient) => foodItem.itemID === req.params.itemID);
+
+        if (ingredient === undefined) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in shopping list.");
+        }
+
+        return this.send(ResponseCodes.OK, res, ingredient);
+    }
+
+    private async updateIngredient(existingItem: IShoppingIngredient, quantity: IUnit): Promise<IShoppingIngredient> {
+        let amount = quantity;
+
+        if (existingItem.quantity.unit !== quantity.unit) {
+            let convertedUnit =
+                await this.foodAPI.ConvertUnits(
+                    quantity,
+                    existingItem.quantity.unit,
+                    existingItem.name
+                );
+
+            if (convertedUnit === null) {
+                return Promise.reject("Amount units cannot be converted.");
+            }
+
+            amount = convertedUnit;
+        }
+
+        existingItem.quantity.value += amount.value;
+
+        let updatedIngredient = await this.foodAPI.Get(new Map<string, any>([
+            ["id", existingItem.id],
+            ["quantity", existingItem.quantity.value],
+            ["unit", existingItem.quantity.unit]
+        ]));
+
+        if (updatedIngredient === null) {
+            return Promise.reject("Could not update ingredient.");
+        }
+
+        existingItem.price = updatedIngredient.price;
+
+        return existingItem;
     }
 
     /**
@@ -253,31 +316,39 @@ export default class ShoppingListController extends BaseIngredientController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: UpdateRequestSchema;
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            let listHasItem: boolean = false;
-
-            for (let i = 0; i < user.shoppingList.length; i++) {
-                let existingIngredient = user.shoppingList[i];
-
-                if (existingIngredient.itemID === req.params.itemID) {
-                    listHasItem = true;
-
-                    let ingredient = await this.parseUpdateRequest(req, res, existingIngredient);
-                    user.shoppingList[i] = ingredient;
-                }
-            }
-
-            if (!listHasItem) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Use Add endpoint to add ingredient to the shopping list.");
-            }
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
+            parsedRequest = await this.parseUpdateRequest(req, res);
+            user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
+
+        let listHasItem: boolean = false;
+
+        for (let i = 0; i < user.shoppingList.length; i++) {
+            let existingIngredient = user.shoppingList[i];
+
+            if (existingIngredient.itemID === req.params.itemID) {
+                listHasItem = true;
+
+                try {
+                    user.shoppingList[i] = await this.updateIngredient(existingIngredient, parsedRequest.quantity);
+                } catch (error) {
+                    return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+                }
+            }
+        }
+
+        if (!listHasItem) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Use Add endpoint to add ingredient to the shopping list.");
+        }
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+
+        return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
     }
 
     /**
@@ -289,30 +360,33 @@ export default class ShoppingListController extends BaseIngredientController {
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let isFound: boolean = false;
-
-            let shopingList: IShoppingIngredient[] = [];
-
-            for (let i = 0; i < user.shoppingList.length; i++) {
-                if (user.shoppingList[i].itemID === req.params.itemID) {
-                    isFound = true;
-                } else {
-                    shopingList.push(user.shoppingList[i]);
-                }
-            }
-
-            if (!isFound) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in shopping list.");
-            }
-
-            user.shoppingList = shopingList;
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
+            user = await this.requestGet(parameters, res)
         } catch (response) {
             return response;
         }
+
+        let isFound: boolean = false;
+
+        let shopingList: IShoppingIngredient[] = [];
+
+        for (let i = 0; i < user.shoppingList.length; i++) {
+            if (user.shoppingList[i].itemID === req.params.itemID) {
+                isFound = true;
+            } else {
+                shopingList.push(user.shoppingList[i]);
+            }
+        }
+
+        if (!isFound) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in shopping list.");
+        }
+
+        user.shoppingList = shopingList;
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
+        return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
     }
 }

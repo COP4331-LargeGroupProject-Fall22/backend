@@ -1,11 +1,16 @@
 import { Request, Response } from "express";
-import IDatabase from '../../database/IDatabase';
-import Encryptor from "../../utils/Encryptor";
 import { ResponseCodes } from "../../utils/ResponseCodes";
+
+import Encryptor from "../../utils/Encryptor";
+
 import JWTStorage from "../middleware/authentication/JWTStorage";
-import IUser from "../model/user/IUser";
-import BaseUserSchema from "../model/user/requestSchema/BaseUserSchema";
-import BaseUserController from "./BaseUserController";
+
+import IDatabase from '../../database/IDatabase';
+import IUser from "../model/internal/user/IUser";
+
+import UpdateRequestSchema from "../model/external/requests/user/UpdateRequest";
+
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for user-actions 
@@ -16,33 +21,27 @@ export default class UserController extends BaseUserController {
         super(database);
     }
 
-    protected async getUserFromRequest(req: Request, res: Response, user: IUser): Promise<IUser> {
-        let userSchema = new BaseUserSchema(
-            this.isStringUndefinedOrEmpty(req.body?.firstName) ? user.firstName : req.body.firstName,
-            this.isStringUndefinedOrEmpty(req.body?.lastName) ? user.lastName : req.body.lastName,
-            this.isStringUndefinedOrEmpty(req.body?.username) ? user.username : req.body.username,
-            this.isStringUndefinedOrEmpty(req.body?.password) ? user.password : req.body.password,
-            user.email,
-            user.lastSeen,
+    protected parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let request = new UpdateRequestSchema(
+            this.isStringUndefinedOrEmpty(req.body?.firstName) ? null : req.body.firstName,
+            this.isStringUndefinedOrEmpty(req.body?.lastName) ? null : req.body.lastName,
+            this.isStringUndefinedOrEmpty(req.body?.username) ? null : req.body.username,
+            this.isStringUndefinedOrEmpty(req.body?.password) ? null : req.body.password,
+            this.isStringUndefinedOrEmpty(req.body?.email) ? null : req.body.email
         );
 
-        return this.verifySchema(userSchema, res).then(userSchema => {
-            let newUser: IUser = {
-                inventory: user.inventory,
-                shoppingList: user.shoppingList,
-                firstName: userSchema.firstName,
-                lastName: userSchema.lastName,
-                lastSeen: user.lastSeen,
-                email: user.email,
-                password: userSchema.password,
-                username: userSchema.username,
-                allergens: user.allergens,
-                isVerified: user.isVerified,
-                favoriteRecipes: user.favoriteRecipes
-            };
+        return this.verifySchema(request, res);
+    }
 
-            return newUser;
-        }, (response) => Promise.reject(response));
+    protected updateUserObjectWithRequestSchema(parsedRequest: UpdateRequestSchema, user: IUser): IUser {
+        user.firstName = parsedRequest.firstName !== null ? parsedRequest.firstName : user.firstName;
+        user.lastName = parsedRequest.lastName !== null ? parsedRequest.lastName : user.lastName;
+        user.username = parsedRequest.username !== null ? parsedRequest.username : user.username;
+        user.password = parsedRequest.password !== null ? parsedRequest.password : user.password;
+        user.email = parsedRequest.email !== null ? parsedRequest.email : user.email;
+        user.lastSeen = user.lastSeen;
+
+        return user;
     }
 
     /**
@@ -74,29 +73,43 @@ export default class UserController extends BaseUserController {
     update = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: UpdateRequestSchema;
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            if (req.body.username !== undefined) {
-                let result = await this.isUnique(req.body.username);
-
-                if (!result) {
-                    return this.send(ResponseCodes.BAD_REQUEST, res, "Username already exists.");
-                }
-            }
-
-            let validatedUser = await this.getUserFromRequest(req, res, user);
-
-            if (validatedUser.password !== user.password) {
-                validatedUser.password = await new Encryptor().encrypt(validatedUser.password);
-            }
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, validatedUser, res);
-
-            return this.send(ResponseCodes.OK, res, this.convertToUserResponse(updatedUser));
+            parsedRequest = await this.parseUpdateRequest(req, res);
+            user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
+
+        if (parsedRequest.username !== null) {
+            let result = await this.isUnique(parsedRequest.username);
+
+            if (!result) {
+                return this.send(ResponseCodes.BAD_REQUEST, res, "Username already exists.");
+            }
+        }
+
+        if (parsedRequest.password !== null && parsedRequest.password !== user.password) {
+            parsedRequest.password = await new Encryptor().encrypt(parsedRequest.password);
+        }
+
+        if (parsedRequest.email !== null && parsedRequest.email !== user.email) {
+            JWTStorage.getInstance()?.deleteJWT(user.username);
+            user.isVerified = false;
+        }
+
+        let updatedUser = await this.requestUpdate(
+            req.serverUser.username,
+            this.updateUserObjectWithRequestSchema(
+                parsedRequest,
+                user
+            ),
+            res
+        );
+
+        return this.send(ResponseCodes.OK, res, this.convertToUserResponse(updatedUser));
     }
 
     /**
@@ -117,7 +130,7 @@ export default class UserController extends BaseUserController {
             }
 
             JWTStorage.getInstance().deleteJWT(user.username);
-            
+
             return this.send(ResponseCodes.OK, res);
         } catch (response) {
             return response;

@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { ResponseCodes } from '../../../utils/ResponseCodes';
+
 import TokenCreator from '../../../utils/TokenCreator';
-import BaseController from '../../controller/BaseController';
-import IIdentification from '../../model/user/IIdentification';
+
+import BaseController from '../../controller/BaseController/BaseController';
+
+import IIdentification from '../../model/internal/user/IIdentification';
+
 import JWTStorage from './JWTStorage';
 
 export default class JWTAuthenticator extends BaseController {
@@ -26,7 +30,7 @@ export default class JWTAuthenticator extends BaseController {
             }
 
             if (!JWTStorage.getInstance().hasJWT(userIdentification.username) ||
-                JWTStorage.getInstance().getJWT(userIdentification.username)?.accessToken !== accessToken
+                JWTStorage.getInstance().getJWT(userIdentification.username)?.accessToken.token !== accessToken
             ) {
                 return this.send(ResponseCodes.UNAUTHORIZED, res, "Token is not assigned to the user.");
             }

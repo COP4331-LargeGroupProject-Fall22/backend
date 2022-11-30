@@ -3,6 +3,7 @@
  */
 
 import superagent from "superagent";
+
 import IIdentification from "../../serverAPI/model/user/IIdentification";
 
 declare module "supertest" {
@@ -42,7 +43,10 @@ declare global {
             SPOONACULAR_GROCERY_PRODUCT_BASE_URL: string;
             SPOONACULAR_RECIPE_BASE_URL: string;
             SPOONACULAR_CONVERTER_BASE_URL: string;
-            
+            SPOONACULAR_CDN_BASE_URL: string;
+            SPOONACULAR_RECIPE_PRICE_BREAKDOWN_BASE_URL: string;
+            SPOONACULAR_RECIPE_PRICE_BREAKDOWN_WIDGET: string;
+
             SENDGRID_API_KEY: string;
 
             OUTBOUND_VERIFICATION_EMAIL: string;

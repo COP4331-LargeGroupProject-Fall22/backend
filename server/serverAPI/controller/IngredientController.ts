@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
-import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
 import { ResponseCodes } from "../../utils/ResponseCodes";
-import BaseController from "./BaseController";
+
+import IIngredientAPI from "../../ingredientAPI/IIngredientAPI";
+
+import BaseController from "./BaseController/BaseController";
 
 /**
  * This class creates several properties responsible for ingredient actions 

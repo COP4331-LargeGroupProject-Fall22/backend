@@ -1,4 +1,4 @@
-import IEmailVerificationTemplate from "../serverAPI/model/emailVerification/IEmailVerificationTemplate";
+import IVerificationCodeTemplate from "../serverAPI/model/internal/email/IVerificationCodeTemplate";
 
 export default interface IEmailAPI {
     /**
@@ -10,5 +10,5 @@ export default interface IEmailAPI {
      * 
      * @returns Promise filled with a boolean value indicating status of operation.
      */
-    SendVerificationCode(to: string, from: string, emailVerificationTemplate: IEmailVerificationTemplate): Promise<boolean>;
+    SendVerificationCode(to: string, from: string, emailVerificationTemplate: IVerificationCodeTemplate): Promise<boolean>;
 }

@@ -1,12 +1,17 @@
 import IncorrectIDFormat from "../../exceptions/IncorrectIDFormat";
 import NoParameterFound from "../../exceptions/NoParameterFound";
 import ParameterIsNotAllowed from "../../exceptions/ParameterIsNotAllowed";
-import IBaseIngredient from "../../serverAPI/model/ingredient/IBaseIngredient";
-import IIngredient from "../../serverAPI/model/ingredient/IIngredient";
-import INutrient from "../../serverAPI/model/nutrients/INutrient";
-import IUnit from "../../serverAPI/model/unit/IUnit";
-import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
+
+import IBaseIngredient from "../../serverAPI/model/internal/ingredient/IBaseIngredient";
+import IIngredient from "../../serverAPI/model/internal/ingredient/IIngredient";
+import INutrient from "../../serverAPI/model/internal/nutrients/INutrient";
+import IUnit from "../../serverAPI/model/internal/unit/IUnit";
 import IIngredientAPI from "../IIngredientAPI";
+
+import SpoonacularAPI from "../../spoonacularUtils/SpoonacularAPI";
+import IImage from "../../serverAPI/model/internal/image/IImage";
+import IPrice from "../../serverAPI/model/internal/money/IPrice";
+import PaginatedResponse from "../../serverAPI/model/internal/paginatedResponse/PaginatedResponse";
 
 /**
  * This class implements IIngredientAPI interface using Spoonacular API.
@@ -20,6 +25,9 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
     // Allowed food units for conversion operations
     private foodUnits: Set<string>;
+
+    protected MAX_RESULTS_PER_PAGE = 100;
+    protected DEFAULT_RESULTS_PER_PAGE = 10;
 
     constructor(apiKey: string, apiHost: string) {
         super(apiKey, apiHost);
@@ -51,7 +59,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns URLSearchParams filled with parameters.
      */
-    private convertFoodsParameters = (parameters: Map<string, any>): URLSearchParams => {
+    private convertGetAllParameters = (parameters: Map<string, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
@@ -68,41 +76,45 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             }
         });
 
-        searchParams.set("number", "100");
+        searchParams.set("number", this.MAX_RESULTS_PER_PAGE.toString());
 
         return searchParams;
     }
 
     private isInteger(number: string): boolean {
-        return Number.isInteger(Number.parseInt(number));
+        return Number.isInteger(Number(number));
     }
 
-    private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<IBaseIngredient[]> {
+    private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<PaginatedResponse<IBaseIngredient>> {
         let partialFoods: IBaseIngredient[] = [];
 
-        let start: number = 0;
-        
-        let length = jsonArray.length;
+        let offset: number = 0;
 
-        if (resultsPerPage !== undefined && page !== undefined &&
-            this.isInteger(resultsPerPage) && this.isInteger(page)) {
-            start = Number.parseInt(resultsPerPage) * (Number.parseInt(page) - 1);
-            length = Math.min(Number.parseInt(resultsPerPage) + start, jsonArray.length);
-        }
+        let totalResults = jsonArray.length;
 
-        for (let i = start; i < length; i++) {
+        let resultsPerPageNumber = resultsPerPage === undefined ? this.DEFAULT_RESULTS_PER_PAGE : Number(resultsPerPage);
+
+        let pageNumber = page === undefined ? 0 : Number(page);;
+
+        offset = resultsPerPageNumber * pageNumber;
+        totalResults = Math.min(resultsPerPageNumber + offset, jsonArray.length);
+
+        for (let i = offset; i < totalResults; i++) {
             let object = jsonArray[i];
 
-            let parsedFood = await this.parseFood(object);
+            let parsedFood = await this.parseIngredient(object);
 
             partialFoods.push({
                 id: parsedFood.id,
                 name: parsedFood.name,
                 category: parsedFood.category,
+                image: parsedFood.image
             });
         }
 
-        return partialFoods;
+        let numOfPages = Math.ceil(jsonArray.length / resultsPerPageNumber);
+
+        return new PaginatedResponse(numOfPages, jsonArray.length, pageNumber, partialFoods);
     }
 
     private async parseUnit(jsonObject: any): Promise<IUnit> {
@@ -125,7 +137,13 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         searchParams.set("sourceUnit", oldAmount.unit);
         searchParams.set("ingredientName", ingredientName);
 
-        let response = await this.getRequest(converterBaseURL, searchParams);
+        let response: any;
+
+        try {
+            response = await this.getRequest(converterBaseURL, searchParams);
+        } catch(error) {
+            return Promise.reject("Call was made to convertUnits. " + error);
+        }
 
         if (response === null) {
             return null;
@@ -150,14 +168,20 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * @throws RequestLimitReached excpetion when request limit has been reached.
      * @returns Promise filled with an array of IIngredient objects.
      */
-    async GetAll(parameters: Map<string, any>): Promise<IBaseIngredient[] | null> {
-        let foodSearchBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
+    async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseIngredient> | null> {
+        let searchIngredientsBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete";
 
-        let searchParams = this.convertFoodsParameters(parameters);
+        let searchParameters = this.convertGetAllParameters(parameters);
 
-        searchParams.append("metaInformation", "true");
+        searchParameters.append("metaInformation", "true");
 
-        let response = await this.getRequest(foodSearchBaseURL, searchParams);
+        let response: any;
+
+        try {
+            response = await this.getRequest(searchIngredientsBaseURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the getAllIngredients. " + error);
+        }
 
         if (response === null) {
             return null;
@@ -166,18 +190,25 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         return this.searchPagination(response, parameters.get("resultsPerPage"), parameters.get("page"));
     }
 
-    /**
-     * Parses plain javascript object as IIngredient object.
-     * 
-     * @param data representing food as plain javascript object.
-     * @returns Promise filled with IIngredient object.
-     */
-    private parseFood = async (data: any): Promise<IIngredient> => {
-        let id = data.id;
-        let name = data.name;
-        let category = data.aisle;
-        let quantityUnits = data.possibleUnits;
-        let quantity: IUnit = { unit: "", value: 0};
+    private parseNutrients = async (data: any): Promise<INutrient[]> => {
+        let nutrients: INutrient[] = [];
+
+        data?.nutrition?.nutrients.forEach((nutrient: any) => {
+            nutrients.push({
+                name: nutrient.name,
+                unit: {
+                    unit: nutrient.unit,
+                    value: Number(nutrient.amount)
+                },
+                percentOfDaily: Number(nutrient.percentOfDailyNeeds)
+            });
+        });
+
+        return nutrients;
+    }
+
+    private parseQuantity = async (data: any): Promise<IUnit> => {
+        let quantity: IUnit = { unit: "", value: 0 };
 
         if (data.amount !== undefined && data.unit !== undefined) {
             quantity = {
@@ -186,26 +217,53 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             };
         }
 
-        let nutrients: INutrient[] = [];
+        return quantity;
+    }
 
-        data?.nutrition?.nutrients.forEach((nutrient: any) => {
-            nutrients.push({
-                name: nutrient.name,
-                unit: {
-                    unit: nutrient.unit,
-                    value: Number.parseFloat(nutrient.amount)
-                },
-                percentOfDaily: Number.parseFloat(nutrient.percentOfDailyNeeds)
-            });
-        });
+    private parseImage = async (data: any): Promise<IImage> => {
+        let image = (data.image as string);
+
+        let srcUrl = `${process.env.SPOONACULAR_CDN_BASE_URL}/${image.substring(image.lastIndexOf('/') + 1)}`;
+
+        return {
+            srcUrl: srcUrl
+        };
+    }
+
+    private parsePrice = async (data: any): Promise<IPrice> => {
+        let price: IPrice = { price: 0, currency: "" };
+
+        if (data.estimatedCost !== undefined) {
+            price = {
+                price: data.estimatedCost.value,
+                currency: data.estimatedCost.unit
+            };
+        }
+
+        return price;
+    }
+
+    /**
+     * Parses plain javascript object as IIngredient object.
+     * 
+     * @param data representing food as plain javascript object.
+     * @returns Promise filled with IIngredient object.
+     */
+    private parseIngredient = async (data: any): Promise<IIngredient> => {
+        let id = data.id;
+        let name = data.name;
+        let category = data.aisle;
+        let quantityUnits = data.possibleUnits;
 
         return {
             id: id,
             name: name,
             category: category,
-            nutrients: nutrients,
+            nutrients: await this.parseNutrients(data),
             quantityUnits: quantityUnits,
-            quantity: quantity
+            quantity: await this.parseQuantity(data),
+            image: await this.parseImage(data),
+            price: await this.parsePrice(data)
         };
     }
 
@@ -217,7 +275,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
      * 
      * @returns URLSearchParams filled with parameters.
     */
-    private convertFoodParameters = (parameters: Map<string, any>): URLSearchParams => {
+    private convertGetParameters = (parameters: Map<string, any>): URLSearchParams => {
         let keys = Array.from(parameters.keys());
 
         let searchParams = new URLSearchParams();
@@ -234,14 +292,14 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         let hasAmount = searchParams.has("amount");
         let hasUnit = searchParams.has("unit");
 
-        if (hasAmount !== hasUnit) {
+        // false && false, false && true, true && false
+        if (hasAmount !== hasUnit || !hasAmount && !hasUnit) {
             searchParams.delete("amount");
             searchParams.delete("unit");
 
-            searchParams.set("amount", "1");
-            searchParams.set("unit", "serving");
+            searchParams.set("amount", "200");
+            searchParams.set("unit", "g");
         }
-
         return searchParams;
     }
 
@@ -262,29 +320,34 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
             throw new NoParameterFound("id parameter is missing");
         }
 
-        if (!this.isInteger(String(parameters.get("id"))) || 
-            Number.parseInt(String(parameters.get("id"))) <= 0) {
+        if (!this.isInteger(String(parameters.get("id"))) ||
+            Number(String(parameters.get("id"))) <= 0) {
             throw new IncorrectIDFormat("IngredientID has incorrect format.");
         }
 
-        let foodID = Number.parseInt(parameters.get("id"));
+        let ingredientID = Number(parameters.get("id"));
         // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
 
-        let foodGetInfoBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${foodID}/information`;
+        let getIngredientBaseURL: string = process.env.SPOONACULAR_INGREDIENTS_BASE_URL + `/${ingredientID}/information`;
 
-        let searchParams = this.convertFoodParameters(parameters);
+        let searchParameters = this.convertGetParameters(parameters);
 
-        let response = await this.getRequest(foodGetInfoBaseURL, searchParams);
+        let response: any;
+
+        try {
+            response = await this.getRequest(getIngredientBaseURL, searchParameters);
+        } catch(error) {
+            return Promise.reject("Call was made to the getIngredient. " + error);
+        }
 
         if (response == null) {
             return Promise.resolve(null);
         }
 
-        let jsonObject = response;
-        let parsedFood = await this.parseFood(jsonObject);
+        let parsedIngredient = await this.parseIngredient(response);
 
-        return parsedFood;
+        return parsedIngredient;
     }
 
     // TODO(#57): Add support for finding food items by UPC

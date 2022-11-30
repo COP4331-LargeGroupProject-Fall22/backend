@@ -2,11 +2,8 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { NextFunction, Request, Response } from 'express';
-
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
-
 import supertest from 'supertest';
+
 import UserDatabase from '../../database/UserDatabase';
 
 jest.mock('../../serverAPI/middleware/logger/Logger', () => {
@@ -19,69 +16,92 @@ let databaseURL = (global as any).__MONGO_URI__;
 let databaseName = process.env.DB_NAME!;
 let collectionName = process.env.DB_USERS_COLLECTION!;
 
+UserDatabase.connect(databaseURL, databaseName, collectionName);
+
 import { app } from '../../App';
-import { recipeSearchResponse } from '../unit/responses/recipeSearchResponse';
-import { recipeSearchAPIResponse } from '../unit/responses/recipeSearchAPIResponse';
-import { recipeGetResponse } from '../unit/responses/recipeGetResponse';
-import { recipeGetAPIResponse } from '../unit/responses/recipeGetAPIResponse';
+import { ResponseCodes } from '../../utils/ResponseCodes';
+
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+
+jest.mock('../../serverAPI/middleware/logger/Logger', () => {
+    return {
+        consoleLog: (req: Request, res: Response, next: NextFunction) => { next(); }
+    };
+});
+
+let mockAxios = new MockAdapter(axios);
+
+import { recipeGetAllApiResponse } from './responses/recipes/recipeGetAllApiResponse';
+import { recipeGetAllResponse } from './responses/recipes/recipeGetAllResponse';
+
+import { priceBreakdownApiResponse } from './responses/recipes/priceBreakdownApiResponse';
+
+import { recipeGetApiResponse } from './responses/recipes/recipeGetApiResponse';
+import { recipeGetResponse } from './responses/recipes/recipeGetResponse';
+
+let getAllURL: string;
+let getURL: string;
+
+let mockRecipeID: number;
+
+let priceWidgetUrl: string;
 
 beforeAll(() => {
-    UserDatabase.connect(databaseURL, databaseName, collectionName);
+    mockRecipeID = recipeGetResponse.id;
+
+    getAllURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/complexSearch`;
+    getURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${mockRecipeID}/information`
+    priceWidgetUrl = `${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_BASE_URL}/${recipeGetApiResponse.id}/${process.env.SPOONACULAR_RECIPE_PRICE_BREAKDOWN_WIDGET}`;
 });
 
 describe('Recipe endpoints', () => {
-    let mockAxios: MockAdapter;
-
-    let searchResponse: any;
-    let searchAPIResponse: any;
-
-    let getResponse: any;
-    let getAPIResponse: any;
-
-    let searchURL: string;
-    let getURL: string;
-
-    let mockRecipeID: number;
-
-    beforeAll(() => {
-        mockAxios = new MockAdapter(axios);
-
-        searchResponse = recipeSearchResponse;
-        searchAPIResponse = recipeSearchAPIResponse;
-        searchURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/complexSearch`;
-    
-        mockRecipeID = 532245;
-
-        getResponse = recipeGetResponse;
-        getAPIResponse = recipeGetAPIResponse;
-        getURL = `${process.env.SPOONACULAR_RECIPE_BASE_URL}/${mockRecipeID}/information`
-
-    });
-
     beforeEach(() => {
         mockAxios.reset();
     });
 
-    it('Search Recipe items using correct query', async () => {
-        mockAxios.onGet(searchURL).reply(200, searchResponse);
-        mockAxios.onGet(process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete").reply(200, []);
+    describe('GetAll responses', () => {
+        it('Get recipes using correct query', async () => {
+            mockAxios.onGet(getAllURL).reply(ResponseCodes.OK, recipeGetAllApiResponse);
 
-        let response = await supertest(app)
-            .get(`/recipes?query=pasta`);
+            let response = await supertest(app)
+                .get(`/recipes?recipeName=pasta`);
 
-        expect(response.body.data).toMatchObject(searchAPIResponse);
+            expect(response.body).toMatchObject(recipeGetAllResponse);
+            expect(response.statusCode).toBe(ResponseCodes.OK);
+        });
     });
 
-    it('Get Recipe item using correct id', async () => {
-        mockAxios.onGet(getURL).reply(200, getResponse);
-        mockAxios.onGet(process.env.SPOONACULAR_INGREDIENTS_BASE_URL + "/autocomplete").reply(200, []);
+    describe('Get responses', () => {
+        it('Get recipe using correct id', async () => {
+            mockAxios.onGet(getURL).reply(ResponseCodes.OK, recipeGetApiResponse);
+            mockAxios.onGet(priceWidgetUrl).reply(ResponseCodes.OK, priceBreakdownApiResponse);
+            
+            let response = await supertest(app)
+                .get(`/recipes/${mockRecipeID}`);
 
-        let response = await supertest(app)
-            .get(`/recipes/${mockRecipeID}`);
+            expect(response.body).toMatchObject(recipeGetResponse)
+        });
 
-        expect(response.body.data).toMatchObject(getAPIResponse)
+        it('Get recipe using incorrect recipeID', async () => {
+            mockAxios.onGet(getURL).reply(ResponseCodes.OK, recipeGetApiResponse);
+
+            let response = await supertest(app)
+                .get(`/recipes/123`);
+
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
+        });
+
+        it('Get recipe using non-existant recipeID', async () => {
+            mockAxios.onGet(getURL).reply(ResponseCodes.OK, recipeGetApiResponse);
+
+            let response = await supertest(app)
+                .get(`/recipes/-123`);
+
+            expect(response.statusCode).toBe(ResponseCodes.BAD_REQUEST);
+        });
     });
-})
+});
 
 afterAll(() => {
     UserDatabase.getInstance()?.disconnect();

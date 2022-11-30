@@ -1,6 +1,8 @@
-import IEmailAPI from "../IEmailAPI";
 import SendGrid, { MailDataRequired } from "@sendgrid/mail";
-import IEmailVerificationTemplate from "../../serverAPI/model/emailVerification/IEmailVerificationTemplate";
+
+import IEmailAPI from "../IEmailAPI";
+import IEmailVerification from "../../serverAPI/model/internal/email/IVerificationCodeTemplate";
+
 import { isEmail } from "class-validator";
 
 export default class SendGridAPI implements IEmailAPI {
@@ -10,9 +12,9 @@ export default class SendGridAPI implements IEmailAPI {
         SendGrid.setApiKey(apiKey);
     }
 
-    async SendVerificationCode(to: string, from: string, emailVerificationTemplate: IEmailVerificationTemplate): Promise<boolean> {
+    async SendVerificationCode(to: string, from: string, emailVerificationTemplate: IEmailVerification): Promise<boolean> {
         if (!(isEmail(to) && isEmail(from))) {
-            Promise.reject("Email addressed provided are invalid.");
+            return Promise.reject("Email addresses provided are invalid.");
         }
 
         let message: MailDataRequired = {

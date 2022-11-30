@@ -1,42 +1,33 @@
 import { Request, Response } from "express";
-
-import IUser from "../model/user/IUser";
-import IBaseIngredient from "../model/ingredient/IBaseIngredient";
-import IDatabase from "../../database/IDatabase";
-
-import BaseIngredientSchema from "../model/ingredient/requestSchema/BaseIngredientSchema";
-
-import BaseIngredientController from "./BaseIngredientController";
-
 import { ResponseCodes } from "../../utils/ResponseCodes";
+
+import IUser from "../model/internal/user/IUser";
+import IDatabase from "../../database/IDatabase";
+import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
+
+import ImageSchema from "../model/internal/image/ImageSchema";
+import AddRequestSchema from "../model/external/requests/allergen/AddRequest";
+
+import BaseIngredientController from "./BaseController/BaseIngredientController";
 
 /**
  * This class creates several properties responsible for allergens actions 
  * provided to the user.
  */
 export default class AllergenController extends BaseIngredientController {
-
     constructor(database: IDatabase<IUser>) {
         super(database);
     }
 
-    private async parseAddRequest(req: Request, res: Response)
-        : Promise<BaseIngredientSchema> {
-        let jsonPayload = req.body;
-
-        let ingredientSchema = new BaseIngredientSchema(
-            Number.parseInt(jsonPayload.id),
-            jsonPayload.name,
-            jsonPayload.category,
+    protected async parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
+        let request = new AddRequestSchema(
+            Number(req.body?.id),
+            req.body?.name,
+            req.body?.category,
+            new ImageSchema(req.body?.image?.srcUrl)
         );
 
-        try {
-            ingredientSchema = await this.verifySchema(ingredientSchema, res);
-        } catch (response) {
-            return Promise.reject(response);
-        }
-
-        return ingredientSchema;
+        return this.verifySchema(request, res);;
     }
 
     /**
@@ -48,25 +39,35 @@ export default class AllergenController extends BaseIngredientController {
     getAll = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let sortByCategory = req.query.sortByCategory === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+        
+        let truthyCount = Number(sortByCategory) + Number(sortByLexicographicalOrder);
+        
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-
-            let responseData: any = user.allergens;
-
-            if (req.query.sortByCategory === 'true') {
-                responseData = this.sortByCategory(user.allergens, isReverse);    
-            }
-
-            if (req.query.sortByLexicographicalOrder === 'true') {
-                responseData = this.sortByLexicographicalOrder(user.allergens, isReverse);    
-            }
-
-            return this.send(ResponseCodes.OK, res, responseData);
+            user = await this.requestGet(parameters, res)
         } catch (response) {
             return response;
         }
+
+        let responseData: any = this.convertResponse(user.allergens);
+
+        if (req.query.sortByCategory === 'true') {
+            responseData = this.sortByCategory(user.allergens, isReverse);
+        }
+
+        if (req.query.sortByLexicographicalOrder === 'true') {
+            responseData = this.sortByLexicographicalOrder(user.allergens, isReverse);
+        }
+
+        return this.send(ResponseCodes.OK, res, responseData);
     }
 
     /**
@@ -78,24 +79,27 @@ export default class AllergenController extends BaseIngredientController {
     add = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let parsedRequest: AddRequestSchema;
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res);
-
-            let ingredientSchema = await this.parseAddRequest(req, res);
-
-            let duplicateingredient = user.allergens.find((ingredientItem: IBaseIngredient) => ingredientItem.id === ingredientSchema.id);
-
-            if (duplicateingredient !== undefined) {
-                return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in allergens.");
-            }
-
-            user.allergens.push(ingredientSchema);
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-            return this.send(ResponseCodes.CREATED, res, updatedUser.allergens);
+            parsedRequest = await this.parseAddRequest(req, res);
+            user = await this.requestGet(parameters, res);
         } catch (response) {
             return response;
         }
+
+
+        let duplicateingredient = user.allergens.find((ingredientItem: IBaseIngredient) => ingredientItem.id === parsedRequest.id);
+
+        if (duplicateingredient !== undefined) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Ingredient already exists in allergens.");
+        }
+
+        user.allergens.push(parsedRequest);
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
+        return this.send(ResponseCodes.CREATED, res, updatedUser.allergens);
     }
 
     /**
@@ -107,19 +111,22 @@ export default class AllergenController extends BaseIngredientController {
     get = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let ingredient = user.allergens
-                .find((ingredientItem: IBaseIngredient) => ingredientItem.id === Number.parseInt(req.params.ingredientID));
-
-            if (ingredient === undefined) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in allergens.");
-            }
-
-            return this.send(ResponseCodes.OK, res, ingredient);
+            user = await this.requestGet(parameters, res)
         } catch (response) {
             return response;
         }
+
+        let ingredient = user.allergens
+            .find((ingredientItem: IBaseIngredient) => ingredientItem.id === Number(req.params.ingredientID));
+
+        if (ingredient === undefined) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found in allergen list.");
+        }
+
+        return this.send(ResponseCodes.OK, res, ingredient);
     }
 
     /**
@@ -131,30 +138,33 @@ export default class AllergenController extends BaseIngredientController {
     delete = async (req: Request, res: Response) => {
         let parameters = new Map<string, any>([["username", req.serverUser.username]]);
 
+        let user: IUser;
+
         try {
-            let user = await this.requestGet(parameters, res)
-            let isFound: boolean = false;
-
-            let newAllergens: IBaseIngredient[] = [];
-
-            for (let i = 0; i < user.allergens.length; i++) {
-                if (user.allergens[i].id === Number.parseInt(req.params.ingredientID)) {
-                    isFound = true;
-                } else {
-                    newAllergens.push(user.allergens[i]);
-                }
-            }
-
-            if (!isFound) {
-                return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient doesn't exist in allergens.");
-            }
-
-            user.allergens = newAllergens;
-
-            let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-            return this.send(ResponseCodes.OK, res, updatedUser.allergens);
+            user = await this.requestGet(parameters, res)
         } catch (response) {
             return response;
         }
+
+        let isFound: boolean = false;
+
+        let newAllergens: IBaseIngredient[] = [];
+
+        for (let i = 0; i < user.allergens.length; i++) {
+            if (user.allergens[i].id === Number(req.params.ingredientID)) {
+                isFound = true;
+            } else {
+                newAllergens.push(user.allergens[i]);
+            }
+        }
+
+        if (!isFound) {
+            return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found in allergen list.");
+        }
+
+        user.allergens = newAllergens;
+
+        let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
+        return this.send(ResponseCodes.OK, res, updatedUser.allergens);
     }
 }
