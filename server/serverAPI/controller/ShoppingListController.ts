@@ -112,7 +112,7 @@ export default class ShoppingListController extends BaseIngredientController {
             req.body?.name,
             req.body?.category,
             req.body?.quantityUnits,
-            new UnitSchema(req.body?.quantity?.unit, Number(req.body?.value)),
+            new UnitSchema(req.body?.quantity?.unit, Number(req.body?.quantity?.value)),
             new ImageSchema(req.body?.image?.srcUrl),
             new PriceSchema(Number(req.body?.price), "US Cents"),
             Number(req.body?.dateAdded),

@@ -27,7 +27,7 @@ const typeValidator = {
 export default function IsType(types: (keyof (typeof typeValidator))[], validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
-            name: propertyName,
+            name: "WrongType",
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
@@ -38,7 +38,7 @@ export default function IsType(types: (keyof (typeof typeValidator))[], validati
                 defaultMessage(validationArguments?: ValidationArguments) {
                     const lastType = types.pop();
                     if (types.length == 0) {
-                        return `Has to be ${lastType}`;
+                        return `${propertyName} has to be ${lastType}`;
                     }
                     
                     return `Can only be ${types.join(", ")} or ${lastType}.`;
