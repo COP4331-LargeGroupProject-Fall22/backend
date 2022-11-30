@@ -16,6 +16,12 @@ const typeValidator = {
             allowInfinity: false
         }) && !isInt(value);
     },
+    'positiveNumber': function (value: any, args: ValidationArguments) {
+        return isNumber(value, {
+            allowNaN: false,
+            allowInfinity: false
+        });
+    },
     'null': function (value: any, args: ValidationArguments) {
         return value === null;
     },

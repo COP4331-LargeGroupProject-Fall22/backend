@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
+import IsType from "../../../../utils/ClassValidator";
 import ISchema from "../../ISchema";
 import IUnit from "./IUnit";
 
@@ -10,9 +11,7 @@ export default class UnitSchema implements IUnit, ISchema {
     @IsString()
     unit: string;
 
-    @IsNotEmpty()
-    @IsPositive()
-    @IsNumber()
+    @IsType(['positiveNumber'])
     value: number;
     
     constructor(

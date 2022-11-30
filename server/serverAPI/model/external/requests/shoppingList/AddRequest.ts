@@ -21,6 +21,7 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
 
     recipeName?: string;
 
+    @ValidateNested()
     price?: IPrice;
 
     @IsType(['positiveInt'])
