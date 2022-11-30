@@ -1,9 +1,9 @@
-import { validate } from "class-validator";
 import IBaseIngredient from "../ingredient/IBaseIngredient";
 import IInventoryIngredient from "../ingredient/IInventoryIngredient";
 import IShoppingIngredient from "../ingredient/IShoppingIngredient";
 import IBaseRecipe from "../recipe/IBaseRecipe";
 import IUser from "./IUser";
+
 import BaseUserSchema from "./BaseUserSchema";
 
 export default class UserSchema extends BaseUserSchema implements IUser {
@@ -16,7 +16,7 @@ export default class UserSchema extends BaseUserSchema implements IUser {
     
     allergens: IBaseIngredient[];
     
-    favoriteRecipes: IBaseRecipe[];
+    favoriteRecipes: IBaseRecipe<IBaseIngredient>[];
 
     constructor(
         firstName: string,
@@ -33,18 +33,5 @@ export default class UserSchema extends BaseUserSchema implements IUser {
         this.shoppingList = [];
         this.allergens = []
         this.favoriteRecipes = [];
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

@@ -1,9 +1,11 @@
-import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
-import ISchema from "../../ISchema";
+import { IsEmail, IsInt, IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
+
+import Schema from "../../Schema";
+
 import IBaseUser from "./IBaseUser";
 import ICredentials from "./ICredentials";
 
-export default class BaseUserSchema implements IBaseUser, ICredentials, ISchema {
+export default class BaseUserSchema extends Schema implements IBaseUser, ICredentials {
     @IsString()
     @IsNotEmpty()
     firstName: string;
@@ -36,24 +38,13 @@ export default class BaseUserSchema implements IBaseUser, ICredentials, ISchema 
         email: string,
         lastSeen: number
     ) {
+        super();
+        
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
         this.password = password;
         this.lastSeen = lastSeen;
         this.email = email;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

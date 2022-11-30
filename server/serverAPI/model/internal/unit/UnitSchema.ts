@@ -1,12 +1,13 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsString, validate } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator";
 import IsType from "../../../../utils/ClassValidator";
-import ISchema from "../../ISchema";
+import Schema from "../../Schema";
+
 import IUnit from "./IUnit";
 
 /**
  * This class implements IUnit interface and provides several built-in validations of its own properties.
  */
-export default class UnitSchema implements IUnit, ISchema {
+export default class UnitSchema extends Schema implements IUnit {
     @IsNotEmpty()
     @IsString()
     unit: string;
@@ -18,20 +19,9 @@ export default class UnitSchema implements IUnit, ISchema {
         unit: string,
         value: number
     ) {
+        super();
+
         this.unit = unit;
         this.value = value;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

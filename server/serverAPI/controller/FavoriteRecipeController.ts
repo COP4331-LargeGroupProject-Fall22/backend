@@ -5,6 +5,7 @@ import IDatabase from "../../database/IDatabase";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
 import IUser from "../model/internal/user/IUser";
+import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
 
 import ImageSchema from "../model/internal/image/ImageSchema";
 import AddRequestSchema from "../model/external/requests/favoriteRecipeList/AddRequest";
@@ -25,16 +26,8 @@ export default class FavoriteRecipeController extends BaseUserController {
     }
 
     private parseAddRequest(req: Request, res: Response): Promise<AddRequestSchema> {
-        let id: number;
-
-        try {
-            id = Number.parseInt(req.body?.id);
-        } catch(error) {
-            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Id should be an integer."));
-        }
-
         let request = new AddRequestSchema(
-            id,
+            Number(req.body?.id),
             req.body?.name,
             new ImageSchema(req.body?.image?.srcUrl),
             req.body?.ingredients
@@ -82,7 +75,7 @@ export default class FavoriteRecipeController extends BaseUserController {
 
         let parsedRequest = await this.parseAddRequest(req, res);
 
-        let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe) => recipeItem.id === parsedRequest.id);
+        let duplicateRecipe = user.favoriteRecipes.find((recipeItem: IBaseRecipe<IBaseIngredient>) => recipeItem.id === parsedRequest.id);
 
         if (duplicateRecipe !== undefined) {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Recipe already exists in favorite recipes.");
@@ -113,7 +106,7 @@ export default class FavoriteRecipeController extends BaseUserController {
         }
 
         let recipe = user.favoriteRecipes
-            .find((ingredientItem: IBaseRecipe) => ingredientItem.id === Number.parseInt(req.params.recipeID));
+            .find((ingredientItem: IBaseRecipe<IBaseIngredient>) => ingredientItem.id === Number(req.params.recipeID));
 
         if (recipe === undefined) {
             return this.send(ResponseCodes.NOT_FOUND, res, "Recipe doesn't exist in favorite recipes.");
@@ -143,10 +136,10 @@ export default class FavoriteRecipeController extends BaseUserController {
 
         let isFound: boolean = false;
 
-        let newFavoriteRecipes: IBaseRecipe[] = [];
+        let newFavoriteRecipes: IBaseRecipe<IBaseIngredient>[] = [];
 
         for (let i = 0; i < user.favoriteRecipes.length; i++) {
-            if (user.favoriteRecipes[i].id === Number.parseInt(req.params.recipeID)) {
+            if (user.favoriteRecipes[i].id === Number(req.params.recipeID)) {
                 isFound = true;
             } else {
                 newFavoriteRecipes.push(user.favoriteRecipes[i])

@@ -1,10 +1,13 @@
-import { IsDefined, IsInt, IsNotEmpty, IsPositive, IsString, validate, ValidateNested } from "class-validator";
-import ImageSchema from "../../../internal/image/ImageSchema";
-import IIngredient from "../../../internal/ingredient/IIngredient";
-import ISchema from "../../../ISchema";
-import IBaseRecipe from "../../../internal/recipe/IBaseRecipe";
+import { IsDefined, IsInt, IsNotEmpty, IsPositive, IsString, ValidateNested } from "class-validator";
 
-export default class AddRequestSchema implements IBaseRecipe, ISchema {
+import IIngredient from "../../../internal/ingredient/IIngredient";
+import IBaseRecipe from "../../../internal/recipe/IBaseRecipe";
+import IBaseIngredient from "../../../internal/ingredient/IBaseIngredient";
+
+import Schema from "../../../Schema";
+import IImage from "../../../internal/image/IImage";
+
+export default class AddRequestSchema extends Schema implements IBaseRecipe<IBaseIngredient> {
     @IsInt()
     @IsPositive()
     id: number;
@@ -15,27 +18,16 @@ export default class AddRequestSchema implements IBaseRecipe, ISchema {
     
     @IsDefined()
     @ValidateNested()
-    image: ImageSchema;
+    image: IImage;
 
     ingredients: IIngredient[];
 
-    constructor(id: number, name: string, image: ImageSchema, ingredients: IIngredient[]) {
+    constructor(id: number, name: string, image: IImage, ingredients: IIngredient[]) {
+        super();
+
         this.id = id;
         this.name = name;
         this.image = image;
         this.ingredients = ingredients;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

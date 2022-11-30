@@ -158,7 +158,7 @@ export default class InventoryController extends BaseIngredientController {
         }
 
         let ingredient = user.inventory
-            .find((ingredientItem: IInventoryIngredient) => ingredientItem.id === Number.parseInt(req.params.ingredientID));
+            .find((ingredientItem: IInventoryIngredient) => ingredientItem.id === Number(req.params.ingredientID));
 
         if (ingredient === undefined) {
             return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found.");
@@ -189,7 +189,7 @@ export default class InventoryController extends BaseIngredientController {
         let isFound: boolean = false;
 
         for (let i = 0; i < user.inventory.length; i++) {
-            if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
+            if (user.inventory[i].id === Number(req.params.ingredientID)) {
                 isFound = true;
                 user.inventory[i].expirationDate = parsedRequest.expirationDate;
             }
@@ -226,7 +226,7 @@ export default class InventoryController extends BaseIngredientController {
         let newInventory: IInventoryIngredient[] = [];
 
         for (let i = 0; i < user.inventory.length; i++) {
-            if (user.inventory[i].id === Number.parseInt(req.params.ingredientID)) {
+            if (user.inventory[i].id === Number(req.params.ingredientID)) {
                 isFound = true;
             } else {
                 newInventory.push(user.inventory[i]);

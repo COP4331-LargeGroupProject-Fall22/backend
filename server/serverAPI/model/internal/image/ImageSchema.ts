@@ -1,26 +1,17 @@
-import { IsDefined, IsUrl, validate } from "class-validator";
-import IImage from "./IImage";
-import ISchema from "../../ISchema";
+import { IsDefined, IsUrl } from "class-validator";
 
-export default class ImageSchema implements IImage, ISchema {
+import IImage from "./IImage";
+
+import Schema from "../../Schema";
+
+export default class ImageSchema extends Schema implements IImage {
     @IsDefined()
     @IsUrl()
     srcUrl: string;
     
     constructor(srcUrl: string) {
+        super();
+
         this.srcUrl = srcUrl;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

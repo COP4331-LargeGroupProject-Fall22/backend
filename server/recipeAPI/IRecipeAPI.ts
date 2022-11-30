@@ -1,3 +1,4 @@
+import IBaseIngredient from "../serverAPI/model/internal/ingredient/IBaseIngredient";
 import PaginatedResponse from "../serverAPI/model/internal/paginatedResponse/PaginatedResponse";
 import IBaseRecipe from "../serverAPI/model/internal/recipe/IBaseRecipe";
 import IRecipe from "../serverAPI/model/internal/recipe/IRecipe";
@@ -24,7 +25,7 @@ export default interface IRecipeAPI {
      * @throws NoParameterFound exception when required parameters weren't found.
      * @returns Promise filled with a collection of Partial<IRecipe> objects.
      */
-    GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe> | null>;
+    GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe<IBaseIngredient>> | null>;
 
     /**
      * Retrieves specific Recipe item that is defined by unique identifier.

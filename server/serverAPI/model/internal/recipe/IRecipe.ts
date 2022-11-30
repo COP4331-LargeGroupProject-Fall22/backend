@@ -1,3 +1,4 @@
+import IIngredient from "../ingredient/IIngredient";
 import IInstruction from "../instruction/IInstruction";
 import INutrient from "../nutrients/INutrient";
 import IBaseRecipe from "./IBaseRecipe";
@@ -5,7 +6,7 @@ import IBaseRecipe from "./IBaseRecipe";
 /**
  * Recipe interface.
  */
-export default interface IRecipe extends IBaseRecipe {
+export default interface IRecipe extends IBaseRecipe<IIngredient> {
     // TODO(#56): add support for allergens
     
     /**

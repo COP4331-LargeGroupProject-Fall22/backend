@@ -1,9 +1,11 @@
-import { IsArray, IsInt, IsNotEmpty, IsPositive, IsString, validate } from "class-validator";
+import { IsInt, IsNotEmpty, IsPositive, IsString, ValidateNested } from "class-validator";
+
 import IImage from "../image/IImage";
-import ISchema from "../../ISchema";
 import IBaseIngredient from "./IBaseIngredient";
 
-export default class BaseIngredientSchema implements IBaseIngredient, ISchema {
+import Schema from "../../Schema";
+
+export default class BaseIngredientSchema extends Schema implements IBaseIngredient {
     @IsInt()
     @IsPositive()
     id: number;
@@ -15,6 +17,7 @@ export default class BaseIngredientSchema implements IBaseIngredient, ISchema {
     @IsString()
     category: string;
 
+    @ValidateNested()
     image: IImage;
 
     constructor(
@@ -23,26 +26,11 @@ export default class BaseIngredientSchema implements IBaseIngredient, ISchema {
         category: string,
         image: IImage
     ) {
+        super();
+
         this.id = id;
         this.image = image
         this.name = name;
         this.category = category;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => {
-                if (error.constraints !== undefined && error.constraints !== null) {
-                    logs.push(error.constraints);
-                }
-            });
-        }
-
-        return await Promise.resolve(logs);
     }
 }

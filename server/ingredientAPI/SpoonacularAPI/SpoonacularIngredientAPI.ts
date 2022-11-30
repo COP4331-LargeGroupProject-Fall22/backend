@@ -82,7 +82,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     }
 
     private isInteger(number: string): boolean {
-        return Number.isInteger(Number.parseInt(number));
+        return Number.isInteger(Number(number));
     }
 
     private async searchPagination(jsonArray: any[], resultsPerPage?: string, page?: string): Promise<PaginatedResponse<IBaseIngredient>> {
@@ -92,9 +92,9 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         let totalResults = jsonArray.length;
 
-        let resultsPerPageNumber = resultsPerPage === undefined ? this.DEFAULT_RESULTS_PER_PAGE : Number.parseInt(resultsPerPage);
+        let resultsPerPageNumber = resultsPerPage === undefined ? this.DEFAULT_RESULTS_PER_PAGE : Number(resultsPerPage);
 
-        let pageNumber = page === undefined ? 0 : Number.parseInt(page);;
+        let pageNumber = page === undefined ? 0 : Number(page);;
 
         offset = resultsPerPageNumber * pageNumber;
         totalResults = Math.min(resultsPerPageNumber + offset, jsonArray.length);
@@ -198,9 +198,9 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
                 name: nutrient.name,
                 unit: {
                     unit: nutrient.unit,
-                    value: Number.parseFloat(nutrient.amount)
+                    value: Number(nutrient.amount)
                 },
-                percentOfDaily: Number.parseFloat(nutrient.percentOfDailyNeeds)
+                percentOfDaily: Number(nutrient.percentOfDailyNeeds)
             });
         });
 
@@ -321,11 +321,11 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
         }
 
         if (!this.isInteger(String(parameters.get("id"))) ||
-            Number.parseInt(String(parameters.get("id"))) <= 0) {
+            Number(String(parameters.get("id"))) <= 0) {
             throw new IncorrectIDFormat("IngredientID has incorrect format.");
         }
 
-        let ingredientID = Number.parseInt(parameters.get("id"));
+        let ingredientID = Number(parameters.get("id"));
         // id is not part of the query, therefore it should not be part of the parameters in URLSearch.
         parameters.delete("id");
 

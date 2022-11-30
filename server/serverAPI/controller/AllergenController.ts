@@ -120,7 +120,7 @@ export default class AllergenController extends BaseIngredientController {
         }
 
         let ingredient = user.allergens
-            .find((ingredientItem: IBaseIngredient) => ingredientItem.id === Number.parseInt(req.params.ingredientID));
+            .find((ingredientItem: IBaseIngredient) => ingredientItem.id === Number(req.params.ingredientID));
 
         if (ingredient === undefined) {
             return this.send(ResponseCodes.NOT_FOUND, res, "Ingredient could not be found in allergen list.");
@@ -151,7 +151,7 @@ export default class AllergenController extends BaseIngredientController {
         let newAllergens: IBaseIngredient[] = [];
 
         for (let i = 0; i < user.allergens.length; i++) {
-            if (user.allergens[i].id === Number.parseInt(req.params.ingredientID)) {
+            if (user.allergens[i].id === Number(req.params.ingredientID)) {
                 isFound = true;
             } else {
                 newAllergens.push(user.allergens[i]);

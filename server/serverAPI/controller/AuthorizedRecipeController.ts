@@ -6,6 +6,7 @@ import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
 import IRecipe from "../model/internal/recipe/IRecipe";
 import IUser from "../model/internal/user/IUser";
+import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
 
 import UserBaseRecipe from "../model/internal/recipe/UserBaseRecipe";
 import UserRecipe from "../model/internal/recipe/UserRecipe";
@@ -54,7 +55,7 @@ export default class RecipeController extends BaseUserController {
         return userRecipe;
     }
 
-    protected async convertToUserBaseRecipe(response: PaginatedResponse<IBaseRecipe>, req: Request, res: Response)
+    protected async convertToUserBaseRecipe(response: PaginatedResponse<IBaseRecipe<IBaseIngredient>>, req: Request, res: Response)
         : Promise<PaginatedResponse<UserBaseRecipe>> {
         let user: IUser;
 

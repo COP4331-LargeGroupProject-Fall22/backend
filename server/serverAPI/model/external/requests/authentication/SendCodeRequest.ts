@@ -1,25 +1,15 @@
-import { IsNotEmpty, IsString, validate } from "class-validator";
-import ISchema from "../../../ISchema";
+import { IsNotEmpty, IsString } from "class-validator";
 
-export default class SendCodeRequestSchema implements ISchema {
+import Schema from "../../../Schema";
+
+export default class SendCodeRequestSchema extends Schema {
     @IsString()
     @IsNotEmpty()
     username: string;
 
     constructor(username: string) {
+        super();
+
         this.username = username;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

@@ -1,7 +1,8 @@
-import { IsInt, IsNotEmpty, IsPositive, IsString, validate } from "class-validator";
-import ISchema from "../../../ISchema";
+import { IsInt, IsNotEmpty, IsPositive, IsString } from "class-validator";
 
-export default class ConfirmCodeRequestSchema implements ISchema {
+import Schema from "../../../Schema";
+
+export default class ConfirmCodeRequestSchema extends Schema {
     @IsString()
     @IsNotEmpty()
     username: string;
@@ -11,20 +12,9 @@ export default class ConfirmCodeRequestSchema implements ISchema {
     code: number;
 
     constructor(username: string, verificationCode: number) {
+        super();
+
         this.username = username;
         this.code = verificationCode;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

@@ -12,11 +12,10 @@ import IUnit from "../model/internal/unit/IUnit";
 import UnitSchema from "../model/internal/unit/UnitSchema";
 import AddRequestSchema from "../model/external/requests/shoppingList/AddRequest";
 import UpdateRequestSchema from "../model/external/requests/shoppingList/UpdateRequest";
-
-import BaseIngredientController from "./BaseController/BaseIngredientController";
 import PriceSchema from "../model/internal/money/PriceSchema";
 import ImageSchema from "../model/internal/image/ImageSchema";
 
+import BaseIngredientController from "./BaseController/BaseIngredientController";
 /**
  * This class creates several properties responsible for shopping list actions 
  * provided to the user.
@@ -43,7 +42,7 @@ export default class ShoppingListController extends BaseIngredientController {
         });
 
         // Sorts from earliest to latest expiration date
-        let items = Array.from(dateMap.entries()).sort((a, b) => Number.parseInt(a[0]) - Number.parseInt(b[0]));
+        let items = Array.from(dateMap.entries()).sort((a, b) => Number(a[0]) - Number(b[0]));
 
          // Sorts each collection related to category in lexicographical order
         items.forEach(item => item[1].sort((a, b) => a.name.localeCompare(b.name)));

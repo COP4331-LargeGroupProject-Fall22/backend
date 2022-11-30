@@ -1,10 +1,8 @@
-import { validate } from "class-validator";
-
 import IsType from "../../../../../utils/ClassValidator";
 
-import ISchema from "../../../ISchema";
+import Schema from "../../../Schema";
 
-export default class UpdateRequestSchema implements ISchema {
+export default class UpdateRequestSchema extends Schema {
     @IsType(['null', 'string'])
     firstName: string | null;
 
@@ -27,23 +25,12 @@ export default class UpdateRequestSchema implements ISchema {
         password: string | null,
         email: string | null
     ) {
+        super();
+
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
         this.password = password;
         this.email = email;
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

@@ -1,9 +1,10 @@
-import { validate } from "class-validator";
 import IsType from "../../../../utils/ClassValidator";
-import ISchema from "../../ISchema";
+
 import IPrice from "./IPrice";
 
-export default class PriceSchema implements ISchema, IPrice {
+import Schema from "../../Schema";
+
+export default class PriceSchema extends Schema implements IPrice {
     @IsType(['positiveNumber'])
     price: number;
 
@@ -11,20 +12,9 @@ export default class PriceSchema implements ISchema, IPrice {
     currency: string;
 
     constructor(price: number, currency: string) {
+        super();
+
         this.price = price;
         this.currency = currency;    
-    }
-
-    async validate(): Promise<{ [type: string]: string; }[]> {
-        let validationError = validate(this);
-
-        const errors = await validationError;
-
-        let logs: Array<{ [type: string]: string; }> = [];
-        if (errors.length > 0) {
-            errors.forEach(error => logs.push(error.constraints!));
-        }
-
-        return await Promise.resolve(logs);
     }
 }

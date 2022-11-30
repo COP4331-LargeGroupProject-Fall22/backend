@@ -1,7 +1,7 @@
 import IImage from "../image/IImage";
-import IIngredient from "../ingredient/IIngredient";
+import IBaseIngredient from "../ingredient/IBaseIngredient";
 
-export default interface IBaseRecipe {
+export default interface IBaseRecipe<T extends IBaseIngredient> {
     /**
      * Unique recipe identifier.
      */
@@ -20,5 +20,5 @@ export default interface IBaseRecipe {
     /**
      * Recipe ingredients.
      */
-    readonly ingredients: IIngredient[]
+    readonly ingredients: T[]
 }

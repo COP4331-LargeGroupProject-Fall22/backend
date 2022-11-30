@@ -31,7 +31,11 @@ const typeValidator = {
 };
 
 export default function IsType(types: (keyof (typeof typeValidator))[], validationOptions?: ValidationOptions) {
+
     return function (object: Object, propertyName: string) {
+        let typesDuplicate = [...types];
+        let typesOriginal = [...types];
+
         registerDecorator({
             name: "WrongType",
             target: object.constructor,
@@ -39,15 +43,17 @@ export default function IsType(types: (keyof (typeof typeValidator))[], validati
             options: validationOptions,
             validator: {
                 validate(value: any, args: ValidationArguments) {
-                    return types.some(v => typeValidator[v](value, args));
+                    return typesDuplicate.some(v => typeValidator[v](value, args));
                 },
                 defaultMessage(validationArguments?: ValidationArguments) {
-                    const lastType = types.pop();
-                    if (types.length == 0) {
-                        return `${propertyName} has to be ${lastType}`;
-                    }
+                    const lastType = typesDuplicate.pop();
+
+                    let errorMessage = typesDuplicate.length === 0 ?
+                        `${propertyName} has to be ${lastType}` : `Can only be ${typesDuplicate.join(", ")} or ${lastType}.`;
+
+                    typesDuplicate = [...typesOriginal];
                     
-                    return `Can only be ${types.join(", ")} or ${lastType}.`;
+                    return errorMessage;
                 }
             }
         });

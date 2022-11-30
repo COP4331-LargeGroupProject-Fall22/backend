@@ -1,4 +1,5 @@
 import { IsArray, ValidateNested } from "class-validator";
+import IsType from "../../../../../utils/ClassValidator";
 
 import IImage from "../../../internal/image/IImage";
 import IUnit from "../../../internal/unit/IUnit";
@@ -6,7 +7,6 @@ import IShoppingIngredient from "../../../internal/ingredient/IShoppingIngredien
 import IPrice from "../../../internal/money/IPrice";
 
 import BaseIngredientSchema from "../../../internal/ingredient/BaseIngredientSchema";
-import IsType from "../../../../../utils/ClassValidator";
 
 export default class AddRequestSchema extends BaseIngredientSchema implements IShoppingIngredient {
     itemID?: string;
@@ -22,7 +22,7 @@ export default class AddRequestSchema extends BaseIngredientSchema implements IS
     recipeName?: string;
 
     @ValidateNested()
-    price?: IPrice;
+    price: IPrice;
 
     @IsType(['positiveInt'])
     dateAdded: number;

@@ -8,8 +8,9 @@ import JWTStorage from "../middleware/authentication/JWTStorage";
 import IDatabase from '../../database/IDatabase';
 import IUser from "../model/internal/user/IUser";
 
-import BaseUserController from "./BaseController/BaseUserController";
 import UpdateRequestSchema from "../model/external/requests/user/UpdateRequest";
+
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for user-actions 
