@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import Encryptor from "../../utils/Encryptor";
@@ -13,7 +13,8 @@ import LoginRequestSchema from "../model/external/requests/authentication/LoginR
 import SendCodeRequestSchema from "../model/external/requests/authentication/SendCodeRequest";
 import RefreshJWTRequestSchema from "../model/external/requests/authentication/RefreshJWTRequest";
 import RegisterRequestSchema from "../model/external/requests/authentication/RegisterRequest";
-
+import RequestPasswordResetRequestSchema from "../model/external/requests/authentication/RequestPasswordResetRequest";
+import PerformPasswordResetRequestSchema from "../model/external/requests/authentication/PerformPasswordRequest";
 
 import IDatabase from "../../database/IDatabase";
 import IIdentification from "../model/internal/user/IIdentification";
@@ -25,6 +26,7 @@ import BaseUserController from "./BaseController/BaseUserController";
 
 import JWTStorage from "../middleware/authentication/JWTStorage";
 import UserToken from "../model/internal/userToken/UserToken";
+
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -67,6 +69,24 @@ export default class AuthenticationController extends BaseUserController {
         return this.verifySchema(request, res);;
     }
 
+    protected parseRequestPaswordResetRequest(req: Request, res: Response): Promise<RequestPasswordResetRequestSchema> {
+        let request = new RequestPasswordResetRequestSchema(
+            req.body?.email
+        );
+
+        return this.verifySchema(request, res);
+    }
+
+    protected parsePerformPasswordResetRequest(req: Request, res: Response): Promise<PerformPasswordResetRequestSchema> {
+        let request = new PerformPasswordResetRequestSchema(
+            req.body?.email,
+            req.body?.username,
+            Number(req.body?.code)
+        );
+
+        return this.verifySchema(request, res);
+    }
+
     protected parseRegisterRequest(req: Request, res: Response): Promise<RegisterRequestSchema> {
         let request = new RegisterRequestSchema(
             req.body?.firstName,
@@ -80,7 +100,7 @@ export default class AuthenticationController extends BaseUserController {
     }
 
     protected parseConfirmCodeRequest(req: Request, res: Response): Promise<ConfirmCodeRequestSchema> {
-        let request = new ConfirmCodeRequestSchema(req.body?.username, req.body?.verificationCode);
+        let request = new ConfirmCodeRequestSchema(req.body?.username, Number(req.body?.code));
 
         return this.verifySchema(request, res);
     }
@@ -114,6 +134,58 @@ export default class AuthenticationController extends BaseUserController {
         );
 
         return userToken;
+    }
+
+    requestPasswordReset = async (req: Request, res: Response) => {
+        let parsedRequest: RequestPasswordResetRequestSchema;
+        let user: IUser;
+
+        try {
+            parsedRequest = await this.parseRequestPaswordResetRequest(req, res);
+            user = await this.requestGet(new Map([["email", parsedRequest.email]]), res);
+        } catch(response) {
+            return response;
+        }
+
+        if (!user.isVerified) {
+            return this.send(ResponseCodes.FORBIDDEN, res, "Account is not verified.");
+        }
+
+        return this.sendCode(user.username, parsedRequest.email, res).then(() => {
+            return this.send(ResponseCodes.OK, res, "Verification code has been sent.");
+        });
+    }
+
+    performPasswordReset = async (req: Request, res: Response) => {
+        let parsedRequest: PerformPasswordResetRequestSchema;
+        let user: IUser;
+
+        try {
+            parsedRequest = await this.parsePerformPasswordResetRequest(req, res);
+            user = await this.requestGet(new Map([["email", parsedRequest.email]]), res)
+        } catch (response) {
+            return response;
+        }
+
+        let actualCode = AuthenticationController.verificationCodesMap.get(user.username);
+
+        if (actualCode === undefined) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is either expired or not issued.");
+        }
+
+        if (parsedRequest.code !== actualCode.code) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
+        }
+        
+        user.password = await this.encryptor.encrypt(user.password);
+
+        try {
+            await this.requestUpdate(user.username, user, res);
+        } catch (response) {
+            return response;
+        }
+
+        return this.send(ResponseCodes.OK, res, "User has been updated.");
     }
 
     /**
@@ -199,30 +271,14 @@ export default class AuthenticationController extends BaseUserController {
         return Math.ceil(timeInMilliseconds / 1000 / 60)
     }
 
-    sendVerificationCode = async (req: Request, res: Response) => {
-        let parsedRequest: SendCodeRequestSchema;
-        let user: IUser;
-
-        try {
-            parsedRequest = await this.parseSendCodeRequest(req, res);
-            user = await this.requestGet(new Map([["username", parsedRequest.username]]), res);
-        } catch (response) {
-            return response;
-        }
-
+    private sendCode(username: string, email: string, res: Response): Promise<boolean> {
         let newVerificationCode = Random.getRandomIntInRange(this.minVerificationCode, this.maxVerificationCode);
 
-        try {
-            await this.requestGet(new Map([["username", parsedRequest.username]]), res)
-        } catch (response) {
-            return response;
-        }
-
-        let verificationCodeInfo = AuthenticationController.verificationCodesMap.get(parsedRequest.username);
+        let verificationCodeInfo = AuthenticationController.verificationCodesMap.get(username);
 
         let verificationCodeTemplate: IVerificationCodeTemplate = {
             verificationCode: newVerificationCode,
-            username: parsedRequest.username
+            username: username
         }
 
         if (verificationCodeInfo !== undefined) {
@@ -241,9 +297,9 @@ export default class AuthenticationController extends BaseUserController {
                 let timeRemaining =
                     this.convertToMinutes(this.verificationCodeLifetimeInMilliseconds - (Date.now() - verificationCodeInfo.generationTime));
 
-                return this.send(ResponseCodes.BAD_REQUEST, res,
+                return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res,
                     `Max number of ${this.maxAttemptsPerVerificationCode} attempts has been reached. ` +
-                    `Please wait ${timeRemaining} minutes before trying again.`);
+                    `Please wait ${timeRemaining} minutes before trying again.`));
             }
         } else {
             // If there are no verification codes in data structure, we create a new one
@@ -255,22 +311,36 @@ export default class AuthenticationController extends BaseUserController {
 
             // Each verification code created will self-destruct after specified time
             setTimeout(() => {
-                AuthenticationController.verificationCodesMap.delete(parsedRequest.username);
+                AuthenticationController.verificationCodesMap.delete(username);
             }, this.verificationCodeLifetimeInMilliseconds).unref();
         }
 
         // After all procedure on verificationCodeInfo, we update our data structure with changed info
         AuthenticationController.verificationCodesMap.set(
-            parsedRequest.username,
+            username,
             verificationCodeInfo
         );
 
         return this.emailAPI.SendVerificationCode(
-            user.email,
+            email,
             process.env.OUTBOUND_VERIFICATION_EMAIL,
-            verificationCodeTemplate)
-            .then(() => this.send(ResponseCodes.OK, res, "Verification code has been sent."))
-            .catch((error) => this.send(ResponseCodes.BAD_REQUEST, res, error));
+            verificationCodeTemplate);
+    }
+
+    sendVerificationCode = async (req: Request, res: Response) => {
+        let parsedRequest: SendCodeRequestSchema;
+        let user: IUser;
+
+        try {
+            parsedRequest = await this.parseSendCodeRequest(req, res);
+            user = await this.requestGet(new Map([["username", parsedRequest.username]]), res);
+        } catch (response) {
+            return response;
+        }
+
+        return this.sendCode(parsedRequest.username, user.email, res).then(() => {
+            return this.send(ResponseCodes.OK, res, "Verification code has been sent.");
+        });
     }
 
     /**
@@ -322,16 +392,22 @@ export default class AuthenticationController extends BaseUserController {
     register = async (req: Request, res: Response) => {
         let parsedRequest: RegisterRequestSchema;
         let userExists: boolean;
+        let emailExists: boolean;
 
         try {
             parsedRequest = await this.parseRegisterRequest(req, res);
-            userExists = await this.userExists(parsedRequest.username, res);
+            userExists = await this.usernameExists(parsedRequest.username, res);
+            emailExists = await this.emailExists(parsedRequest.email, res);
         } catch (response) {
             return response;
         }
 
         if (userExists) {
             return this.send(ResponseCodes.BAD_REQUEST, res, `User with such username already exists.`);
+        }
+
+        if (emailExists) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, `User with such email already exists.`);
         }
 
         let internalUser = new UserSchema(

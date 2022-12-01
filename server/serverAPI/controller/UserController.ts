@@ -96,6 +96,17 @@ export default class UserController extends BaseUserController {
         }
 
         if (parsedRequest.email !== null && parsedRequest.email !== user.email) {
+            let emailExists: boolean;
+            try {
+                emailExists = await this.emailExists(parsedRequest.email, res);
+            } catch (response) {
+                return response;
+            }
+
+            if (emailExists) {
+                return this.send(ResponseCodes.BAD_REQUEST, res, `User with such email already exists.`);
+            }
+
             JWTStorage.getInstance()?.deleteJWT(user.username);
             user.isVerified = false;
         }

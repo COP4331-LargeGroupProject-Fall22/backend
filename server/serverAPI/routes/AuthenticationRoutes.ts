@@ -45,3 +45,6 @@ authenticationRoute.post("/refreshJWT", authenticationController.refreshJWT);
 
 authenticationRoute.post("/send-verification-code", authenticationController.sendVerificationCode);
 authenticationRoute.post("/confirm-verification-code", authenticationController.confirmVerificationCode);
+
+authenticationRoute.post("/request-password-reset", authenticationController.requestPasswordReset);
+authenticationRoute.post("/perform-password-reset", authenticationController.performPasswordReset);
