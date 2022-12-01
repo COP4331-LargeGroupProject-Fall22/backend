@@ -177,7 +177,7 @@ export default class AuthenticationController extends BaseUserController {
             return this.send(ResponseCodes.BAD_REQUEST, res, "Verification code is invalid.");
         }
         
-        user.password = await this.encryptor.encrypt(user.password);
+        user.password = await this.encryptor.encrypt(parsedRequest.password);
 
         try {
             await this.requestUpdate(user.username, user, res);
