@@ -80,7 +80,7 @@ export default class AuthenticationController extends BaseUserController {
     protected parsePerformPasswordResetRequest(req: Request, res: Response): Promise<PerformPasswordResetRequestSchema> {
         let request = new PerformPasswordResetRequestSchema(
             req.body?.email,
-            req.body?.username,
+            req.body?.password,
             Number(req.body?.code)
         );
 
