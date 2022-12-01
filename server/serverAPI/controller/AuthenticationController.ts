@@ -185,6 +185,8 @@ export default class AuthenticationController extends BaseUserController {
             return response;
         }
 
+        AuthenticationController.verificationCodesMap.delete(user.username);
+
         return this.send(ResponseCodes.OK, res, "User has been updated.");
     }
 
@@ -263,6 +265,8 @@ export default class AuthenticationController extends BaseUserController {
         } catch (response) {
             return response;
         }
+
+        AuthenticationController.verificationCodesMap.delete(user.username);
 
         return this.send(ResponseCodes.OK, res, "Account has been verified.");
     }
