@@ -1,6 +1,5 @@
 import IImage from "../image/IImage";
 import IBaseIngredient from "../ingredient/IBaseIngredient";
-import IIngredient from "../ingredient/IIngredient";
 import IBaseRecipe from "./IBaseRecipe";
 
 export default class UserBaseRecipe implements IBaseRecipe<IBaseIngredient> {

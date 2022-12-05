@@ -175,6 +175,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         searchParameters.append("instructionsRequired", "true");
         searchParameters.append("fillIngredients", "true");
+        searchParameters.append("addRecipeInformation", "true");
 
         return Promise.resolve(searchParameters);
     }
