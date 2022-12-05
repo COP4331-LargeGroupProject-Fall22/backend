@@ -87,7 +87,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
      * @throws ParameterIsNotAllowed exception when encountering a non-existing parameter.
      * @returns Promise filled with a collection of Partial<IBaseRecipe> objects or null when BaseRecipe items weren't found.
      */
-    async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe<IBaseIngredient>>> {
+    async GetAll(parameters: Map<string, any>): Promise<PaginatedResponse<IBaseRecipe<IBaseIngredient>> | null> {
         let searchRecipeURL = process.env.SPOONACULAR_RECIPE_BASE_URL + '/complexSearch';
 
         let searchParameters: URLSearchParams;
@@ -104,6 +104,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             response = await this.getRequest(searchRecipeURL, searchParameters);
         } catch(error) {
             return Promise.reject("Call was made to the GetAllRecipes." + error);
+        }
+
+        if (response === null) {
+            return null;
         }
 
         let jsonArray: any[] = response.results;

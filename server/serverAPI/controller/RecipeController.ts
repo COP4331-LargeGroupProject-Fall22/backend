@@ -21,25 +21,25 @@ export default class RecipeController extends BaseController {
     }
 
     protected convertToPaginatedResponse(
-        response: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
-        data: [string, IBaseRecipe<IBaseIngredient>[]][]
+        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
+        convertedResponse: [string, IBaseRecipe<IBaseIngredient>[]][]
     ): any {
         return {
-            currentPage: response.currentPage,
-            numOfPages: response.numOfPages,
-            numOfResults: response.numOfResults,
-            results: data
+            currentPage: paginatedRecipes.currentPage,
+            numOfPages: paginatedRecipes.numOfPages,
+            numOfResults: paginatedRecipes.numOfResults,
+            results: convertedResponse
         };
     }
 
     protected sortByCuisines(
-        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
+        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
 
         // Divides collection on map where K,V => Category,T[]
-        collection.results.forEach(item => {
+        paginatedRecipes.results.forEach(item => {
             item.cuisines.forEach(cuisine => {
                 if (!itemMap.has(cuisine)) {
                     itemMap.set(cuisine, []);
@@ -65,13 +65,13 @@ export default class RecipeController extends BaseController {
     }
 
     protected sortByDiets(
-        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
+        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
 
         // Divides collection on map where K,V => Category,T[]
-        collection.results.forEach(item => {
+        paginatedRecipes.results.forEach(item => {
             item.diets.forEach(diet => {
                 if (!itemMap.has(diet)) {
                     itemMap.set(diet, []);
@@ -97,13 +97,13 @@ export default class RecipeController extends BaseController {
     }
 
     protected sortByMealTypes(
-        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
+        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
 
         // Divides collection on map where K,V => Category,T[]
-        collection.results.forEach(item => {
+        paginatedRecipes.results.forEach(item => {
             item.mealTypes.forEach(mealType => {
                 if (!itemMap.has(mealType)) {
                     itemMap.set(mealType, []);
@@ -210,33 +210,38 @@ export default class RecipeController extends BaseController {
 
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
-        let getResponse: PaginatedResponse<IBaseRecipe<IBaseIngredient>>;
+        let ppaginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>;
         try {
-            getResponse = await this.recipeAPI.GetAll(parameters);
+            let response = await this.recipeAPI.GetAll(parameters);
 
+            if (response === null) {
+                return this.send(ResponseCodes.OK, res, null);
+            }
+
+            ppaginatedRecipes = response;
         } catch (error) {
             return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
         }
 
-        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = this.convertResponse(getResponse.results);
+        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = this.convertResponse(ppaginatedRecipes.results);
 
         if (sortByCuisines) {
-            responseData = this.sortByCuisines(getResponse, isReverse);
+            responseData = this.sortByCuisines(ppaginatedRecipes, isReverse);
         }
 
         if (sortByDiets) {
-            responseData = this.sortByDiets(getResponse, isReverse);
+            responseData = this.sortByDiets(ppaginatedRecipes, isReverse);
         }
 
         if (sortByMealTypes) {
-            responseData = this.sortByMealTypes(getResponse, isReverse);
+            responseData = this.sortByMealTypes(ppaginatedRecipes, isReverse);
         }
 
         if (sortByLexicographicalOrder) {
-            responseData = this.sortByLexicographicalOrder(getResponse, isReverse);
+            responseData = this.sortByLexicographicalOrder(ppaginatedRecipes, isReverse);
         }
 
-        return this.send(ResponseCodes.OK, res, this.convertToPaginatedResponse(getResponse, responseData));
+        return this.send(ResponseCodes.OK, res, this.convertToPaginatedResponse(ppaginatedRecipes, responseData));
     }
 
     /**
