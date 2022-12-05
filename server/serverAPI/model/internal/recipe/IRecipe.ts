@@ -6,24 +6,7 @@ import IBaseRecipe from "./IBaseRecipe";
 /**
  * Recipe interface.
  */
-export default interface IRecipe extends IBaseRecipe<IIngredient> {
-    // TODO(#56): add support for allergens
-    
-    /**
-     * Collection of cuisines to which recipe belongs.
-     */ 
-    readonly cuisines: string[];
-
-    /**
-     * Collection of diets to which recipe belongs.
-     */
-    readonly diets: string[];
-
-    /**
-     * Type of the dish that is going to be cooked. e.g. main dish, dessert etc.
-     */
-    readonly mealTypes: string[];
-    
+export default interface IRecipe extends IBaseRecipe<IIngredient> {   
     /**
      * Complete instructions including all needed ingredients and cooking instructions.
      */

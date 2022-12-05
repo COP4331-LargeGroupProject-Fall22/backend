@@ -175,6 +175,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         searchParameters.append("instructionsRequired", "true");
         searchParameters.append("fillIngredients", "true");
+        searchParameters.append("addRecipeInformation", "true");
 
         return Promise.resolve(searchParameters);
     }
@@ -191,6 +192,9 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         return {
             id: recipeObject.id,
             name: recipeObject.title,
+            cuisines: recipeObject.cuisines,
+            diets: recipeObject.diets,
+            mealTypes: recipeObject.dishTypes,
             image: await this.parseRecipeImage(recipeObject),
             ingredients: ingredients
         };
