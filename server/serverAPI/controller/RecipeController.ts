@@ -20,7 +20,7 @@ export default class RecipeController extends BaseController {
         this.recipeAPI = recipeAPI;
     }
 
-    protected convertToResponse(
+    protected convertToPaginatedResponse(
         response: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         data: [string, IBaseRecipe<IBaseIngredient>[]][]
     ): any {
@@ -236,7 +236,7 @@ export default class RecipeController extends BaseController {
             responseData = this.sortByLexicographicalOrder(getResponse, isReverse);
         }
 
-        return this.send(ResponseCodes.OK, res, this.convertToResponse(getResponse, responseData));
+        return this.send(ResponseCodes.OK, res, this.convertToPaginatedResponse(getResponse, responseData));
     }
 
     /**
