@@ -191,6 +191,9 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         return {
             id: recipeObject.id,
             name: recipeObject.title,
+            cuisines: recipeObject.cuisines,
+            diets: recipeObject.diets,
+            mealTypes: recipeObject.dishTypes,
             image: await this.parseRecipeImage(recipeObject),
             ingredients: ingredients
         };
