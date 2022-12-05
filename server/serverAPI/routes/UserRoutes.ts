@@ -72,6 +72,8 @@ const favoriteRecipesController = new FavoriteRecipeController(
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
+userRoute.use(express.json({ limit: '30mb' }));
+
 userRoute.route('/')
     .get(userController.get)
     .delete(userController.delete)
@@ -90,7 +92,7 @@ userRoute.put('/shopping-list/:itemID', express.json(), shoppingListController.u
 userRoute.delete('/shopping-list/:itemID', shoppingListController.delete);
 
 userRoute.get('/profile-picture', userProfilePictureController.get);
-userRoute.post('/profile-picture', express.json({ limit: '10mb' }), userProfilePictureController.add);
+userRoute.post('/profile-picture', userProfilePictureController.add);
 userRoute.delete('/profile-picture', userProfilePictureController.delete);
 
 userRoute.get('/allergens', allergenController.getAll);
