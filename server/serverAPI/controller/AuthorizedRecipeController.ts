@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import { ResponseCodes } from "../../utils/ResponseCodes";
 
 import IDatabase from "../../database/IDatabase";
@@ -11,19 +11,22 @@ import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
 import UserBaseRecipe from "../model/internal/recipe/UserBaseRecipe";
 import UserRecipe from "../model/internal/recipe/UserRecipe";
 
-import BaseUserController from "./BaseController/BaseUserController";
 import PaginatedResponse from "../model/internal/paginatedResponse/PaginatedResponse";
+import BaseRecipeController from "./BaseController/BaseRecipeController";
+import BaseUserController from "./BaseController/BaseUserController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class RecipeController extends BaseUserController {
+export default class RecipeController extends BaseRecipeController {
     private recipeAPI: IRecipeAPI;
+    private baseUserController: BaseUserController;
 
-    constructor(database: IDatabase<IUser>, recipeAPI: IRecipeAPI) {
-        super(database);
-
+    constructor(baseUserController: BaseUserController, recipeAPI: IRecipeAPI) {
+        super();
+        
+        this.baseUserController = baseUserController;
         this.recipeAPI = recipeAPI;
     }
 
@@ -31,7 +34,7 @@ export default class RecipeController extends BaseUserController {
         let user: IUser;
 
         try {
-            user = await this.requestGet(new Map([["username", req.serverUser.username]]), res);
+            user = await this.baseUserController.requestGet(new Map([["username", req.serverUser.username]]), res);
         } catch (response) {
             return Promise.reject(response);
         }
@@ -60,7 +63,7 @@ export default class RecipeController extends BaseUserController {
         let user: IUser;
 
         try {
-            user = await this.requestGet(new Map([["username", req.serverUser.username]]), res);
+            user = await this.baseUserController.requestGet(new Map([["username", req.serverUser.username]]), res);
         } catch (response) {
             return Promise.reject(response);
         }
@@ -128,16 +131,52 @@ export default class RecipeController extends BaseUserController {
             parameters.set("mealTypes", req.query.mealTypes);
         }
 
-        return this.recipeAPI.GetAll(parameters).then(async recipes => {
-            if (recipes === null) {
-                return this.send(ResponseCodes.OK, res, []);
+        let sortByMealTypes = req.query.sortByMealTypes === 'true';
+        let sortByDiets = req.query.sortByDiets === 'true';
+        let sortByCuisines = req.query.sortByCuisines === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+
+        let truthyCount = Number(sortByMealTypes) + Number(sortByDiets) + Number(sortByLexicographicalOrder) + Number(sortByCuisines);
+
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
+
+        let isReverse = req.query.isReverse === 'true' ? true : false;
+
+        let userBaseRecpes: PaginatedResponse<UserBaseRecipe>;
+        try {
+            let response = await this.recipeAPI.GetAll(parameters);
+
+            if (response === null) {
+                return this.send(ResponseCodes.OK, res, null);
             }
 
-            return this.send(ResponseCodes.OK, res, await this.convertToUserBaseRecipe(recipes, req, res));
-        }, (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+            userBaseRecpes = await this.convertToUserBaseRecipe(response, req, res);
+        } catch (error) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+        }
+
+        let responseData: [string, UserBaseRecipe[]][] = this.convertResponse(userBaseRecpes.results);
+
+        if (sortByCuisines) {
+            responseData = this.sortByCuisines(userBaseRecpes, isReverse);
+        }
+
+        if (sortByDiets) {
+            responseData = this.sortByDiets(userBaseRecpes, isReverse);
+        }
+
+        if (sortByMealTypes) {
+            responseData = this.sortByMealTypes(userBaseRecpes, isReverse);
+        }
+
+        if (sortByLexicographicalOrder) {
+            responseData = this.sortByLexicographicalOrder(userBaseRecpes, isReverse);
+        }
+
+        return this.send(ResponseCodes.OK, res, this.convertToPaginatedResponse(userBaseRecpes, responseData));
     }
-
-
 
     /**
      * Gets information about specific recipe using specified parameters provided in the URL.

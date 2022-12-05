@@ -106,6 +106,10 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             return Promise.reject("Call was made to the GetAllRecipes." + error);
         }
 
+        if (response === null) {
+            return null;
+        }
+
         let jsonArray: any[] = response.results;
 
         let recipeArray: IBaseRecipe<IBaseIngredient>[] = [];
@@ -124,7 +128,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
 
         let result = currentPage >= numOfPages ? [] : recipeArray;
 
-        return recipeArray.length === 0 ? null : new PaginatedResponse(numOfPages, totalResults, currentPage, result);
+        return new PaginatedResponse(numOfPages, totalResults, currentPage, result);
     }
 
     /**

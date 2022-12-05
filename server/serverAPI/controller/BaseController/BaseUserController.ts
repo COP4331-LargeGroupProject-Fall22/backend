@@ -16,7 +16,7 @@ export default class BaseUserController extends BaseController {
         this.database = database;
     }
 
-    protected convertToUserResponse(user: IUser): IUserResponse {
+    public convertToUserResponse(user: IUser): IUserResponse {
         return {
             username: user.username,
             firstName: user.firstName,
@@ -26,7 +26,7 @@ export default class BaseUserController extends BaseController {
         }
     }
 
-    protected async usernameExists(username: string, res: Response): Promise<boolean> {
+    public async usernameExists(username: string, res: Response): Promise<boolean> {
         return this.database.Get(new Map([["username", username]])).then(async user => {
             return Promise.resolve(user !== null);
         }, (error) => {
@@ -34,7 +34,7 @@ export default class BaseUserController extends BaseController {
         });
     }
 
-    protected async emailExists(email: string, res: Response): Promise<boolean> {
+    public async emailExists(email: string, res: Response): Promise<boolean> {
         return this.database.Get(new Map([["email", email]])).then(async user => {
             return Promise.resolve(user !== null);
         }, (error) => {
@@ -42,7 +42,7 @@ export default class BaseUserController extends BaseController {
         });
     }
 
-    protected async requestCreate(user: IUser, res: Response): Promise<IUser> {
+    public async requestCreate(user: IUser, res: Response): Promise<IUser> {
         return this.database.Create(user).then(createdUser => {
             if (createdUser === null) {
                 return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "User could not be created."));
@@ -52,7 +52,7 @@ export default class BaseUserController extends BaseController {
         }, (error) => Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error))));
     }
 
-    protected async requestUpdate(id: string, user: IUser, res: Response): Promise<IUser> {
+    public async requestUpdate(id: string, user: IUser, res: Response): Promise<IUser> {
         return this.database.Update(id, user).then(updatedUser => {
             if (updatedUser === null) {
                 return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "User could not be updated."));
@@ -62,7 +62,7 @@ export default class BaseUserController extends BaseController {
         }, (error) => Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error))));
     }
 
-    protected async requestDelete(id: string, res: Response): Promise<boolean> {
+    public async requestDelete(id: string, res: Response): Promise<boolean> {
         return this.database.Delete(id).then(result => {
             if (!result) {
                 return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "User could not be deleted."));
@@ -72,7 +72,7 @@ export default class BaseUserController extends BaseController {
         }, (error) => Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error))));
     }
 
-    protected async requestGet(parameters: Map<string, any>, res: Response): Promise<IUser> {
+    public async requestGet(parameters: Map<string, any>, res: Response): Promise<IUser> {
         return this.database.Get(parameters).then(async user => {
             if (user === null) {
                 return Promise.reject(this.send(ResponseCodes.NOT_FOUND, res, "User could not be found."));

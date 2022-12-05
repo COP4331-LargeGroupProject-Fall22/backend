@@ -4,12 +4,16 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 
 import BaseController from "./BaseController/BaseController";
+import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
+import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
+import PaginatedResponse from "../model/internal/paginatedResponse/PaginatedResponse";
+import BaseRecipeController from "./BaseController/BaseRecipeController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class RecipeController extends BaseController {
+export default class RecipeController extends BaseRecipeController {
     private recipeAPI: IRecipeAPI;
 
     constructor(recipeAPI: IRecipeAPI) {
@@ -59,8 +63,51 @@ export default class RecipeController extends BaseController {
             parameters.set("mealTypes", req.query.mealTypes);
         }
 
-        return this.recipeAPI.GetAll(parameters).then(recipes => this.send(ResponseCodes.OK, res, recipes), 
-        (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+        let sortByMealTypes = req.query.sortByMealTypes === 'true';
+        let sortByDiets = req.query.sortByDiets === 'true';
+        let sortByCuisines = req.query.sortByCuisines === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+
+        let truthyCount = Number(sortByMealTypes) + Number(sortByDiets) + Number(sortByLexicographicalOrder) + Number(sortByCuisines);
+
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
+
+        let isReverse = req.query.isReverse === 'true' ? true : false;
+
+        let ppaginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>;
+        try {
+            let response = await this.recipeAPI.GetAll(parameters);
+
+            if (response === null) {
+                return this.send(ResponseCodes.OK, res, null);
+            }
+
+            ppaginatedRecipes = response;
+        } catch (error) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+        }
+
+        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = this.convertResponse(ppaginatedRecipes.results);
+
+        if (sortByCuisines) {
+            responseData = this.sortByCuisines(ppaginatedRecipes, isReverse);
+        }
+
+        if (sortByDiets) {
+            responseData = this.sortByDiets(ppaginatedRecipes, isReverse);
+        }
+
+        if (sortByMealTypes) {
+            responseData = this.sortByMealTypes(ppaginatedRecipes, isReverse);
+        }
+
+        if (sortByLexicographicalOrder) {
+            responseData = this.sortByLexicographicalOrder(ppaginatedRecipes, isReverse);
+        }
+
+        return this.send(ResponseCodes.OK, res, this.convertToPaginatedResponse(ppaginatedRecipes, responseData));
     }
 
     /**
@@ -76,7 +123,7 @@ export default class RecipeController extends BaseController {
 
         return this.recipeAPI.Get(parameters).then(recipe => {
             if (recipe === null) {
-                return this.send(ResponseCodes.NOT_FOUND, res,  "Recipe could not be found.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Recipe could not be found.");
             }
 
             return this.send(ResponseCodes.OK, res, recipe);

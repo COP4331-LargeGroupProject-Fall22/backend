@@ -12,6 +12,7 @@ import SpoonacularRecipeAPI from "../../recipeAPI/spoonacularAPI/SpoonacularReci
 import TokenCreator from "../../utils/TokenCreator";
 
 import AuthorizedRecipeController from "../controller/AuthorizedRecipeController";
+import BaseUserController from "../controller/BaseController/BaseUserController";
 import RecipeController from "../controller/RecipeController";
 
 import JWTAuthenticator from "../middleware/authentication/JWTAuthenticator";
@@ -51,7 +52,7 @@ const recipeAPI = new SpoonacularRecipeAPI(spoonacularApiKey, spoonacularApiHost
 
 const authenticator = new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey));
 
-const authorizedRecipeController = new AuthorizedRecipeController(database, recipeAPI);
+const authorizedRecipeController = new AuthorizedRecipeController(new BaseUserController(database), recipeAPI);
 
 recipeRoute.use(async function (req, res, next) {
     if (req.headers.authorization !== undefined) {
