@@ -58,12 +58,6 @@ export default class UserController extends BaseUserController {
         }, (response) => response);
     }
 
-    private async isUnique(username: string): Promise<boolean> {
-        return this.database.Get(new Map([["username", username]])).then(user => {
-            return user === null;
-        });
-    }
-
     /**
      * Updates information of the user at specified userID.
      * 
@@ -84,10 +78,16 @@ export default class UserController extends BaseUserController {
         }
 
         if (parsedRequest.username !== null) {
-            let result = await this.isUnique(parsedRequest.username);
+            let usernameExists: boolean;
 
-            if (!result) {
-                return this.send(ResponseCodes.BAD_REQUEST, res, "Username already exists.");
+            try {
+                usernameExists = await this.usernameExists(parsedRequest.username, res);
+            } catch (response) {
+                return response;
+            }
+
+            if (usernameExists) {
+                return this.send(ResponseCodes.BAD_REQUEST, res, "User with such username already exists.");
             }
         }
 
@@ -96,6 +96,17 @@ export default class UserController extends BaseUserController {
         }
 
         if (parsedRequest.email !== null && parsedRequest.email !== user.email) {
+            let emailExists: boolean;
+            try {
+                emailExists = await this.emailExists(parsedRequest.email, res);
+            } catch (response) {
+                return response;
+            }
+
+            if (emailExists) {
+                return this.send(ResponseCodes.BAD_REQUEST, res, `User with such email already exists.`);
+            }
+
             JWTStorage.getInstance()?.deleteJWT(user.username);
             user.isVerified = false;
         }

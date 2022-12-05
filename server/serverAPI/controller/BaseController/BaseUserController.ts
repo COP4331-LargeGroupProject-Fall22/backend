@@ -26,8 +26,16 @@ export default class BaseUserController extends BaseController {
         }
     }
 
-    protected async userExists(username: string, res: Response): Promise<boolean> {
+    protected async usernameExists(username: string, res: Response): Promise<boolean> {
         return this.database.Get(new Map([["username", username]])).then(async user => {
+            return Promise.resolve(user !== null);
+        }, (error) => {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, error))
+        });
+    }
+
+    protected async emailExists(email: string, res: Response): Promise<boolean> {
+        return this.database.Get(new Map([["email", email]])).then(async user => {
             return Promise.resolve(user !== null);
         }, (error) => {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, error))
