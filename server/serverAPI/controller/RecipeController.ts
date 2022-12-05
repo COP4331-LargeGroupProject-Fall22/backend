@@ -32,8 +32,8 @@ export default class RecipeController extends BaseController {
         };
     }
 
-    protected sortByCuisines<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
-        collection: T,
+    protected sortByCuisines(
+        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
@@ -64,8 +64,8 @@ export default class RecipeController extends BaseController {
         return items;
     }
 
-    protected sortByDiets<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
-        collection: T,
+    protected sortByDiets(
+        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
@@ -96,8 +96,8 @@ export default class RecipeController extends BaseController {
         return items;
     }
 
-    protected sortByMealTypes<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
-        collection: T,
+    protected sortByMealTypes(
+        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
@@ -128,8 +128,8 @@ export default class RecipeController extends BaseController {
         return items;
     }
 
-    protected sortByLexicographicalOrder<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
-        collection: T,
+    protected sortByLexicographicalOrder(
+        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
         isReverse: boolean
     ): [string, IBaseRecipe<IBaseIngredient>[]][] {
         let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
