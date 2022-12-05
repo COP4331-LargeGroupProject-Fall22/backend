@@ -4,6 +4,9 @@ import { ResponseCodes } from "../../utils/ResponseCodes";
 import IRecipeAPI from "../../recipeAPI/IRecipeAPI";
 
 import BaseController from "./BaseController/BaseController";
+import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
+import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
+import PaginatedResponse from "../model/internal/paginatedResponse/PaginatedResponse";
 
 /**
  * This class creates several properties responsible for authentication actions 
@@ -15,6 +18,141 @@ export default class RecipeController extends BaseController {
     constructor(recipeAPI: IRecipeAPI) {
         super();
         this.recipeAPI = recipeAPI;
+    }
+
+    protected convertToResponse(
+        response: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
+        data: [string, IBaseRecipe<IBaseIngredient>[]][]
+    ): any {
+        return {
+            currentPage: response.currentPage,
+            numOfPages: response.numOfPages,
+            numOfUniqueResults: response.numOfResults,
+            results: data
+        };
+    }
+
+    protected sortByCuisines<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
+        collection: T,
+        isReverse: boolean
+    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
+        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
+
+        // Divides collection on map where K,V => Category,T[]
+        collection.results.forEach(item => {
+            item.cuisines.forEach(cuisine => {
+                if (!itemMap.has(cuisine)) {
+                    itemMap.set(cuisine, []);
+                }
+
+                itemMap.get(cuisine)?.push(item);
+            });
+        });
+
+        // Converts map to array and sorts it based on the category name in lexicographical order
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        // Sorts each collection related to category in lexicographical order
+        items.forEach(item => {
+            item[1].sort((a, b) => a.name.localeCompare(b.name))
+        });
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return items;
+    }
+
+    protected sortByDiets<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
+        collection: T,
+        isReverse: boolean
+    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
+        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
+
+        // Divides collection on map where K,V => Category,T[]
+        collection.results.forEach(item => {
+            item.diets.forEach(diet => {
+                if (!itemMap.has(diet)) {
+                    itemMap.set(diet, []);
+                }
+
+                itemMap.get(diet)?.push(item);
+            });
+        });
+
+        // Converts map to array and sorts it based on the category name in lexicographical order
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        // Sorts each collection related to category in lexicographical order
+        items.forEach(item => {
+            item[1].sort((a, b) => a.name.localeCompare(b.name))
+        });
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return items;
+    }
+
+    protected sortByMealTypes<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
+        collection: T,
+        isReverse: boolean
+    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
+        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
+
+        // Divides collection on map where K,V => Category,T[]
+        collection.results.forEach(item => {
+            item.mealTypes.forEach(mealType => {
+                if (!itemMap.has(mealType)) {
+                    itemMap.set(mealType, []);
+                }
+
+                itemMap.get(mealType)?.push(item);
+            });
+        });
+
+        // Converts map to array and sorts it based on the category name in lexicographical order
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        // Sorts each collection related to category in lexicographical order
+        items.forEach(item => {
+            item[1].sort((a, b) => a.name.localeCompare(b.name))
+        });
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return items;
+    }
+
+    protected sortByLexicographicalOrder<T extends PaginatedResponse<IBaseRecipe<IBaseIngredient>>>(
+        collection: T,
+        isReverse: boolean
+    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
+        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
+
+        collection.results.forEach((item) => {
+            let firstLetter = item.name.charAt(0).toLocaleUpperCase();
+
+            if (!itemMap.has(firstLetter)) {
+                itemMap.set(firstLetter, []);
+            }
+
+            itemMap.get(firstLetter)?.push(item);
+        });
+
+        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        items.forEach((item) => item[1].sort((a, b) => a.name.localeCompare(b.name)));
+
+        if (isReverse) {
+            items.reverse();
+        }
+
+        return items;
     }
 
     /**
@@ -59,8 +197,46 @@ export default class RecipeController extends BaseController {
             parameters.set("mealTypes", req.query.mealTypes);
         }
 
-        return this.recipeAPI.GetAll(parameters).then(recipes => this.send(ResponseCodes.OK, res, recipes), 
-        (error) => this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error)));
+        let sortByMealTypes = req.query.sortByMealTypes === 'true';
+        let sortByDiets = req.query.sortByDiets === 'true';
+        let sortByCuisines = req.query.sortByCuisines === 'true';
+        let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
+
+        let truthyCount = Number(sortByMealTypes) + Number(sortByDiets) + Number(sortByLexicographicalOrder) + Number(sortByCuisines);
+
+        if (truthyCount > 1) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, "Multiple sorting algorithms are not allowed.");
+        }
+
+        let isReverse = req.query.isReverse === 'true' ? true : false;
+
+        let getResponse: PaginatedResponse<IBaseRecipe<IBaseIngredient>>;
+        try {
+            getResponse = await this.recipeAPI.GetAll(parameters);
+
+        } catch (error) {
+            return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
+        }
+
+        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = [];
+
+        if (sortByCuisines) {
+            responseData = this.sortByCuisines(getResponse, isReverse);
+        }
+
+        if (sortByDiets) {
+            responseData = this.sortByDiets(getResponse, isReverse);
+        }
+
+        if (sortByMealTypes) {
+            responseData = this.sortByMealTypes(getResponse, isReverse);
+        }
+
+        if (sortByLexicographicalOrder) {
+            responseData = this.sortByLexicographicalOrder(getResponse, isReverse);
+        }
+
+        return this.send(ResponseCodes.OK, res, this.convertToResponse(getResponse, responseData));
     }
 
     /**
@@ -76,7 +252,7 @@ export default class RecipeController extends BaseController {
 
         return this.recipeAPI.Get(parameters).then(recipe => {
             if (recipe === null) {
-                return this.send(ResponseCodes.NOT_FOUND, res,  "Recipe could not be found.");
+                return this.send(ResponseCodes.NOT_FOUND, res, "Recipe could not be found.");
             }
 
             return this.send(ResponseCodes.OK, res, recipe);
