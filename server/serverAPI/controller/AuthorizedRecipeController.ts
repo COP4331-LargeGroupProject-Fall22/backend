@@ -144,7 +144,6 @@ export default class RecipeController extends BaseRecipeController {
 
         let isReverse = req.query.isReverse === 'true' ? true : false;
 
-
         let userBaseRecpes: PaginatedResponse<UserBaseRecipe>;
         try {
             let response = await this.recipeAPI.GetAll(parameters);
@@ -158,8 +157,7 @@ export default class RecipeController extends BaseRecipeController {
             return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
         }
 
-
-        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = this.convertResponse(userBaseRecpes.results);
+        let responseData: [string, UserBaseRecipe[]][] = this.convertResponse(userBaseRecpes.results);
 
         if (sortByCuisines) {
             responseData = this.sortByCuisines(userBaseRecpes, isReverse);
