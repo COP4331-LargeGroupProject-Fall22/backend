@@ -7,152 +7,18 @@ import BaseController from "./BaseController/BaseController";
 import IBaseRecipe from "../model/internal/recipe/IBaseRecipe";
 import IBaseIngredient from "../model/internal/ingredient/IBaseIngredient";
 import PaginatedResponse from "../model/internal/paginatedResponse/PaginatedResponse";
+import BaseRecipeController from "./BaseController/BaseRecipeController";
 
 /**
  * This class creates several properties responsible for authentication actions 
  * provided to the user.
  */
-export default class RecipeController extends BaseController {
+export default class RecipeController extends BaseRecipeController {
     private recipeAPI: IRecipeAPI;
 
     constructor(recipeAPI: IRecipeAPI) {
         super();
         this.recipeAPI = recipeAPI;
-    }
-
-    protected convertToPaginatedResponse(
-        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
-        convertedResponse: [string, IBaseRecipe<IBaseIngredient>[]][]
-    ): any {
-        return {
-            currentPage: paginatedRecipes.currentPage,
-            numOfPages: paginatedRecipes.numOfPages,
-            numOfResults: paginatedRecipes.numOfResults,
-            results: convertedResponse
-        };
-    }
-
-    protected sortByCuisines(
-        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
-        isReverse: boolean
-    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
-        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
-
-        // Divides collection on map where K,V => Category,T[]
-        paginatedRecipes.results.forEach(item => {
-            item.cuisines.forEach(cuisine => {
-                if (!itemMap.has(cuisine)) {
-                    itemMap.set(cuisine, []);
-                }
-
-                itemMap.get(cuisine)?.push(item);
-            });
-        });
-
-        // Converts map to array and sorts it based on the category name in lexicographical order
-        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-        // Sorts each collection related to category in lexicographical order
-        items.forEach(item => {
-            item[1].sort((a, b) => a.name.localeCompare(b.name))
-        });
-
-        if (isReverse) {
-            items.reverse();
-        }
-
-        return items;
-    }
-
-    protected sortByDiets(
-        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
-        isReverse: boolean
-    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
-        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
-
-        // Divides collection on map where K,V => Category,T[]
-        paginatedRecipes.results.forEach(item => {
-            item.diets.forEach(diet => {
-                if (!itemMap.has(diet)) {
-                    itemMap.set(diet, []);
-                }
-
-                itemMap.get(diet)?.push(item);
-            });
-        });
-
-        // Converts map to array and sorts it based on the category name in lexicographical order
-        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-        // Sorts each collection related to category in lexicographical order
-        items.forEach(item => {
-            item[1].sort((a, b) => a.name.localeCompare(b.name))
-        });
-
-        if (isReverse) {
-            items.reverse();
-        }
-
-        return items;
-    }
-
-    protected sortByMealTypes(
-        paginatedRecipes: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
-        isReverse: boolean
-    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
-        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
-
-        // Divides collection on map where K,V => Category,T[]
-        paginatedRecipes.results.forEach(item => {
-            item.mealTypes.forEach(mealType => {
-                if (!itemMap.has(mealType)) {
-                    itemMap.set(mealType, []);
-                }
-
-                itemMap.get(mealType)?.push(item);
-            });
-        });
-
-        // Converts map to array and sorts it based on the category name in lexicographical order
-        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-        // Sorts each collection related to category in lexicographical order
-        items.forEach(item => {
-            item[1].sort((a, b) => a.name.localeCompare(b.name))
-        });
-
-        if (isReverse) {
-            items.reverse();
-        }
-
-        return items;
-    }
-
-    protected sortByLexicographicalOrder(
-        collection: PaginatedResponse<IBaseRecipe<IBaseIngredient>>,
-        isReverse: boolean
-    ): [string, IBaseRecipe<IBaseIngredient>[]][] {
-        let itemMap = new Map<string, IBaseRecipe<IBaseIngredient>[]>();
-
-        collection.results.forEach((item) => {
-            let firstLetter = item.name.charAt(0).toLocaleUpperCase();
-
-            if (!itemMap.has(firstLetter)) {
-                itemMap.set(firstLetter, []);
-            }
-
-            itemMap.get(firstLetter)?.push(item);
-        });
-
-        let items = Array.from(itemMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-        items.forEach((item) => item[1].sort((a, b) => a.name.localeCompare(b.name)));
-
-        if (isReverse) {
-            items.reverse();
-        }
-
-        return items;
     }
 
     /**
