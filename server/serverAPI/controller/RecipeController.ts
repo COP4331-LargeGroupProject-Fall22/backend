@@ -218,7 +218,7 @@ export default class RecipeController extends BaseController {
             return this.send(ResponseCodes.BAD_REQUEST, res, this.getException(error));
         }
 
-        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = [];
+        let responseData: [string, IBaseRecipe<IBaseIngredient>[]][] = this.convertResponse(getResponse.results);
 
         if (sortByCuisines) {
             responseData = this.sortByCuisines(getResponse, isReverse);
