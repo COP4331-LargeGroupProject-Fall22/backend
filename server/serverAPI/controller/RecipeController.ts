@@ -27,7 +27,7 @@ export default class RecipeController extends BaseController {
         return {
             currentPage: response.currentPage,
             numOfPages: response.numOfPages,
-            numOfUniqueResults: response.numOfResults,
+            numOfResults: response.numOfResults,
             results: data
         };
     }
