@@ -35,7 +35,7 @@ const authenticationController = new AuthenticationController(
 
 const authenticator = new JWTAuthenticator().authenticate(new TokenCreator(privateKey));
 
-authenticationRoute.use(express.json());
+authenticationRoute.use(express.json({ limit: '30mb' }));
 
 authenticationRoute.post("/login", authenticationController.login);
 authenticationRoute.post("/register", authenticationController.register);

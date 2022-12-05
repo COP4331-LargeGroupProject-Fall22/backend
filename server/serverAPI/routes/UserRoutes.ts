@@ -72,7 +72,7 @@ const favoriteRecipesController = new FavoriteRecipeController(
 
 userRoute.use(new JWTAuthenticator().authenticate(new TokenCreator<IIdentification>(privateKey)));
 
-userRoute.use(express.json({ limit: '10mb' }));
+userRoute.use(express.json({ limit: '30mb' }));
 
 userRoute.route('/')
     .get(userController.get)
