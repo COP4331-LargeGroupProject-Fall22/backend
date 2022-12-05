@@ -29,6 +29,9 @@ export default class FavoriteRecipeController extends BaseUserController {
         let request = new AddRequestSchema(
             Number(req.body?.id),
             req.body?.name,
+            req.body?.cuisines,
+            req.body?.diets,
+            req.body?.mealTypes,
             new ImageSchema(req.body?.image?.srcUrl),
             req.body?.ingredients
         );
