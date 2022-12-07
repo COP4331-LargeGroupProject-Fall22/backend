@@ -68,7 +68,7 @@ export default class InventoryController extends BaseIngredientController {
             itemsWithExpirationDate.reverse();
         }
 
-        return Array.from([["itemsWithExpirationDate", itemsWithExpirationDate], ["itemsWithoutExpirationDate", itemsWithoutExpirationDate]]);
+        return Array.from([["itemsWithExpirationDate", itemsWithExpirationDate], ["Items without expiration date", itemsWithoutExpirationDate]]);
     }
 
     /**
