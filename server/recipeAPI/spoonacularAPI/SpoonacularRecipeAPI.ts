@@ -406,12 +406,17 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 quantityUnits: [ingredient.amount.metric.unit, ingredient.amount.us.unit],
                 quantity: {
                     unit: ingredient.amount.us.unit,
-                    value: ingredient.amount.us.value
+                    value: Number.isNaN(Number(ingredient.amount.us.value)) ?
+                    "some" : this.roundToTwoDecimalPlaces(Number(ingredient.amount.us.value)).toString()
                 }
             });
         });
 
         return quantityMap;
+    }
+
+    private roundToTwoDecimalPlaces(num: number): number {
+        return Math.round((num + Number.EPSILON) * 100) / 100
     }
 
     protected async parseIngredientsForRecipe(recipeObject: any): Promise<IIngredient[]> {

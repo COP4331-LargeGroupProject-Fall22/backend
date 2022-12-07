@@ -141,7 +141,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         try {
             response = await this.getRequest(converterBaseURL, searchParams);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject("Call was made to convertUnits. " + error);
         }
 
@@ -179,7 +179,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         try {
             response = await this.getRequest(searchIngredientsBaseURL, searchParameters);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject("Call was made to the getAllIngredients. " + error);
         }
 
@@ -208,16 +208,21 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     }
 
     private parseQuantity = async (data: any): Promise<IUnit> => {
-        let quantity: IUnit = { unit: "", value: "some  " };
+        let quantity: IUnit = { unit: "", value: "some" };
 
         if (data.amount !== undefined && data.unit !== undefined) {
             quantity = {
                 unit: data.unit,
-                value: data.amount
+                value: Number.isNaN(Number(data.amount)) ?
+                    "some" : this.roundToTwoDecimalPlaces(Number(data.amount)).toString()
             };
         }
 
         return quantity;
+    }
+
+    private roundToTwoDecimalPlaces(num: number): number {
+        return Math.round((num + Number.EPSILON) * 100) / 100
     }
 
     private parseImage = async (data: any): Promise<IImage> => {
@@ -337,7 +342,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
 
         try {
             response = await this.getRequest(getIngredientBaseURL, searchParameters);
-        } catch(error) {
+        } catch (error) {
             return Promise.reject("Call was made to the getIngredient. " + error);
         }
 
