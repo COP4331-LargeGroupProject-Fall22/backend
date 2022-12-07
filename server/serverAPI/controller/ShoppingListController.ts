@@ -78,7 +78,7 @@ export default class ShoppingListController extends BaseIngredientController {
         items.forEach(recipe => recipe[1].sort((a, b) => a.name.localeCompare(b.name)));
         itemsWithoutRecipeID.sort((a, b) => a.name.localeCompare(b.name));
 
-        items.push(["N/A", itemsWithoutRecipeID]);
+        items.push(["Others", itemsWithoutRecipeID]);
 
         if (isReverse) {
             items.reverse();
