@@ -63,11 +63,13 @@ export default class ShoppingListController extends BaseIngredientController {
                     recipeIdToNameMap.set(recipeIdAsString, item.recipeName!);
                 }
 
-                recipeMapById.get(item.recipeID.toString())?.push(item);
+                recipeMapById.get(recipeIdAsString)?.push(item);
             } else {
                 itemsWithoutRecipeID.push(item);
             }
         });
+
+        console.log(JSON.stringify(Array.from(recipeMapById)));
 
         let items: [string, IShoppingIngredient[]][] = [];
 

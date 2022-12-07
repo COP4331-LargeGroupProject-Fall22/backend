@@ -41,7 +41,7 @@ export default class AuthenticationController extends BaseUserController {
     protected verificationCodeLifetimeInMilliseconds = 5 * 60 * 1000;
     protected maxAttemptsPerVerificationCode = 3;
 
-    protected accessTokenTimeoutInSeconds = 15 * 60;
+    protected accessTokenTimeoutInSeconds = 24 * 60;
     protected refreshTokenTimeoutInSeconds = 24 * 60 * 60;
 
     protected minVerificationCode = 100000;
