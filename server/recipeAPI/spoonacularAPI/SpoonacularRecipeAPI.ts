@@ -455,7 +455,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 image: value.image,
                 nutrients: nutritionMap.get(key),
                 quantityUnits: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantityUnits : [],
-                quantity: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantity : { unit: "", value: "0" },
+                quantity: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantity : { unit: "", value: "some" },
                 price: costMap.has(value.name) ? costMap.get(value.name)!.price : { price: 0, currency: "US Cents" }
             });
         })

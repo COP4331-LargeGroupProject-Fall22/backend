@@ -98,12 +98,8 @@ export default class ShoppingListController extends BaseIngredientController {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Both recipeID and recipeName should be provided"));
         }
 
-        let quantity: string;
-        try {
-            quantity = Number.parseFloat(req.body?.quantity?.value).toString();
-        } catch (error) {
-            quantity = req.body?.quantity?.value;
-        }
+        let quantity = !Number.isNaN(Number(req.body?.quantity?.value)) ?
+            Number(req.body?.quantity?.value).toString() : req.body?.quantity?.value;
 
         let request = new AddRequestSchema(
             Number(req.body?.id),
@@ -290,6 +286,9 @@ export default class ShoppingListController extends BaseIngredientController {
         let amount = quantity;
 
         if (existingItem.quantity.unit !== quantity.unit) {
+            existingItem.quantity.unit = existingItem.quantity.unit.length === 0 ?
+                quantity.unit : existingItem.quantity.unit;
+
             let convertedUnit =
                 await this.foodAPI.ConvertUnits(
                     quantity,

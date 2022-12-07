@@ -208,7 +208,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     }
 
     private parseQuantity = async (data: any): Promise<IUnit> => {
-        let quantity: IUnit = { unit: "", value: "0" };
+        let quantity: IUnit = { unit: "", value: "some  " };
 
         if (data.amount !== undefined && data.unit !== undefined) {
             quantity = {
