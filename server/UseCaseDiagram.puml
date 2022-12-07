@@ -1,0 +1,153 @@
+@startuml
+skinparam handwritten true
+
+
+actor AuthorizedUser as AU
+actor UnauthorizedUser as UU
+
+actor Database as DB
+
+actor SpoonacularAPI as SAPI
+actor FreeImageAPI as FIAPI
+
+actor SendGridAPI as SGAPI
+
+package SmartChefAPI {
+    rectangle RecipeEndpoints {
+        usecase (GetAll) as REGetAll
+        usecase (Get) as REGet
+    }
+    
+    rectangle IngredientEndpoints {
+        usecase (GetAll) as IEGetAll
+        usecase (Get) as IEGet
+    }
+
+    rectangle AuthenticationEndpoints {
+        usecase (Login) as AELogin
+        usecase (Register) as AERegister
+        usecase (Logout) as AELogout
+        usecase (RequestPasswordReset) as AERequestPasswordReset
+        usecase (PerformPasswordReset) as AEPerformPasswordReset
+        usecase (RefreshJWT) as AERefreshJWT
+        usecase (SendVerificationCode) as AESendVerificationCode
+        usecase (ConfirmVerificationCode) as AEConfirmVerificationCode
+    }
+
+    rectangle UserEndpoints {
+        usecase (Get) as UEGet
+        usecase (Update) as UEUpdate 
+        usecase (Delete) as UEDelete
+    }
+
+    rectangle InventoryEndpoints {
+        usecase (GetAll) as INEGetAll
+        usecase (Get) as INEGet
+        usecase (Add) as INEAdd
+        usecase (Update) as INEUpdate
+        usecase (Delete) as INEDelete
+    }
+
+    rectangle ShoppingListEndpoints {
+        usecase (GetAll) as SLEGetAll
+        usecase (Get) as SLEGet
+        usecase (Add) as SLEAdd
+        usecase (Update) as SLEUpdate
+        usecase (Delete) as SLEDelete
+    }
+
+    rectangle AllergensEndpoints {
+        usecase (GetAll) as ALEGetAll
+        usecase (Get) as ALEGet
+        usecase (Add) as ALEAdd
+        usecase (Delete) as ALEDelete
+    }
+
+    rectangle FavoriteRecipesEndpoints {
+        usecase (GetAll) as FRGetAll
+        usecase (Get) as FRGet
+        usecase (Add) as FRAdd
+        usecase (Delete) as FRDelete
+    }
+
+    rectangle ProfilePictureEndpoints {
+        usecase (Get) as PPGet
+        usecase (Add) as PPAdd
+        usecase (Delete) as PPDelete
+    }
+}
+
+left to right direction
+
+UU --> REGetAll
+UU --> REGet
+
+UU --> IEGetAll
+UU --> IEGet
+
+UU --> AELogin
+UU --> AERegister
+UU --> AEConfirmVerificationCode
+UU --> AESendVerificationCode
+UU --> AERefreshJWT
+UU --> AERequestPasswordReset
+UU --> AEPerformPasswordReset
+
+AU ----> REGetAll
+AU ----> REGet
+
+AU ----> IEGetAll
+AU ----> IEGet
+
+AU ----> AELogout
+
+AU ----> UEGet
+AU ----> UEUpdate
+AU ----> UEDelete
+
+AU ----> INEAdd
+AU ----> INEGet
+AU ----> INEGetAll
+AU ----> INEDelete
+AU ----> INEUpdate
+
+AU ----> SLEAdd
+AU ----> SLEDelete
+AU ----> SLEGet
+AU ----> SLEGetAll
+AU ----> SLEUpdate
+
+AU ----> ALEAdd
+AU ----> ALEGetAll
+AU ----> ALEGet
+AU ----> ALEDelete
+
+AU ----> FRGet
+AU ----> FRDelete
+AU ----> FRGetAll
+AU ----> FRAdd
+
+AU ----> PPAdd
+AU ----> PPGet
+AU ----> PPDelete
+
+RecipeEndpoints --> SAPI
+
+IngredientEndpoints --> SAPI
+
+UserEndpoints --> DB
+
+InventoryEndpoints --> DB
+
+ShoppingListEndpoints --> DB
+
+AllergensEndpoints --> DB
+
+FavoriteRecipesEndpoints --> DB
+
+ProfilePictureEndpoints --> DB
+ProfilePictureEndpoints --> FIAPI
+
+AuthenticationEndpoints --> DB
+AuthenticationEndpoints --> SGAPI
+@enduml

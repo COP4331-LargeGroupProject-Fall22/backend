@@ -91,7 +91,7 @@ export default class ShoppingListController extends BaseIngredientController {
         let recipeIdExist = req.body?.recipeID !== undefined;
         let recipeNameExist = req.body?.recipeName !== undefined;
 
-        let recipeId: null | number = req.body?.recipeID !== undefined ? Number(req.body?.dateAdded) : null;
+        let recipeId: null | number = req.body?.recipeID !== undefined ? Number(req.body?.recipeID) : null;
         let recipeName: null | string = req.body?.recipeName !== undefined ? req.body?.recipeName : null;
 
         if (recipeIdExist !== recipeNameExist && !recipeIdExist !== !recipeNameExist) {

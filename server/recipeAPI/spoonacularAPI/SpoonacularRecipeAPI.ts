@@ -225,11 +225,11 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             ingredients: instruction.ingredients,
             instruction: instruction,
             instructionSteps: instructionSteps,
-            servings: recipeObject.servings,
-            preparationTimeInMinutes: recipeObject.preparationMinutes,
-            cookingTimeInMinutes: recipeObject.readyInMinutes,
-            totalCost: recipeObject.pricePerServing * recipeObject.servings,
-            costPerServing: recipeObject.pricePerServing
+            servings: Number(recipeObject.servings),
+            preparationTimeInMinutes: Number(recipeObject.preparationMinutes) < 0 ? 0 : Number(recipeObject.preparationMinutes),
+            cookingTimeInMinutes: Number(recipeObject.readyInMinutes) < 0 ? 0 : Number(recipeObject.readyInMinutes),
+            totalCost: Number(recipeObject.pricePerServing) * Number(recipeObject.servings),
+            costPerServing: Number(recipeObject.pricePerServing)
         };
     }
 
