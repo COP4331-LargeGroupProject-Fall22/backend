@@ -11,12 +11,12 @@ export default class UnitSchema extends Schema implements IUnit {
     @IsString()
     unit: string;
 
-    @IsType(['positiveNumber'])
-    value: number;
+    @IsType(['string'])
+    value: string;
     
     constructor(
         unit: string,
-        value: number
+        value: string
     ) {
         super();
 

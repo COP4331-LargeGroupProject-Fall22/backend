@@ -339,7 +339,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 name: nutrient.name,
                 unit: {
                     unit: nutrient.unit,
-                    value: Number(nutrient.amount)
+                    value: Number(nutrient.amount).toString()
                 },
                 percentOfDaily: Number(nutrient.percentOfDailyNeeds)
             });
@@ -406,12 +406,17 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 quantityUnits: [ingredient.amount.metric.unit, ingredient.amount.us.unit],
                 quantity: {
                     unit: ingredient.amount.us.unit,
-                    value: ingredient.amount.us.value
+                    value: Number.isNaN(Number(ingredient.amount.us.value)) ?
+                    "some" : this.roundToTwoDecimalPlaces(Number(ingredient.amount.us.value)).toString()
                 }
             });
         });
 
         return quantityMap;
+    }
+
+    private roundToTwoDecimalPlaces(num: number): number {
+        return Math.round((num + Number.EPSILON) * 100) / 100
     }
 
     protected async parseIngredientsForRecipe(recipeObject: any): Promise<IIngredient[]> {
@@ -455,7 +460,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 image: value.image,
                 nutrients: nutritionMap.get(key),
                 quantityUnits: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantityUnits : [],
-                quantity: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantity : { unit: "", value: 0 },
+                quantity: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantity : { unit: "", value: "some" },
                 price: costMap.has(value.name) ? costMap.get(value.name)!.price : { price: 0, currency: "US Cents" }
             });
         })
