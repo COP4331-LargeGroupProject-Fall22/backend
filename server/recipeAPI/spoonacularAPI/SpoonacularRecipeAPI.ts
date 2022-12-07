@@ -372,7 +372,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
         recipeObject.missedIngredients.forEach((ingredientObject: any) => {
             let id = ingredientObject.id;
             let name = ingredientObject.name;
-            let category = ingredientObject.aisle.toString().replaceAll(";", ",");
+            let category = String(ingredientObject.aisle).replaceAll(";", ",");
 
             ingredients.push({
                 id: id,
@@ -434,7 +434,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
                 {
                     id: ingredientObject.id,
                     name: ingredientObject.name,
-                    category: ingredientObject.aisle.toString().replaceAll(";", ","),
+                    category: String(ingredientObject.aisle).replaceAll(";", ","),
                     image: this.parseImage(ingredientObject.image)
                 }
             );
@@ -456,7 +456,7 @@ export default class SpoonacularRecipeAPI extends SpoonacularAPI implements IRec
             ingredients.push({
                 id: value.id,
                 name: value.name,
-                category: value.category.toString().replaceAll(";", ","),
+                category: String(value.category).replaceAll(";", ","),
                 image: value.image,
                 nutrients: nutritionMap.get(key),
                 quantityUnits: quantityMap.has(value.name) ? quantityMap.get(value.name)!.quantityUnits : [],

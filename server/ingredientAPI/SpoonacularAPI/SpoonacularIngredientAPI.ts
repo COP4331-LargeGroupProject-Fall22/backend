@@ -257,7 +257,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     private parseIngredient = async (data: any): Promise<IIngredient> => {
         let id = data.id;
         let name = data.name;
-        let category = data.aisle.toString().replaceAll(";", ",");
+        let category = String(data.aisle).replaceAll(";", ",");
         let quantityUnits = data.possibleUnits;
 
         return {
