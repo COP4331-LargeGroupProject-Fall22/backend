@@ -24,7 +24,7 @@ export default class AllergenController extends BaseIngredientController {
             Number(req.body?.id),
             req.body?.name,
             req.body?.category,
-            new ImageSchema(req.body?.image?.srcUrl)
+            new ImageSchema(req.body?.imageUrl)
         );
 
         return this.verifySchema(request, res);;
