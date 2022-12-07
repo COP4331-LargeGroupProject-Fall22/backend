@@ -25,8 +25,10 @@ export default class InventoryController extends BaseIngredientController {
         let expirationDate: null | number = req.body?.expirationDate !== undefined ?
             Number(req.body?.expirationDate) : null;
 
+        console.log(req.body);
         let request = new UpdateRequestSchema(expirationDate);
 
+        console.log(request);
         return this.verifySchema(request, res);
     }
 
