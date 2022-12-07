@@ -198,7 +198,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
                 name: nutrient.name,
                 unit: {
                     unit: nutrient.unit,
-                    value: Number(nutrient.amount)
+                    value: Number(nutrient.amount).toString()
                 },
                 percentOfDaily: Number(nutrient.percentOfDailyNeeds)
             });
@@ -208,7 +208,7 @@ export default class SpoonacularIngredientAPI extends SpoonacularAPI implements 
     }
 
     private parseQuantity = async (data: any): Promise<IUnit> => {
-        let quantity: IUnit = { unit: "", value: 0 };
+        let quantity: IUnit = { unit: "", value: "0" };
 
         if (data.amount !== undefined && data.unit !== undefined) {
             quantity = {

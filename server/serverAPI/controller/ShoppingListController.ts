@@ -98,12 +98,19 @@ export default class ShoppingListController extends BaseIngredientController {
             return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Both recipeID and recipeName should be provided"));
         }
 
+        let quantity: string;
+        try {
+            quantity = Number.parseFloat(req.body?.quantity?.value).toString();
+        } catch (error) {
+            quantity = req.body?.quantity?.value;
+        }
+
         let request = new AddRequestSchema(
             Number(req.body?.id),
             req.body?.name,
             req.body?.category,
             req.body?.quantityUnits,
-            new UnitSchema(req.body?.quantity?.unit, Number(req.body?.quantity?.value)),
+            new UnitSchema(req.body?.quantity?.unit, quantity),
             new ImageSchema(req.body?.image?.srcUrl),
             new PriceSchema(Number(req.body?.price), "US Cents"),
             Number(req.body?.dateAdded),
@@ -117,10 +124,17 @@ export default class ShoppingListController extends BaseIngredientController {
     }
 
     private async parseUpdateRequest(req: Request, res: Response): Promise<UpdateRequestSchema> {
+        let quantity: string;
+        try {
+            quantity = Number.parseFloat(req.body?.quantity?.value).toString();
+        } catch (error) {
+            return Promise.reject(this.send(ResponseCodes.BAD_REQUEST, res, "Value should be an integer."));
+        }
+
         let request = new UpdateRequestSchema(
             new UnitSchema(
                 req.body?.unit,
-                Number(req.body?.value)
+                quantity
             )
         );
 
@@ -139,9 +153,9 @@ export default class ShoppingListController extends BaseIngredientController {
         let sortByCategory = req.query.sortByCategory === 'true';
         let sortByLexicographicalOrder = req.query.sortByLexicographicalOrder === 'true';
         let sortByRecipe = req.query.sortByRecipe === 'true';
-        let sortByDate = req.query.sortByDate === 'true'; 
-        
-        let truthyCount = 
+        let sortByDate = req.query.sortByDate === 'true';
+
+        let truthyCount =
             Number(sortByCategory) + Number(sortByLexicographicalOrder) +
             Number(sortByRecipe) + Number(sortByDate);
 
@@ -290,7 +304,8 @@ export default class ShoppingListController extends BaseIngredientController {
             amount = convertedUnit;
         }
 
-        existingItem.quantity.value += amount.value;
+        existingItem.quantity.value = !Number.isNaN(Number(existingItem.quantity.value)) ?
+            Number(existingItem.quantity.value) + amount.value : amount.value;
 
         let updatedIngredient = await this.foodAPI.Get(new Map<string, any>([
             ["id", existingItem.id],
