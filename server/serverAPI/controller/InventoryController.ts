@@ -148,7 +148,7 @@ export default class InventoryController extends BaseIngredientController {
         user.inventory.push(parsedRequest);
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-        return this.send(ResponseCodes.CREATED, res, updatedUser.inventory);
+        return this.send(ResponseCodes.CREATED, res, this.convertResponse(updatedUser.inventory));
     }
 
     /**
@@ -212,7 +212,7 @@ export default class InventoryController extends BaseIngredientController {
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
 
-        return this.send(ResponseCodes.OK, res, updatedUser.inventory);
+        return this.send(ResponseCodes.OK, res, this.convertResponse(updatedUser.inventory));
     }
 
     /**
@@ -252,6 +252,6 @@ export default class InventoryController extends BaseIngredientController {
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
 
-        return this.send(ResponseCodes.OK, res, updatedUser.inventory);
+        return this.send(ResponseCodes.OK, res, this.convertResponse(updatedUser.inventory));
     }
 }

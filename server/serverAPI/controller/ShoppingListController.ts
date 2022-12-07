@@ -252,7 +252,7 @@ export default class ShoppingListController extends BaseIngredientController {
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
 
-        return this.send(ResponseCodes.CREATED, res, updatedUser.shoppingList);
+        return this.send(ResponseCodes.CREATED, res, this.convertResponse(updatedUser.shoppingList));
     }
 
     /**
@@ -362,7 +362,7 @@ export default class ShoppingListController extends BaseIngredientController {
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
 
-        return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
+        return this.send(ResponseCodes.OK, res, this.convertResponse(updatedUser.shoppingList));
     }
 
     /**
@@ -401,6 +401,6 @@ export default class ShoppingListController extends BaseIngredientController {
         user.shoppingList = shopingList;
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-        return this.send(ResponseCodes.OK, res, updatedUser.shoppingList);
+        return this.send(ResponseCodes.OK, res, this.convertResponse(updatedUser.shoppingList));
     }
 }

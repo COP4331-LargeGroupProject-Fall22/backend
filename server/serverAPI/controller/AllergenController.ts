@@ -99,7 +99,7 @@ export default class AllergenController extends BaseIngredientController {
         user.allergens.push(parsedRequest);
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res);
-        return this.send(ResponseCodes.CREATED, res, updatedUser.allergens);
+        return this.send(ResponseCodes.CREATED, res, this.convertResponse(updatedUser.allergens));
     }
 
     /**
@@ -165,6 +165,6 @@ export default class AllergenController extends BaseIngredientController {
         user.allergens = newAllergens;
 
         let updatedUser = await this.requestUpdate(req.serverUser.username, user, res)
-        return this.send(ResponseCodes.OK, res, updatedUser.allergens);
+        return this.send(ResponseCodes.OK, res, this.convertResponse(updatedUser.allergens));
     }
 }
